@@ -1,0 +1,3 @@
+[submodule "src/game-message-core"]
+	path = src/game-message-core
+	url = https://github.com/Meland-Inc/game-message-core
