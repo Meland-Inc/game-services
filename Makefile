@@ -8,24 +8,30 @@ all: help
 help:
 	@echo "Usage: make <command>"
 	@echo "The commands are:"
-	@echo "    binary		Build binaries"
-	@echo "    binary-linux	Build linux"	
-	@echo "    binary-windows	Build windows"	
-	@echo "    binary-darwin	Build mac"
-
+	@echo "    web3-message		down web3 Message"
+	@echo "    binary			Build binaries"
+	@echo "    binary-linux		Build linux"	
+	@echo "    binary-windows		Build windows"	
+	@echo "    binary-darwin		Build mac"
 
 
 .PHONY: binary
-binary: account 
+binary:  web3-message account
 
 .PHONY: binary-darwin
-binary: account-darwin 
+binary-darwin: web3-message account-darwin 
 
 .PHONY: binary-windows
-binary: account-windows 
+binary-windows: web3-message account-windows 
 
 .PHONY: binary-linux
-binary: account-linux 
+binary-linux: web3-message account-linux 
+
+
+#  download web3 dapr message 
+.PHONY: web3-message
+web3-message: 
+	@./scripts/down_web3_msg.sh
 
 
 
