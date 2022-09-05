@@ -5,7 +5,8 @@ import (
 	"io/ioutil"
 	"testing"
 
-	"github.com/Meland-Inc/meland-game3/src/bian/proto"
+	"game-message-core/proto"
+
 	shell "github.com/ipfs/go-ipfs-api"
 )
 
