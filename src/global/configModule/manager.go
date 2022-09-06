@@ -49,6 +49,7 @@ func Init() error {
 func (mgr *ConfigDataManager) registerLoadFunctions() {
 	mgr.loadFuncs = []LoadFunc{
 		LoadFunc{"task", mgr.initTask},
+		LoadFunc{"taskList", mgr.initTaskList},
 	}
 }
 
