@@ -28,6 +28,7 @@ type ConfigDataManager struct {
 	taskListCnf map[int32]*xlsxTable.TaskListTableRow
 	roleLvCnf   map[int32]*xlsxTable.RoleLvTableRow
 	slotLvCnf   map[int32][]*xlsxTable.SlotLvTableRow
+	rewardCnf   map[int32]*xlsxTable.RewardTableRow
 }
 
 func Init() error {
@@ -54,6 +55,7 @@ func (mgr *ConfigDataManager) registerLoadFunctions() {
 		LoadFunc{"taskList", mgr.initTaskList},
 		LoadFunc{"roleLv", mgr.initRoleLv},
 		LoadFunc{"slotLv", mgr.initSlotLv},
+		LoadFunc{"reward", mgr.initReward},
 	}
 }
 
