@@ -7,9 +7,11 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/Meland-Inc/game-services/src/common/daprInvoke"
 	"github.com/Meland-Inc/game-services/src/common/serviceLog"
 	"github.com/Meland-Inc/game-services/src/global/configModule"
 	demoServiceConfig "github.com/Meland-Inc/game-services/src/services/demo/config"
+	daprService "github.com/Meland-Inc/game-services/src/services/demo/dapr"
 )
 
 type Service struct {
@@ -35,9 +37,15 @@ func (s *Service) OnInit() error {
 	s.stopChan = make(chan chan struct{})
 	serviceLog.Init(int64(s.ServiceId), true)
 
-	demoServiceConfig.GetInstance().Init()
+	if err := demoServiceConfig.GetInstance().Init(); err != nil {
+		return err
+	}
 
 	if err := configModule.Init(); err != nil {
+		return err
+	}
+
+	if err := daprService.Init(); err != nil {
 		return err
 	}
 
@@ -48,6 +56,7 @@ func (s *Service) OnStart() error {
 	fmt.Println("this is demo ------- OnStart() ----------")
 	return nil
 }
+
 func (s *Service) OnExit() {
 	fmt.Println("this is demo ------- OnExit() ----------")
 	close(s.stopChan)
@@ -69,21 +78,31 @@ func (s *Service) onReceivedOsSignal(si os.Signal) {
 
 func (s *Service) Run() {
 	fmt.Println("this is demo ------- Run() ----------")
-	t := time.NewTicker(1 * time.Second)
 
-	for {
+	errChan := make(chan error)
+	go func() {
+		errChan <- daprInvoke.Start()
+	}()
 
-		select {
-		case <-t.C:
-			// num = s.Tick(timeHelper.NowMill())
+	go func() {
+		t := time.NewTicker(1 * time.Second)
 
-		case stopFinished := <-s.stopChan:
-			s.OnExit()
-			stopFinished <- struct{}{}
-			return
+		for {
 
-		case si := <-s.osSignal:
-			s.onReceivedOsSignal(si)
+			select {
+			case <-t.C:
+				// num = s.Tick(timeHelper.NowMill())
+
+			case stopFinished := <-s.stopChan:
+				s.OnExit()
+				stopFinished <- struct{}{}
+				return
+
+			case si := <-s.osSignal:
+				s.onReceivedOsSignal(si)
+			}
 		}
-	}
+	}()
+
+	<-errChan
 }
