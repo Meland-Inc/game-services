@@ -15,9 +15,6 @@ import (
 )
 
 type Service struct {
-	ServiceId int32
-	Name      string
-
 	osSignal chan os.Signal
 	stopChan chan chan struct{}
 }
@@ -32,10 +29,8 @@ func (s *Service) OnInit() error {
 
 	fmt.Println("this is demo ------- OnInit() ----------")
 
-	s.Name = "demo-service"
-	s.ServiceId = 301
 	s.stopChan = make(chan chan struct{})
-	serviceLog.Init(int64(s.ServiceId), true)
+	serviceLog.Init(demoServiceConfig.GetInstance().ServerId, true)
 
 	if err := demoServiceConfig.GetInstance().Init(); err != nil {
 		return err
@@ -63,19 +58,6 @@ func (s *Service) OnExit() {
 	close(s.osSignal)
 }
 
-func (s *Service) onReceivedOsSignal(si os.Signal) {
-	switch si {
-	case syscall.SIGQUIT, syscall.SIGTERM, syscall.SIGINT:
-		serviceLog.Info("service[%v], received signal [%v]", s.Name, si)
-		stopDone := make(chan struct{}, 1)
-		s.stopChan <- stopDone
-		<-stopDone
-
-	default:
-		serviceLog.Info("close gameServer si[%v]", si)
-	}
-}
-
 func (s *Service) Run() {
 	fmt.Println("this is demo ------- Run() ----------")
 
@@ -100,9 +82,23 @@ func (s *Service) Run() {
 
 			case si := <-s.osSignal:
 				s.onReceivedOsSignal(si)
+				errChan <- fmt.Errorf("stop service by os signal")
+				return
 			}
 		}
 	}()
 
-	<-errChan
+	err := <-errChan
+	serviceLog.Error(err.Error())
+	serviceLog.Info("manager service  run ------- end ----------")
+}
+
+func (s *Service) onReceivedOsSignal(si os.Signal) {
+	switch si {
+	case syscall.SIGQUIT, syscall.SIGTERM, syscall.SIGINT:
+		serviceLog.Info("service[%v], received signal [%v]", demoServiceConfig.GetInstance().ServerId, si)
+		s.OnExit()
+	default:
+		serviceLog.Info("close gameServer si[%v]", si)
+	}
 }
