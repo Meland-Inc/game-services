@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/Meland-Inc/game-services/src/common/serviceLog"
-	"github.com/Meland-Inc/game-services/src/global/configModule"
+	"github.com/Meland-Inc/game-services/src/global/configData"
 	demoServiceConfig "github.com/Meland-Inc/game-services/src/services/demo/config"
 )
 
@@ -37,7 +37,7 @@ func (s *Service) OnInit() error {
 
 	demoServiceConfig.GetInstance().Init()
 
-	if err := configModule.Init(); err != nil {
+	if err := configData.Init(); err != nil {
 		return err
 	}
 

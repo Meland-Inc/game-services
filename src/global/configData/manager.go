@@ -1,4 +1,4 @@
-package configModule
+package configData
 
 import (
 	"fmt"
