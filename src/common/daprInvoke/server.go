@@ -37,3 +37,4 @@ func AddTopicEventHandler(topic string,
 func Start() error {
 	return server.Start()
 }
+
