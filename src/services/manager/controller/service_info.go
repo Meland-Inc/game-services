@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"game-message-core/jsonData"
 	"game-message-core/proto"
 
 	"github.com/Meland-Inc/game-services/src/common/serviceLog"
@@ -10,21 +9,35 @@ import (
 
 const ServiceTimeoutMs int64 = 1000 * 10 // 10 seconds is services timeout
 
+type ServiceData struct {
+	Id          int64             `json:"id"`
+	Name        string            `json:"name"`
+	AppId       string            `json:"appId"`
+	ServiceType proto.ServiceType `json:"serviceType"`
+	Host        string            `json:"host"`
+	Port        int32             `json:"port"`
+	MapId       int32             `json:"mapId"`
+	Online      int32             `json:"online"`
+	MaxOnline   int32             `json:"maxOnline"`
+	CreatedAt   int64             `json:"createdAt"`
+	UpdatedAt   int64             `json:"updatedAt"`
+}
+
 type ServiceRecord struct {
-	ServiceType  proto.ServiceType              `json:"serviceType"`
-	Services     map[int64]jsonData.ServiceData `json:"services"`
-	statusRecord *ServiceStatusRecord           `json:"-"`
+	ServiceType  proto.ServiceType     `json:"serviceType"`
+	Services     map[int64]ServiceData `json:"services"`
+	statusRecord *ServiceStatusRecord  `json:"-"`
 }
 
 func NewServiceRecord(serviceType proto.ServiceType) *ServiceRecord {
 	return &ServiceRecord{
 		ServiceType:  serviceType,
-		Services:     make(map[int64]jsonData.ServiceData),
+		Services:     make(map[int64]ServiceData),
 		statusRecord: NewServiceStatusRecord(),
 	}
 }
 
-func (sr *ServiceRecord) checkAlive(s jsonData.ServiceData) bool {
+func (sr *ServiceRecord) checkAlive(s ServiceData) bool {
 	nowMs := time_helper.NowUTCMill()
 	return nowMs < s.UpdatedAt+ServiceTimeoutMs
 }
@@ -34,7 +47,7 @@ func (sr *ServiceRecord) RemoveServiceRecord(serviceId int64) {
 	sr.statusRecord.RemoveServiceStatusRecord(serviceId)
 }
 
-func (sr *ServiceRecord) AddServiceRecord(service jsonData.ServiceData) bool {
+func (sr *ServiceRecord) AddServiceRecord(service ServiceData) bool {
 	if _, exist := sr.Services[service.Id]; exist {
 		return false
 	}
@@ -43,17 +56,17 @@ func (sr *ServiceRecord) AddServiceRecord(service jsonData.ServiceData) bool {
 	return true
 }
 
-func (sr *ServiceRecord) UpdateOrAddServiceRecord(service jsonData.ServiceData) {
+func (sr *ServiceRecord) UpdateOrAddServiceRecord(service ServiceData) {
 	sr.Services[service.Id] = service
 	sr.statusRecord.AddServiceStatusRecord(service.Id, service.Online, service.MaxOnline)
 }
 
-func (sr *ServiceRecord) GetAliveService() (s *jsonData.ServiceData, exist bool) {
+func (sr *ServiceRecord) GetAliveService() (s *ServiceData, exist bool) {
 	if len(sr.Services) == 0 {
 		return nil, false
 	}
 
-	findF := func(serIds []int64) (*jsonData.ServiceData, bool) {
+	findF := func(serIds []int64) (*ServiceData, bool) {
 		for _, sId := range serIds {
 			service, ok := sr.Services[sId]
 			if !ok {

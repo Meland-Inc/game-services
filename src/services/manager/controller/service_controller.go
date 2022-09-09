@@ -1,7 +1,7 @@
 package controller
 
 import (
-	"game-message-core/jsonData"
+
 	"game-message-core/proto"
 	"sync"
 
@@ -40,7 +40,7 @@ func (this *ServiceController) serviceRecordByType(sType proto.ServiceType) (*Se
 	return record, true
 }
 
-func (this *ServiceController) RegisterService(service jsonData.ServiceData) {
+func (this *ServiceController) RegisterService(service ServiceData) {
 	if service.UpdatedAt == 0 {
 		service.UpdatedAt = time_helper.NowUTCMill()
 	}
@@ -56,7 +56,7 @@ func (this *ServiceController) RegisterService(service jsonData.ServiceData) {
 	record.UpdateOrAddServiceRecord(service)
 }
 
-func (this *ServiceController) DestroyService(service jsonData.ServiceData) {
+func (this *ServiceController) DestroyService(service ServiceData) {
 	record, ok := this.serviceRecordByType(service.ServiceType)
 	if !ok {
 		return
@@ -64,7 +64,7 @@ func (this *ServiceController) DestroyService(service jsonData.ServiceData) {
 	record.RemoveServiceRecord(service.Id)
 }
 
-func (this *ServiceController) GetAliveServiceByType(sType proto.ServiceType) (*jsonData.ServiceData, bool) {
+func (this *ServiceController) GetAliveServiceByType(sType proto.ServiceType) (*ServiceData, bool) {
 	record, ok := this.serviceRecordByType(sType)
 	if !ok {
 		return nil, false
@@ -72,7 +72,7 @@ func (this *ServiceController) GetAliveServiceByType(sType proto.ServiceType) (*
 	return record.GetAliveService()
 }
 
-func (this *ServiceController) AllServices() (services []jsonData.ServiceData) {
+func (this *ServiceController) AllServices() (services []ServiceData) {
 	this.controller.Range(func(key, value interface{}) bool {
 		if record, ok := value.(*ServiceRecord); ok {
 			for _, s := range record.Services {
