@@ -29,7 +29,6 @@ func (s *Service) OnInit() error {
 	if err := mgrSerCnf.GetInstance().Init(); err != nil {
 		return err
 	}
-	fmt.Println(mgrSerCnf.GetInstance().ServerId)
 	serviceLog.Init(mgrSerCnf.GetInstance().ServerId, true)
 	signal.Notify(s.osSignal, syscall.SIGHUP, syscall.SIGQUIT, syscall.SIGTERM, syscall.SIGINT)
 	fmt.Println("manager service init ------- end ----------")

@@ -17,6 +17,10 @@
                 "MELAND_CONFIG_DB_PASS": "123456",
                 "MELAND_CONFIG_DB_PORT": "3306",
                 "MELAND_CONFIG_DB_DATABASE": "meland_cnf_dev",
+                "MELAND_SERVICE_MGR_DAPR_APPID": "meland_manager_service",
+                "MELAND_SERVICE_MGR_DAPR_APP_PORT": "5100",
+                "MELAND_SERVICE_MGR_DAPR_GRPC_PORT": "5150",
+                "MELAND_SERVICE_MGR_HTTP_PORT": "5180",
             },
             // go 启动参数配置
             "args": [],

@@ -22,7 +22,10 @@ func Init() (err error) {
 }
 
 func initDaprClient() error {
-	grpcPort := os.Getenv("DAPR_GRPC_PORT")
+	grpcPort := os.Getenv("MELAND_SERVICE_MGR_DAPR_GRPC_PORT")
+	if grpcPort == "" {
+		grpcPort = os.Getenv("DAPR_GRPC_PORT")
+	}
 	serviceLog.Info("dapr grpc port: [%s]", grpcPort)
 	return daprInvoke.InitClient(grpcPort)
 }
