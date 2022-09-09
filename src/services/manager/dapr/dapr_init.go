@@ -45,3 +45,11 @@ func initDaprService() (err error) {
 	}
 	return err
 }
+
+func Run() error {
+	return daprInvoke.Start()
+}
+
+func Stop() {
+	daprInvoke.Stop()
+}

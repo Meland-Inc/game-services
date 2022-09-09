@@ -4,10 +4,11 @@ import (
 	"game-message-core/jsonData"
 	"game-message-core/proto"
 
+	"github.com/Meland-Inc/game-services/src/common/serviceLog"
 	"github.com/Meland-Inc/game-services/src/common/time_helper"
 )
 
-const ServiceTimeoutMs int64 = 1000 * 5 // 5 seconds is services timeout
+const ServiceTimeoutMs int64 = 1000 * 10 // 10 seconds is services timeout
 
 type ServiceRecord struct {
 	ServiceType  proto.ServiceType              `json:"serviceType"`
@@ -59,6 +60,7 @@ func (sr *ServiceRecord) GetAliveService() (s *jsonData.ServiceData, exist bool)
 				continue
 			}
 			if !sr.checkAlive(service) {
+				serviceLog.Info("remove time service [%v][%v]", service.AppId, service.ServiceType)
 				sr.RemoveServiceRecord(sId)
 				continue
 			}
