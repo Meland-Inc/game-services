@@ -17,7 +17,7 @@ func PingHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func AgentServiceHandler(w http.ResponseWriter, r *http.Request) {
-	service, exist := controller.GetInstance().GetAliveServiceByType(proto.ServiceType_ServiceTypeGateway)
+	service, exist := controller.GetInstance().GetAliveServiceByType(proto.ServiceType_ServiceTypeAgent)
 	resp := httpData.AgentServiceResp{}
 	if !exist {
 		resp.ErrorCode = 6000 // TODO: need use global error code
