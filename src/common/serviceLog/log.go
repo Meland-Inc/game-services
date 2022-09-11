@@ -14,7 +14,7 @@ func Init(nodeId int64, isConsole bool) {
 	fpath := fmt.Sprintf("logs/%d", nodeId)
 	filename := fpath + "/" + time.Now().Add(time.Second).Local().String()[0:10] + ".log"
 	SetWriteFile(filename, isConsole)
-	Info("services log init success")
+	Info("services log init success, filePath: %s", filename)
 }
 
 // Emergency logs a message at emergency level.

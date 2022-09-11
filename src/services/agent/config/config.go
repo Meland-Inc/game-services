@@ -32,16 +32,16 @@ type ServiceConfig struct {
 }
 
 func (sc *ServiceConfig) Init() error {
-	nodeIdStr := os.Getenv("MELAND_SERVICE_MGR_NODE_ID")
+	nodeIdStr := os.Getenv("MELAND_SERVICE_AGENT_NODE_ID")
 	nodeId, err := strconv.ParseInt(nodeIdStr, 10, 64)
 	if err != nil || nodeId == 0 {
 		return fmt.Errorf("invalid service id [%v], err: %v", nodeIdStr, err)
 	}
 
-	sc.ServiceType = proto.ServiceType_ServiceTypeManager
+	sc.ServiceType = proto.ServiceType_ServiceTypeAgent
 	sc.ServerId = nodeId
 	sc.StartMs = time_helper.NowUTCMill()
-	sc.ServerName = os.Getenv("MELAND_SERVICE_MGR_DAPR_APPID")
+	sc.ServerName = os.Getenv("MELAND_SERVICE_AGENT_DAPR_APPID")
 	if sc.ServerName == "" {
 		return fmt.Errorf("server app id is empty")
 	}
@@ -50,5 +50,6 @@ func (sc *ServiceConfig) Init() error {
 		"serviceId [%d],  serviceName [%s],  serviceType [%v]",
 		sc.ServerId, sc.ServerName, sc.ServiceType,
 	)
+
 	return nil
 }
