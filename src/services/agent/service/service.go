@@ -15,7 +15,7 @@ type Service struct {
 	stopChan   chan chan struct{}
 }
 
-func NewDemoService() *Service {
+func NewAgentService() *Service {
 	s := &Service{
 		osSignal: make(chan os.Signal, 1),
 		stopChan: make(chan chan struct{}, 1),

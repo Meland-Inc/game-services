@@ -10,8 +10,7 @@ import (
 	"github.com/Meland-Inc/game-services/src/common/serviceLog"
 	"github.com/Meland-Inc/game-services/src/common/time_helper"
 	"github.com/Meland-Inc/game-services/src/global/serviceCnf"
-
-	daprService "github.com/Meland-Inc/game-services/src/services/agent/dapr"
+	demoDaprService "github.com/Meland-Inc/game-services/src/services/demo/dapr"
 	"github.com/spf13/cast"
 )
 
@@ -21,11 +20,8 @@ func (s *Service) init() error {
 	}
 	serviceLog.Init(s.serviceCnf.ServerId, true)
 	s.initOsSignal()
-	if err := s.initDapr(); err != nil {
-		return err
-	}
 
-	return nil
+	return s.initServiceModels()
 }
 
 func (s *Service) initServiceCnf() error {
@@ -60,6 +56,18 @@ func (s *Service) initServiceCnf() error {
 	return nil
 }
 
+func (s *Service) initServiceModels() error {
+	// if err := s.modelMgr.AddModel(model); err != nil {
+	// 	serviceLog.Error("init model XXX fail,err: %v", err)
+	// 	return err
+	// }
+
+	if err := s.initDapr(); err != nil {
+		return err
+	}
+	return nil
+}
+
 func (s *Service) initOsSignal() {
 	signal.Notify(s.osSignal,
 		syscall.SIGHUP, syscall.SIGQUIT, syscall.SIGTERM, syscall.SIGINT,
@@ -68,7 +76,7 @@ func (s *Service) initOsSignal() {
 }
 
 func (s *Service) initDapr() error {
-	if err := daprService.Init(); err != nil {
+	if err := demoDaprService.Init(); err != nil {
 		serviceLog.Error("dapr init fail err:%v", err)
 		return err
 	}
