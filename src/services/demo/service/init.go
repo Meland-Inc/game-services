@@ -7,11 +7,13 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/spf13/cast"
+
 	"github.com/Meland-Inc/game-services/src/common/serviceLog"
 	"github.com/Meland-Inc/game-services/src/common/time_helper"
 	"github.com/Meland-Inc/game-services/src/global/serviceCnf"
 	demoDaprService "github.com/Meland-Inc/game-services/src/services/demo/dapr"
-	"github.com/spf13/cast"
+	demoHeart "github.com/Meland-Inc/game-services/src/services/demo/heart"
 )
 
 func (s *Service) init() error {
@@ -28,21 +30,18 @@ func (s *Service) initServiceCnf() error {
 	sc := serviceCnf.GetInstance()
 	s.serviceCnf = sc
 
-	sc.ServerId = cast.ToInt64(os.Getenv("MELAND_SERVICE_AGENT_NODE_ID"))
+	sc.ServerId = cast.ToInt64(os.Getenv("MELAND_SERVICE_DEMO_NODE_ID"))
 	sc.ServiceType = proto.ServiceType_ServiceTypeAgent
 	sc.StartMs = time_helper.NowUTCMill()
-	sc.ServerName = os.Getenv("MELAND_SERVICE_AGENT_DAPR_APPID")
-	sc.Host = os.Getenv("MELAND_SERVICE_AGENT_SOCKET_HOST")
-	sc.Port = cast.ToInt32(os.Getenv("MELAND_SERVICE_AGENT_SOCKET_PORT"))
-	sc.MaxOnline = cast.ToInt32(os.Getenv("MELAND_SERVICE_AGENT_ONLINE_LIMIT"))
+	sc.ServerName = os.Getenv("MELAND_SERVICE_DEMO_DAPR_APPID")
+	sc.Host = os.Getenv("MELAND_SERVICE_DEMO_SOCKET_HOST")
+	sc.Port = cast.ToInt32(os.Getenv("MELAND_SERVICE_DEMO_SOCKET_PORT"))
+	sc.MaxOnline = cast.ToInt32(os.Getenv("MELAND_SERVICE_DEMO_ONLINE_LIMIT"))
 	if sc.MaxOnline == 0 {
 		sc.MaxOnline = 5000
 	}
 
-	fmt.Println(fmt.Sprintf(
-		"serviceId:[%d], serviceName:[%s], serviceType:[%v], Socket:[%s:%d], maxOnline:[%d]",
-		sc.ServerId, sc.ServerName, sc.ServiceType, sc.Host, sc.Port, sc.MaxOnline,
-	))
+	fmt.Println(fmt.Sprintf("serviceCnf: [%+v]", sc))
 
 	if sc.ServerId == 0 {
 		return fmt.Errorf("invalid serviceId [%v]", sc.ServerId)
@@ -57,15 +56,23 @@ func (s *Service) initServiceCnf() error {
 }
 
 func (s *Service) initServiceModels() error {
-	// if err := s.modelMgr.AddModel(model); err != nil {
-	// 	serviceLog.Error("init model XXX fail,err: %v", err)
-	// 	return err
-	// }
+	if err := s.initHeartModel(); err != nil {
+		return err
+	}
 
 	if err := s.initDapr(); err != nil {
 		return err
 	}
 	return nil
+}
+
+func (s *Service) initHeartModel() error {
+	heartModel := demoHeart.NewDemoHeart(s.serviceCnf)
+	err := s.modelMgr.AddModel(heartModel)
+	if err != nil {
+		serviceLog.Error("init agent heart model fail, err: %v", err)
+	}
+	return err
 }
 
 func (s *Service) initOsSignal() {

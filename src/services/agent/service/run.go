@@ -30,7 +30,7 @@ func (s *Service) run() {
 	}()
 
 	go func() {
-		t := time.NewTicker(1 * time.Second)
+		t := time.NewTicker(100 * time.Millisecond)
 
 		for {
 			select {

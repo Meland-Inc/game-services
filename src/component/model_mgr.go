@@ -10,13 +10,13 @@ func GetInstance() *ModelManager {
 
 type ModelManager struct {
 	appInter application.AppInterface
-	models   map[string]Model
+	models   map[string]ModelInterface
 }
 
 func InitModelManager(app application.AppInterface) *ModelManager {
 	mgrInstance = &ModelManager{
 		appInter: app,
-		models:   make(map[string]Model),
+		models:   make(map[string]ModelInterface),
 	}
 	return mgrInstance
 }
@@ -25,14 +25,17 @@ func (mgr *ModelManager) GetApplication() application.AppInterface {
 	return mgr.appInter
 }
 
-func (mgr *ModelManager) GetModel(modelName string) (Model, bool) {
+func (mgr *ModelManager) GetModel(modelName string) (ModelInterface, bool) {
 	m, exist := mgr.models[modelName]
 	return m, exist
 }
 
-func (mgr *ModelManager) AddModel(model Model) error {
+func (mgr *ModelManager) AddModel(model ModelInterface) error {
+	if err := model.OnInit(mgr); err != nil {
+		return err
+	}
 	mgr.models[model.Name()] = model
-	return model.OnInit(mgr)
+	return nil
 }
 
 func (mgr *ModelManager) StartModel() error {
