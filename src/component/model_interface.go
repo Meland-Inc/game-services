@@ -1,6 +1,6 @@
 package component
 
-type Model interface {
+type ModelInterface interface {
 	Name() string
 	ModelMgr() *ModelManager
 	OnInit(modelMgr *ModelManager) error

@@ -7,12 +7,13 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/spf13/cast"
+
 	"github.com/Meland-Inc/game-services/src/common/serviceLog"
 	"github.com/Meland-Inc/game-services/src/common/time_helper"
 	"github.com/Meland-Inc/game-services/src/global/serviceCnf"
 	agentDaprService "github.com/Meland-Inc/game-services/src/services/agent/dapr"
-
-	"github.com/spf13/cast"
+	agentHeart "github.com/Meland-Inc/game-services/src/services/agent/heart"
 )
 
 func (s *Service) init() error {
@@ -58,15 +59,23 @@ func (s *Service) initServiceCnf() error {
 }
 
 func (s *Service) initServiceModels() error {
-	// if err := s.modelMgr.AddModel(model); err != nil {
-	// 	serviceLog.Error("init model XXX fail,err: %v", err)
-	// 	return err
-	// }
+	if err := s.initHeartModel(); err != nil {
+		return err
+	}
 
 	if err := s.initDapr(); err != nil {
 		return err
 	}
 	return nil
+}
+
+func (s *Service) initHeartModel() error {
+	heartModel := agentHeart.NewAgentHeart(s.serviceCnf)
+	err := s.modelMgr.AddModel(heartModel)
+	if err != nil {
+		serviceLog.Error("init agent heart model fail, err: %v", err)
+	}
+	return err
 }
 
 func (s *Service) initOsSignal() {
