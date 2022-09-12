@@ -22,7 +22,7 @@ func Init() (err error) {
 }
 
 func initDaprClient() error {
-	grpcPort := "5700"
+	grpcPort := os.Getenv("MELAND_SERVICE_DEMO_DAPR_GRPC_PORT")
 	if grpcPort == "" {
 		grpcPort = os.Getenv("DAPR_GRPC_PORT")
 	}
@@ -31,7 +31,7 @@ func initDaprClient() error {
 }
 
 func initDaprService() (err error) {
-	appPort := "5770"
+	appPort := os.Getenv("MELAND_SERVICE_DEMO_DAPR_APP_PORT")
 	serviceLog.Info("dapr app port: [%s]", appPort)
 	if err = daprInvoke.InitServer(appPort); err != nil {
 		return err
@@ -44,12 +44,4 @@ func initDaprService() (err error) {
 		return err
 	}
 	return err
-}
-
-func Run() error {
-	return daprInvoke.Start()
-}
-
-func Stop() {
-	daprInvoke.Stop()
 }

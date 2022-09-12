@@ -1,40 +1,37 @@
-package config
+package service
 
 import (
 	"fmt"
 	"game-message-core/proto"
 	"os"
+	"os/signal"
+	"syscall"
 
 	"github.com/Meland-Inc/game-services/src/common/serviceLog"
 	"github.com/Meland-Inc/game-services/src/common/time_helper"
+	"github.com/Meland-Inc/game-services/src/global/serviceCnf"
+
+	daprService "github.com/Meland-Inc/game-services/src/services/agent/dapr"
 	"github.com/spf13/cast"
 )
 
-var instance *ServiceConfig
-
-func GetInstance() *ServiceConfig {
-	if instance == nil {
-		NewServiceConfig()
+func (s *Service) init() error {
+	if err := s.initServiceCnf(); err != nil {
+		return err
 	}
-	return instance
+	serviceLog.Init(s.serviceCnf.ServerId, true)
+	s.initOsSignal()
+	if err := s.initDapr(); err != nil {
+		return err
+	}
+
+	return nil
 }
 
-func NewServiceConfig() *ServiceConfig {
-	instance = &ServiceConfig{}
-	return instance
-}
+func (s *Service) initServiceCnf() error {
+	sc := serviceCnf.GetInstance()
+	s.serviceCnf = sc
 
-type ServiceConfig struct {
-	ServerId    int64
-	ServerName  string
-	ServiceType proto.ServiceType
-	Host        string
-	Port        int32
-	MaxOnline   int32
-	StartMs     int64 // 开服时间
-}
-
-func (sc *ServiceConfig) Init() error {
 	sc.ServerId = cast.ToInt64(os.Getenv("MELAND_SERVICE_AGENT_NODE_ID"))
 	sc.ServiceType = proto.ServiceType_ServiceTypeAgent
 	sc.StartMs = time_helper.NowUTCMill()
@@ -46,10 +43,10 @@ func (sc *ServiceConfig) Init() error {
 		sc.MaxOnline = 5000
 	}
 
-	serviceLog.Info(
+	fmt.Println(fmt.Sprintf(
 		"serviceId:[%d], serviceName:[%s], serviceType:[%v], Socket:[%s:%d], maxOnline:[%d]",
 		sc.ServerId, sc.ServerName, sc.ServiceType, sc.Host, sc.Port, sc.MaxOnline,
-	)
+	))
 
 	if sc.ServerId == 0 {
 		return fmt.Errorf("invalid serviceId [%v]", sc.ServerId)
@@ -59,6 +56,21 @@ func (sc *ServiceConfig) Init() error {
 	}
 	if sc.Port == 0 || sc.Host == "" {
 		return fmt.Errorf("invalid socket data, host[%v], port[%v]", sc.Host, sc.Port)
+	}
+	return nil
+}
+
+func (s *Service) initOsSignal() {
+	signal.Notify(s.osSignal,
+		syscall.SIGHUP, syscall.SIGQUIT, syscall.SIGTERM, syscall.SIGINT,
+		syscall.SIGABRT, syscall.SIGUSR1, syscall.SIGUSR2,
+	)
+}
+
+func (s *Service) initDapr() error {
+	if err := daprService.Init(); err != nil {
+		serviceLog.Error("dapr init fail err:%v", err)
+		return err
 	}
 	return nil
 }

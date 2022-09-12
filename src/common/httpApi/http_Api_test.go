@@ -1,14 +1,10 @@
 package util
 
 import (
-	"encoding/json"
 	"testing"
-	"time"
-
 )
 
 func Test_HttpPublicApi(t *testing.T) {
-	
 
 	// {"Id":"149095152676290618","AccountId":715248,"RoleId":1001,"Name":"*只见花开","Gender":"male","RoleIcon":"icon_headPortrait_1",
 	// 	"Feature":"{\"hair\":101002,\"clothes\":102002,\"glove\":105000,\"pants\":103001,\"face\":100003,\"shoes\":104003}",

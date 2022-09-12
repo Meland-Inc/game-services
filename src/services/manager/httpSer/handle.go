@@ -17,6 +17,7 @@ func PingHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func AgentServiceHandler(w http.ResponseWriter, r *http.Request) {
+	serviceLog.Info("received get agentService remote addr:  %s", r.RemoteAddr)
 	service, exist := controller.GetInstance().GetAliveServiceByType(proto.ServiceType_ServiceTypeAgent)
 	resp := httpData.AgentServiceResp{}
 	if !exist {
@@ -29,17 +30,22 @@ func AgentServiceHandler(w http.ResponseWriter, r *http.Request) {
 		resp.MaxOnline = service.MaxOnline
 		resp.CreatedAt = service.CreatedAt
 	}
+	serviceLog.Info("received get agentService response: %+v ", resp)
 	byteArr, err := json.Marshal(resp)
 	if err != nil {
 		serviceLog.Error("get agent service marshal err: %v", err)
+		w.WriteHeader(401)
 	}
 	w.Write(byteArr)
 }
 func AllServicesHandler(w http.ResponseWriter, r *http.Request) {
 	services := controller.GetInstance().AllServices()
+	serviceLog.Info("received get serviceList remote addr: %v, resp: %+v", r.RemoteAddr, services)
 	byteArr, err := json.Marshal(services)
 	if err != nil {
-		serviceLog.Error("get agent service marshal err: %v", err)
+		serviceLog.Error("get all service marshal err: %v", err)
+		w.WriteHeader(401)
+		return
 	}
 	w.Write(byteArr)
 }
