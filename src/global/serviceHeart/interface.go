@@ -1,6 +1,6 @@
 package serviceHeart
 
-import "github.com/Meland-Inc/game-services/src/component"
+import "github.com/Meland-Inc/game-services/src/global/component"
 
 type ServiceHeartInterface interface {
 	component.ModelInterface

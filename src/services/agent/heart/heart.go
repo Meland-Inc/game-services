@@ -1,7 +1,7 @@
 package agentHeart
 
 import (
-	"github.com/Meland-Inc/game-services/src/component"
+	"github.com/Meland-Inc/game-services/src/global/component"
 	"github.com/Meland-Inc/game-services/src/global/serviceCnf"
 	"github.com/Meland-Inc/game-services/src/global/serviceHeart"
 )
@@ -20,23 +20,6 @@ func (ah *AgentHeart) OnInit(modelMgr *component.ModelManager) error {
 	ah.ServiceHeartModel.SubModel = ah
 	return nil
 }
-
-// func (ah *AgentHeart) OnStart() error {
-// 	return ah.ServiceHeartModel.OnStart()
-// }
-
-// func (ah *AgentHeart) OnTick(curMs int64) error {
-// 	return ah.ServiceHeartModel.OnTick(curMs)
-// }
-
-// func (ah *AgentHeart) OnStop() error {
-// 	ah.serCnf = nil
-// 	return ah.ServiceHeartModel.OnStop()
-// }
-
-// func (ah *AgentHeart) OnExit() error {
-// 	return ah.ServiceHeartModel.OnExit()
-// }
 
 func (ah *AgentHeart) SendHeart(curMs int64) error {
 	var online int32 = 0 // TODO... get online from user channel mgr

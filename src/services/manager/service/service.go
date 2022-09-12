@@ -3,7 +3,7 @@ package service
 import (
 	"os"
 
-	"github.com/Meland-Inc/game-services/src/component"
+	"github.com/Meland-Inc/game-services/src/global/component"
 
 	"github.com/Meland-Inc/game-services/src/global/serviceCnf"
 )
