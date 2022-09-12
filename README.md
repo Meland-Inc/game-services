@@ -9,5 +9,5 @@ meland game used services
     mainService         appPort:(5300~5349)  grpc:(5350~5399) 
     taskService         appPort:(5400~5449)  grpc:(5450~5499) 
     chatService         appPort:(5500~5549)  grpc:(5550~5599) 
-    agentService        appPort:(5600~5649)  grpc:(5650~5699)  
+    agentService        appPort:(5600~5649)  grpc:(5650~5699)  socket(5700~5799)
     sceneServer         appPort:(5800~5899)  http:(5900~5999)
