@@ -16,4 +16,4 @@ dapr run --app-id ${MELAND_SERVICE_AGENT_DAPR_APPID} --app-protocol grpc \
 --app-port ${MELAND_SERVICE_AGENT_DAPR_APP_PORT} \
 --dapr-grpc-port ${MELAND_SERVICE_AGENT_DAPR_GRPC_PORT} \
 --log-level debug -- \
-# go run src/services/agent/main.go
+go run src/services/agent/main.go
