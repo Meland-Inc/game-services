@@ -21,11 +21,8 @@ func (s *Service) init() error {
 	}
 	serviceLog.Init(s.serviceCnf.ServerId, true)
 	s.initOsSignal()
-	if err := s.initDapr(); err != nil {
-		return err
-	}
 
-	return nil
+	return s.initServiceModels()
 }
 
 func (s *Service) initServiceCnf() error {
@@ -56,6 +53,18 @@ func (s *Service) initServiceCnf() error {
 	}
 	if sc.Port == 0 || sc.Host == "" {
 		return fmt.Errorf("invalid socket data, host[%v], port[%v]", sc.Host, sc.Port)
+	}
+	return nil
+}
+
+func (s *Service) initServiceModels() error {
+	// if err := s.modelMgr.AddModel(model); err != nil {
+	// 	serviceLog.Error("init model XXX fail,err: %v", err)
+	// 	return err
+	// }
+
+	if err := s.initDapr(); err != nil {
+		return err
 	}
 	return nil
 }

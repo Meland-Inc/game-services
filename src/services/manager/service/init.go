@@ -24,15 +24,7 @@ func (s *Service) init() error {
 
 	s.initOsSignal()
 
-	if err := s.initHttpService(); err != nil {
-		return err
-	}
-
-	if err := s.initDapr(); err != nil {
-		return err
-	}
-
-	return nil
+	return s.initServiceModels()
 }
 
 func (s *Service) initServiceCnf() error {
@@ -51,6 +43,22 @@ func (s *Service) initServiceCnf() error {
 	}
 	if sc.ServerName == "" {
 		return fmt.Errorf("server app id is empty")
+	}
+	return nil
+}
+
+func (s *Service) initServiceModels() error {
+	// if err := s.modelMgr.AddModel(model); err != nil {
+	// 	serviceLog.Error("init model XXX fail,err: %v", err)
+	// 	return err
+	// }
+
+	if err := s.initHttpService(); err != nil {
+		return err
+	}
+
+	if err := s.initDapr(); err != nil {
+		return err
 	}
 	return nil
 }
