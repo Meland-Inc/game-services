@@ -25,7 +25,10 @@
                 "MELAND_SERVICE_AGENT_NODE_ID": "601",
                 "MELAND_SERVICE_AGENT_DAPR_APPID": "meland_service_agent_601",
                 "MELAND_SERVICE_AGENT_DAPR_APP_PORT": "5600",
-                "MELAND_SERVICE_AGENT_DAPR_GRPC_PORT": "5650"
+                "MELAND_SERVICE_AGENT_DAPR_GRPC_PORT": "5650",
+                "MELAND_SERVICE_AGENT_SOCKET_HOST": "192.168.50.171",
+                "MELAND_SERVICE_AGENT_SOCKET_PORT": "5700",
+                "MELAND_SERVICE_AGENT_ONLINE_LIMIT": "5000"
             },
             // go 启动参数配置
             "args": [],
