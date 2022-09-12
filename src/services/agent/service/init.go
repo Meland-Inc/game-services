@@ -41,10 +41,7 @@ func (s *Service) initServiceCnf() error {
 		sc.MaxOnline = 5000
 	}
 
-	fmt.Println(fmt.Sprintf(
-		"serviceId:[%d], serviceName:[%s], serviceType:[%v], Socket:[%s:%d], maxOnline:[%d]",
-		sc.ServerId, sc.ServerName, sc.ServiceType, sc.Host, sc.Port, sc.MaxOnline,
-	))
+	fmt.Println(fmt.Sprintf("serviceCnf: [%+v]", sc))
 
 	if sc.ServerId == 0 {
 		return fmt.Errorf("invalid serviceId [%v]", sc.ServerId)
