@@ -10,9 +10,8 @@ import (
 	"github.com/Meland-Inc/game-services/src/common/serviceLog"
 	"github.com/Meland-Inc/game-services/src/common/time_helper"
 	"github.com/Meland-Inc/game-services/src/global/serviceCnf"
+	mgrDaprService "github.com/Meland-Inc/game-services/src/services/manager/dapr"
 	"github.com/Meland-Inc/game-services/src/services/manager/httpSer"
-
-	daprService "github.com/Meland-Inc/game-services/src/services/agent/dapr"
 	"github.com/spf13/cast"
 )
 
@@ -71,7 +70,7 @@ func (s *Service) initOsSignal() {
 }
 
 func (s *Service) initDapr() error {
-	if err := daprService.Init(); err != nil {
+	if err := mgrDaprService.Init(); err != nil {
 		serviceLog.Error("dapr init fail err:%v", err)
 		return err
 	}

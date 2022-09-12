@@ -10,8 +10,8 @@ import (
 	"github.com/Meland-Inc/game-services/src/common/serviceLog"
 	"github.com/Meland-Inc/game-services/src/common/time_helper"
 	"github.com/Meland-Inc/game-services/src/global/serviceCnf"
+	agentDaprService "github.com/Meland-Inc/game-services/src/services/agent/dapr"
 
-	demoService "github.com/Meland-Inc/game-services/src/services/demo/dapr"
 	"github.com/spf13/cast"
 )
 
@@ -29,13 +29,13 @@ func (s *Service) initServiceCnf() error {
 	sc := serviceCnf.GetInstance()
 	s.serviceCnf = sc
 
-	sc.ServerId = cast.ToInt64(os.Getenv("MELAND_SERVICE_DEMO_NODE_ID"))
+	sc.ServerId = cast.ToInt64(os.Getenv("MELAND_SERVICE_AGENT_NODE_ID"))
 	sc.ServiceType = proto.ServiceType_ServiceTypeAgent
 	sc.StartMs = time_helper.NowUTCMill()
 	sc.ServerName = os.Getenv("MELAND_SERVICE_AGENT_DAPR_APPID")
-	sc.Host = os.Getenv("MELAND_SERVICE_DEMO_SOCKET_HOST")
-	sc.Port = cast.ToInt32(os.Getenv("MELAND_SERVICE_DEMO_SOCKET_PORT"))
-	sc.MaxOnline = cast.ToInt32(os.Getenv("MELAND_SERVICE_DEMO_ONLINE_LIMIT"))
+	sc.Host = os.Getenv("MELAND_SERVICE_AGENT_SOCKET_HOST")
+	sc.Port = cast.ToInt32(os.Getenv("MELAND_SERVICE_AGENT_SOCKET_PORT"))
+	sc.MaxOnline = cast.ToInt32(os.Getenv("MELAND_SERVICE_AGENT_ONLINE_LIMIT"))
 	if sc.MaxOnline == 0 {
 		sc.MaxOnline = 5000
 	}
@@ -77,7 +77,7 @@ func (s *Service) initOsSignal() {
 }
 
 func (s *Service) initDapr() error {
-	if err := demoService.Init(); err != nil {
+	if err := agentDaprService.Init(); err != nil {
 		serviceLog.Error("dapr init fail err:%v", err)
 		return err
 	}
