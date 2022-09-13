@@ -15,6 +15,7 @@ const (
 )
 
 type Server struct {
+	listener          net.Listener
 	addr              string
 	maxConNum         uint32
 	sessionMgr        *session.SessionManager
@@ -57,23 +58,28 @@ func (s *Server) setLimit() {
 
 	log.Printf("set cur limit: %d", rLimit.Cur)
 }
-func (s *Server) ListenAndServe() error {
+
+func (s *Server) Stop() error {
+	return s.listener.Close()
+}
+
+func (s *Server) ListenAndServe() (err error) {
 	log.Println("listen ", s.addr)
-	listener, err := net.Listen("tcp", s.addr)
+	s.listener, err = net.Listen("tcp", s.addr)
 	if err != nil {
 		log.Println("listen ", err.Error())
 		return err
 	}
 
-	go func() { s.listen(listener) }()
+	go func() { s.listen() }()
 	return nil
 }
 
-func (s *Server) listen(listener net.Listener) {
-	defer listener.Close()
+func (s *Server) listen() {
+	defer s.listener.Close()
 	var tempDelay time.Duration
 	for {
-		connect, err := listener.Accept()
+		connect, err := s.listener.Accept()
 
 		serviceLog.Debug("tcp socket connected removeAddr[%v], localAddress[%v]",
 			connect.RemoteAddr(), connect.LocalAddr())

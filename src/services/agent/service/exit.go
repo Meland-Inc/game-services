@@ -15,6 +15,12 @@ func (s *Service) onStop() error {
 		)
 	}
 
+	if err := s.tcpServer.Stop(); err != nil {
+		serviceLog.Error(
+			"agent service [%s] stop tcp server err: %v", s.serviceCnf.ServerName, err,
+		)
+	}
+
 	if err := s.modelMgr.StopModel(); err != nil {
 		serviceLog.Error(
 			"agent service [%s] StopModel err: %v", s.serviceCnf.ServerName, err,
