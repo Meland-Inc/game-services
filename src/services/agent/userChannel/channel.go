@@ -32,19 +32,11 @@ func NewUserChannel(se *session.Session) *UserChannel {
 	return uc
 }
 
-func (uc *UserChannel) GetId() string { return uc.id }
-func (uc *UserChannel) SetOwner(owner int64) {
-	uc.owner = owner
-}
-func (uc *UserChannel) GetOwner() int64 {
-	return uc.owner
-}
-func (uc *UserChannel) GetSession() *session.Session {
-	return uc.tcpSession
-}
-func (uc *UserChannel) GetSceneService() string {
-	return uc.sceneServiceAppId
-}
+func (uc *UserChannel) GetId() string                { return uc.id }
+func (uc *UserChannel) SetOwner(owner int64)         { uc.owner = owner }
+func (uc *UserChannel) GetOwner() int64              { return uc.owner }
+func (uc *UserChannel) GetSession() *session.Session { return uc.tcpSession }
+func (uc *UserChannel) GetSceneService() string      { return uc.sceneServiceAppId }
 func (uc *UserChannel) SetSceneService(sceneServiceAppId string) {
 	uc.sceneServiceAppId = sceneServiceAppId
 }
@@ -61,7 +53,7 @@ func (uc *UserChannel) OnSessionReceivedData(data []byte) {
 
 func (uc *UserChannel) OnSessionClose() {
 	uc.callPlayerLeaveGame()
-	// todo: user channel mgr remove self
+	GetInstance().RemoveUserChannel(uc)
 	uc.Stop()
 }
 
