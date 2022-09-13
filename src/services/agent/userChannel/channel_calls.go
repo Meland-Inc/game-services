@@ -36,6 +36,24 @@ func (uc *UserChannel) parseClientProtoMessageOutput(data []byte) (*methodData.C
 	}
 	return output, err
 }
+
+func (uc *UserChannel) upChanelBySingInMsg(msgType proto.EnvelopeType, respData []byte) {
+	if msgType != proto.EnvelopeType_SigninPlayer {
+		return
+	}
+
+	respMsg, err := uc.UnMarshalProtoMessage(respData)
+	if err != nil {
+		serviceLog.Error("SigninPlayer response message unMarshal failed")
+		return
+	}
+
+	payload := respMsg.GetSigninPlayerResponse()
+	uc.SetSceneService(payload.GetSceneServiceAppId())
+	uc.SetOwner(payload.Player.BaseData.UserId)
+	GetInstance().AddUserChannelByOwner(uc)
+}
+
 func (uc *UserChannel) callOtherServiceClientMsg(data []byte, msg *proto.Envelope) {
 	errResponseF := func(errorCode int32, errMsg string) {
 		resMsg := &proto.Envelope{
@@ -81,7 +99,8 @@ func (uc *UserChannel) callOtherServiceClientMsg(data []byte, msg *proto.Envelop
 	serviceLog.Info("UserChannel call [%v] resp msg: %+v", serviceType, output)
 	uc.tcpSession.Write(output.ProtoBytesResp)
 
-	// TODO: set channel linked scene service info from SingIn message
+	// 更新 channel owner and sceneServiceAppId
+	uc.upChanelBySingInMsg(msg.Type, output.ProtoBytesResp)
 }
 
 func (uc *UserChannel) callPlayerLeaveGame() {
