@@ -15,12 +15,14 @@ type UserChannel struct {
 	tcpSession        *session.Session
 	channels          []chan []byte
 	stopChans         []chan chan struct{}
+	isClosed          bool
 }
 
 func NewUserChannel(se *session.Session) *UserChannel {
 	uc := &UserChannel{}
 	uc.tcpSession = se
 	uc.id = se.SessionId()
+	uc.isClosed = false
 
 	count := int(proto.ServiceType_ServiceTypeLimit)
 	uc.channels = make([]chan []byte, count, count)
@@ -52,6 +54,7 @@ func (uc *UserChannel) OnSessionReceivedData(s *session.Session, data []byte) {
 }
 
 func (uc *UserChannel) OnSessionClose(s *session.Session) {
+	serviceLog.Info("channel Id:[%s] user:[%d] closed", uc.id, uc.owner)
 	uc.callPlayerLeaveGame()
 	GetInstance().RemoveUserChannel(uc)
 	uc.Stop()
@@ -63,6 +66,8 @@ func (uc *UserChannel) Stop() {
 		sh <- stopDone
 		<-stopDone
 	}
+	uc.tcpSession = nil
+	uc.isClosed = true
 }
 
 func (uc *UserChannel) Run() {
@@ -104,4 +109,29 @@ func (uc *UserChannel) onProtoData(data []byte) {
 	} else {
 		uc.callOtherServiceClientMsg(data, msg)
 	}
+}
+
+func (uc *UserChannel) SendToUser(msgType proto.EnvelopeType, msgBody []byte) {
+	if uc.isClosed || uc.tcpSession == nil {
+		return
+	}
+	uc.tcpSession.Write(msgBody)
+
+	// update channel owner and sceneServiceAppId by SingInMsg
+	if msgType == proto.EnvelopeType_SigninPlayer {
+		uc.onUserSingInGame(msgType, msgBody)
+	}
+}
+
+func (uc *UserChannel) onUserSingInGame(msgType proto.EnvelopeType, msgBody []byte) {
+	respMsg, err := uc.UnMarshalProtoMessage(msgBody)
+	if err != nil {
+		serviceLog.Error("SigninPlayer response message UnMarshal failed")
+		return
+	}
+
+	payload := respMsg.GetSigninPlayerResponse()
+	uc.SetSceneService(payload.GetSceneServiceAppId())
+	uc.SetOwner(payload.Player.BaseData.UserId)
+	GetInstance().AddUserChannelByOwner(uc)
 }
