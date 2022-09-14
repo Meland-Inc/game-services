@@ -64,7 +64,7 @@ func (s *Server) Stop() error {
 }
 
 func (s *Server) ListenAndServe() (err error) {
-	log.Println("listen ", s.addr)
+	log.Println("socket listen ", s.addr)
 	s.listener, err = net.Listen("tcp", s.addr)
 	if err != nil {
 		log.Println("listen ", err.Error())

@@ -99,7 +99,7 @@ func (s *Session) Run() {
 
 	err := s.received()
 	if err != nil {
-		serviceLog.Error("session [%v] received err: %v", s.RemoteAddr(), err)
+		serviceLog.Warning("session [%v] received err: %v", s.RemoteAddr(), err)
 	}
 }
 

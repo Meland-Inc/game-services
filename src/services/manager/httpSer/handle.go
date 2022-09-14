@@ -29,6 +29,7 @@ func AgentServiceHandler(w http.ResponseWriter, r *http.Request) {
 		resp.Online = service.Online
 		resp.MaxOnline = service.MaxOnline
 		resp.CreatedAt = service.CreatedAt
+		resp.UpdateAt = service.UpdatedAt
 	}
 	serviceLog.Info("received get agentService response: %+v ", resp)
 	byteArr, err := json.Marshal(resp)

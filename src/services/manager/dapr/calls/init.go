@@ -18,7 +18,5 @@ func InitDaprCallHandle() (err error) {
 		return err
 	}
 
-
-
 	return nil
 }

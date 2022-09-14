@@ -17,7 +17,6 @@ func (uc *UserChannel) handlePing(msg *proto.Envelope) {
 			PingResponse: &proto.PingResponse{},
 		},
 	}
-	if byes, err := uc.MarshalProtoMessage(resMsg); err == nil {
-		uc.tcpSession.Write(byes)
-	}
+	msgBody, _ := uc.MarshalProtoMessage(resMsg)
+	uc.SendToUser(msg.Type, msgBody)
 }

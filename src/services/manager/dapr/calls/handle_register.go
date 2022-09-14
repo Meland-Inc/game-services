@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"game-message-core/grpc/methodData"
 
+	"github.com/Meland-Inc/game-services/src/common/daprInvoke"
 	"github.com/Meland-Inc/game-services/src/common/serviceLog"
 	"github.com/Meland-Inc/game-services/src/services/manager/controller"
 	"github.com/dapr/go-sdk/service/common"
@@ -27,23 +28,8 @@ func toLocalServiceData(input methodData.ServiceDataInput) controller.ServiceDat
 	}
 }
 
-func makeOutputContent(in *common.InvocationEvent, resp interface{}) (*common.Content, error) {
-	bytes, err := json.Marshal(resp)
-	if err != nil {
-		serviceLog.Error("make output content fail marshal err : %+v", err)
-		return nil, err
-	}
-	out := &common.Content{
-		Data:        bytes,
-		ContentType: in.ContentType,
-		DataTypeURL: in.DataTypeURL,
-	}
-	return out, nil
-
-}
-
 func RegisterServiceHandler(ctx context.Context, in *common.InvocationEvent) (*common.Content, error) {
-	serviceLog.Info("received register service  data: %v", string(in.Data))
+	// serviceLog.Info("received register service  data: %v", string(in.Data))
 
 	input := methodData.ServiceDataInput{}
 	err := json.Unmarshal(in.Data, &input)
@@ -59,9 +45,9 @@ func RegisterServiceHandler(ctx context.Context, in *common.InvocationEvent) (*c
 		MsgVersion: input.MsgVersion,
 		Success:    true,
 	}
-	serviceLog.Info("register service res = %+v", output)
+	// serviceLog.Info("register service res = %+v", output)
 
-	return makeOutputContent(in, output)
+	return daprInvoke.MakeOutputContent(in, output)
 }
 
 func DestroyServiceHandler(ctx context.Context, in *common.InvocationEvent) (*common.Content, error) {
@@ -83,5 +69,5 @@ func DestroyServiceHandler(ctx context.Context, in *common.InvocationEvent) (*co
 	}
 
 	serviceLog.Info("Destroy service res = %+v", output)
-	return makeOutputContent(in, output)
+	return daprInvoke.MakeOutputContent(in, output)
 }

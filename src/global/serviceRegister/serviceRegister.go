@@ -25,7 +25,7 @@ func serviceRealInfo(
 		Online:      online,
 		MaxOnline:   cnf.MaxOnline,
 		CreatedAt:   cnf.StartMs,
-		UpdatedAt:   cnf.StartMs,
+		UpdatedAt:   time_helper.NowUTCMill(),
 	}
 }
 
