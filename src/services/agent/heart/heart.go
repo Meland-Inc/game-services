@@ -4,6 +4,7 @@ import (
 	"github.com/Meland-Inc/game-services/src/global/component"
 	"github.com/Meland-Inc/game-services/src/global/serviceCnf"
 	"github.com/Meland-Inc/game-services/src/global/serviceHeart"
+	"github.com/Meland-Inc/game-services/src/services/agent/userChannel"
 )
 
 type AgentHeart struct {
@@ -22,6 +23,6 @@ func (ah *AgentHeart) OnInit(modelMgr *component.ModelManager) error {
 }
 
 func (ah *AgentHeart) SendHeart(curMs int64) error {
-	var online int32 = 0 // TODO... get online from user channel mgr
+	var online int32 = userChannel.GetInstance().OnlineCount()
 	return ah.ServiceHeartModel.Send(*ah.serCnf, online, curMs)
 }
