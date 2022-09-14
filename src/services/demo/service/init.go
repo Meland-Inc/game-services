@@ -13,6 +13,7 @@ import (
 	"github.com/Meland-Inc/game-services/src/common/time_helper"
 	"github.com/Meland-Inc/game-services/src/global/serviceCnf"
 	demoDaprService "github.com/Meland-Inc/game-services/src/services/demo/dapr"
+	demoDb "github.com/Meland-Inc/game-services/src/services/demo/demoDB"
 	demoHeart "github.com/Meland-Inc/game-services/src/services/demo/heart"
 )
 
@@ -22,6 +23,10 @@ func (s *Service) init() error {
 	}
 	serviceLog.Init(s.serviceCnf.ServerId, true)
 	s.initOsSignal()
+
+	if err := demoDb.Init(); err != nil {
+		return err
+	}
 
 	return s.initServiceModels()
 }
