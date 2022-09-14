@@ -28,7 +28,17 @@
                 "MELAND_SERVICE_AGENT_DAPR_GRPC_PORT": "5650",
                 "MELAND_SERVICE_AGENT_SOCKET_HOST": "192.168.50.171",
                 "MELAND_SERVICE_AGENT_SOCKET_PORT": "5700",
-                "MELAND_SERVICE_AGENT_ONLINE_LIMIT": "5000"
+                "MELAND_SERVICE_AGENT_ONLINE_LIMIT": "5000",
+                "JWT_SECRET": "token key",
+                "MELAND_SERVICE_ACCOUNT_NODE_ID": "201",
+                "MELAND_SERVICE_ACCOUNT_DAPR_APPID": "meland_service_account",
+                "MELAND_SERVICE_ACCOUNT_DAPR_APP_PORT": "5200",
+                "MELAND_SERVICE_ACCOUNT_DAPR_GRPC_PORT": "5250",
+                "MELAND_ACCOUNT_DB_HOST": "127.0.0.1",
+                "MELAND_ACCOUNT_DB_USER": "root",
+                "MELAND_ACCOUNT_DB_PASS": "123456",
+                "MELAND_ACCOUNT_DB_PORT": "3306",
+                "MELAND_ACCOUNT_DB_DATABASE": "account_dev",
             },
             // go 启动参数配置
             "args": [],
