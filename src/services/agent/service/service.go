@@ -3,6 +3,7 @@ package service
 import (
 	"os"
 
+	"github.com/Meland-Inc/game-services/src/common/net/tcp"
 	"github.com/Meland-Inc/game-services/src/global/component"
 	"github.com/Meland-Inc/game-services/src/global/serviceCnf"
 )
@@ -10,6 +11,7 @@ import (
 type Service struct {
 	serviceCnf *serviceCnf.ServiceConfig
 	modelMgr   *component.ModelManager
+	tcpServer  *tcp.Server
 	osSignal   chan os.Signal
 	stopChan   chan chan struct{}
 }

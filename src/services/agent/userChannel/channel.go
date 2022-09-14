@@ -41,7 +41,7 @@ func (uc *UserChannel) SetSceneService(sceneServiceAppId string) {
 	uc.sceneServiceAppId = sceneServiceAppId
 }
 
-func (uc *UserChannel) OnSessionReceivedData(data []byte) {
+func (uc *UserChannel) OnSessionReceivedData(s *session.Session, data []byte) {
 	msg, err := uc.UnMarshalProtoMessage(data)
 	if err != nil {
 		return
@@ -51,7 +51,7 @@ func (uc *UserChannel) OnSessionReceivedData(data []byte) {
 	uc.channels[serviceId] <- data
 }
 
-func (uc *UserChannel) OnSessionClose() {
+func (uc *UserChannel) OnSessionClose(s *session.Session) {
 	uc.callPlayerLeaveGame()
 	GetInstance().RemoveUserChannel(uc)
 	uc.Stop()
