@@ -22,6 +22,8 @@ type UserChannelManager struct {
 	count               int32
 }
 
+func (mgr *UserChannelManager) OnlineCount() int32 { return mgr.count }
+
 func (mgr *UserChannelManager) UserChannelById(id string) *UserChannel {
 	iChannel, exist := mgr.userChannelsById.Load(id)
 	if !exist {
