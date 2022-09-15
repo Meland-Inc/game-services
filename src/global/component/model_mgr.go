@@ -1,6 +1,9 @@
 package component
 
-import "github.com/Meland-Inc/game-services/src/application"
+import (
+	"github.com/Meland-Inc/game-services/src/application"
+	"github.com/Meland-Inc/game-services/src/common/serviceLog"
+)
 
 var mgrInstance *ModelManager
 
@@ -49,6 +52,11 @@ func (mgr *ModelManager) StartModel() error {
 
 func (mgr *ModelManager) TickModel(curMs int64) {
 	for _, m := range mgr.models {
+		defer func() {
+			if err := recover(); err != nil {
+				serviceLog.Error("model [%v] panic: %+v", m.Name(), err)
+			}
+		}()
 		m.OnTick(curMs)
 	}
 }
