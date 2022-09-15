@@ -67,10 +67,13 @@ func (ch *MsgChannel) Stop() {
 func (ch *MsgChannel) run() {
 
 	go func() {
-		if err := recover(); err != nil {
-			ch.isClosed = false
-			ch.run()
-		}
+		defer func() {
+			if err := recover(); err != nil {
+				serviceLog.Error("msg channel recover panic err: %+v", err)
+				ch.isClosed = false
+				ch.run()
+			}
+		}()
 
 		for {
 			select {
@@ -91,7 +94,7 @@ func (ch *MsgChannel) onClientMessage(input *methodData.PullClientMessageInput) 
 		serviceLog.Error("account Unmarshal Envelope fail err: %+v", err)
 		return
 	}
-
+	serviceLog.Info("client msg: %+v", msg)
 	if handler, exist := ch.msgHandler[msg.Type]; exist {
 		handler(input, msg)
 	}

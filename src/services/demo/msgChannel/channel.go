@@ -67,10 +67,13 @@ func (ch *MsgChannel) Stop() {
 func (ch *MsgChannel) run() {
 
 	go func() {
-		if err := recover(); err != nil {
-			ch.isClosed = false
-			ch.run()
-		}
+		defer func() {
+			if err := recover(); err != nil {
+				serviceLog.Error("msg channel recover panic err: %+v", err)
+				ch.isClosed = false
+				ch.run()
+			}
+		}()
 
 		for {
 			select {
