@@ -6,9 +6,8 @@ import (
 
 	"github.com/Meland-Inc/game-services/src/common/serviceLog"
 	"github.com/Meland-Inc/game-services/src/global/auth"
-	"github.com/Meland-Inc/game-services/src/global/configData"
-	"github.com/Meland-Inc/game-services/src/global/dbData"
-	"github.com/Meland-Inc/game-services/src/services/account/accountDB"
+	gameDb "github.com/Meland-Inc/game-services/src/global/gameDB"
+	dbData "github.com/Meland-Inc/game-services/src/global/gameDB/data"
 	"github.com/spf13/cast"
 	"gorm.io/gorm"
 )
@@ -54,8 +53,8 @@ func (ch *MsgChannel) QueryPlayerHandler(
 	}
 	userId := cast.ToInt64(userIdStr)
 
-	player := &dbData.PlayerRow{}
-	err = accountDB.GetAccountDB().Where("user_id = ?", userId).First(player).Error
+	player := &dbData.PlayerBaseData{}
+	err = gameDb.GetGameDB().Where("user_id = ?", userId).First(player).Error
 	if err != nil {
 		respMsg.ErrorCode = 20003 // TODO: USE PROTO ERROR CODE
 		respMsg.ErrorMessage = err.Error()
@@ -102,8 +101,8 @@ func (ch *MsgChannel) CreatePlayerHandler(
 	}
 	userId := cast.ToInt64(userIdStr)
 
-	player := &dbData.PlayerRow{}
-	err = accountDB.GetAccountDB().Where("user_id = ?", userId).First(player).Error
+	player := &dbData.PlayerBaseData{}
+	err = gameDb.GetGameDB().Where("user_id = ?", userId).First(player).Error
 	if err == nil {
 		respMsg.ErrorCode = 20002 // TODO: USE PROTO ERROR CODE
 		respMsg.ErrorMessage = "user already in the database"
@@ -119,15 +118,9 @@ func (ch *MsgChannel) CreatePlayerHandler(
 	player.Name = req.NickName
 	player.RoleId = req.RoleId
 	player.RoleIcon = req.Icon
-	player.Level = 1
-	player.Exp = 0
 	player.SetFeature(req.Feature)
-	cnf := configData.ConfigMgr().RoleLevelCnf(player.Level)
-	if cnf != nil {
-		player.Hp = cnf.HpLimit
-	}
 
-	err = accountDB.GetAccountDB().Create(player).Error
+	err = gameDb.GetGameDB().Create(player).Error
 	if err != nil {
 		respMsg.ErrorCode = 20003 // TODO: USE PROTO ERROR CODE
 		respMsg.ErrorMessage = err.Error()

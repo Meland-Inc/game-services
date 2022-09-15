@@ -6,16 +6,13 @@ import (
 	"time"
 )
 
-type PlayerRow struct {
+type PlayerBaseData struct {
 	UId         uint      `gorm:"primaryKey;autoIncrement" json:"uid,string"`
 	UserId      int64     `json:"userId"`
 	Name        string    `json:"name"`
 	RoleId      int32     `json:"roleId"`
 	RoleIcon    string    `json:"roleIcon"`
 	FeatureJson string    `gorm:"type:text" json:"featureJson"`
-	Level       int32     `json:"level"`
-	Exp         int32     `json:"exp"`
-	Hp          int32     `json:"hp"`
 	CreatedAt   time.Time `json:"createdAt"`
 	UpdateAt    time.Time `json:"updateAt"`
 	LastLogin   time.Time `json:"lastLogin"`
@@ -23,7 +20,7 @@ type PlayerRow struct {
 	Feature *proto.PlayerFeature `gorm:"-" json:"-"`
 }
 
-func (p *PlayerRow) SetFeature(feature *proto.PlayerFeature) error {
+func (p *PlayerBaseData) SetFeature(feature *proto.PlayerFeature) error {
 	if feature == nil {
 		p.FeatureJson = ""
 		p.Feature = nil
@@ -38,7 +35,7 @@ func (p *PlayerRow) SetFeature(feature *proto.PlayerFeature) error {
 	p.Feature = feature
 	return nil
 }
-func (p *PlayerRow) GetFeature() *proto.PlayerFeature {
+func (p *PlayerBaseData) GetFeature() *proto.PlayerFeature {
 	if p.Feature == nil && len(p.FeatureJson) >= 2 {
 		feature := &proto.PlayerFeature{}
 		err := json.Unmarshal([]byte(p.FeatureJson), feature)
@@ -48,7 +45,7 @@ func (p *PlayerRow) GetFeature() *proto.PlayerFeature {
 	}
 	return p.Feature
 }
-func (p *PlayerRow) ToNetPlayerBaseData() *proto.PlayerBaseData {
+func (p *PlayerBaseData) ToNetPlayerBaseData() *proto.PlayerBaseData {
 	return &proto.PlayerBaseData{
 		UserId:   p.UserId,
 		Name:     p.Name,
