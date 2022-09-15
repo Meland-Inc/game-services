@@ -12,8 +12,8 @@ import (
 	"github.com/Meland-Inc/game-services/src/common/serviceLog"
 	"github.com/Meland-Inc/game-services/src/common/time_helper"
 	"github.com/Meland-Inc/game-services/src/global/configData"
+	gameDb "github.com/Meland-Inc/game-services/src/global/gameDB"
 	"github.com/Meland-Inc/game-services/src/global/serviceCnf"
-	accountDb "github.com/Meland-Inc/game-services/src/services/account/accountDB"
 	accountDaprService "github.com/Meland-Inc/game-services/src/services/account/dapr"
 	accountHeart "github.com/Meland-Inc/game-services/src/services/account/heart"
 )
@@ -25,7 +25,7 @@ func (s *Service) init() error {
 	serviceLog.Init(s.serviceCnf.ServerId, true)
 	s.initOsSignal()
 
-	if err := accountDb.Init(); err != nil {
+	if err := gameDb.Init(); err != nil {
 		return err
 	}
 
