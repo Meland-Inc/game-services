@@ -5,6 +5,7 @@ import (
 	"game-message-core/proto"
 
 	"github.com/Meland-Inc/game-services/src/common/serviceLog"
+	"github.com/Meland-Inc/game-services/src/global/auth"
 	"github.com/Meland-Inc/game-services/src/global/configData"
 	"github.com/Meland-Inc/game-services/src/global/dbData"
 	"github.com/Meland-Inc/game-services/src/services/account/accountDB"
@@ -45,18 +46,16 @@ func (ch *ClientMsgChannel) QueryPlayerHandler(
 		ch.SendToPlayer(input.AgentAppId, input.SocketId, 0, respMsg)
 	}()
 
-	// userIdStr, err := auth.CheckDefaultAuth(req.Token)
-	// if err != nil {
-	// 	respMsg.ErrorCode = 20001 // TODO: USE PROTO ERROR CODE
-	// 	respMsg.ErrorMessage = err.Error()
-	// 	return
-	// }
-
-	userIdStr := req.Token // TODO: TEST data
+	userIdStr, err := auth.CheckDefaultAuth(req.Token)
+	if err != nil {
+		respMsg.ErrorCode = 20001 // TODO: USE PROTO ERROR CODE
+		respMsg.ErrorMessage = err.Error()
+		return
+	}
 	userId := cast.ToInt64(userIdStr)
 
 	player := &dbData.PlayerRow{}
-	err := accountDB.GetAccountDB().Where("user_id = ?", userId).First(player).Error
+	err = accountDB.GetAccountDB().Where("user_id = ?", userId).First(player).Error
 	if err != nil {
 		respMsg.ErrorCode = 20003 // TODO: USE PROTO ERROR CODE
 		respMsg.ErrorMessage = err.Error()
@@ -95,18 +94,16 @@ func (ch *ClientMsgChannel) CreatePlayerHandler(
 		ch.SendToPlayer(input.AgentAppId, input.SocketId, 0, respMsg)
 	}()
 
-	// userIdStr, err := auth.CheckDefaultAuth(req.Token)
-	// if err != nil {
-	// 	respMsg.ErrorCode = 20001 // TODO: USE PROTO ERROR CODE
-	// 	respMsg.ErrorMessage = err.Error()
-	// 	return
-	// }
-
-	userIdStr := req.Token // TODO: TEST data
+	userIdStr, err := auth.CheckDefaultAuth(req.Token)
+	if err != nil {
+		respMsg.ErrorCode = 20001 // TODO: USE PROTO ERROR CODE
+		respMsg.ErrorMessage = err.Error()
+		return
+	}
 	userId := cast.ToInt64(userIdStr)
 
 	player := &dbData.PlayerRow{}
-	err := accountDB.GetAccountDB().Where("user_id = ?", userId).First(player).Error
+	err = accountDB.GetAccountDB().Where("user_id = ?", userId).First(player).Error
 	if err == nil {
 		respMsg.ErrorCode = 20002 // TODO: USE PROTO ERROR CODE
 		respMsg.ErrorMessage = "user already in the database"
