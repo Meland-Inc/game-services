@@ -39,6 +39,10 @@
                 "MELAND_SERVICE_ACCOUNT_DAPR_APPID": "meland_service_account",
                 "MELAND_SERVICE_ACCOUNT_DAPR_APP_PORT": "5200",
                 "MELAND_SERVICE_ACCOUNT_DAPR_GRPC_PORT": "5250",
+                "MELAND_SERVICE_MAIN_NODE_ID": "301",
+                "MELAND_SERVICE_MAIN_DAPR_APPID": "meland_service_main",
+                "MELAND_SERVICE_MAIN_DAPR_APP_PORT": "5300",
+                "MELAND_SERVICE_MAIN_DAPR_GRPC_PORT": "5350",
             },
             // go 启动参数配置
             "args": [],
