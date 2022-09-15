@@ -15,9 +15,9 @@ export MELAND_ACCOUNT_DB_HOST=127.0.0.1
 export MELAND_ACCOUNT_DB_USER=root
 export MELAND_ACCOUNT_DB_PASS=123456
 export MELAND_ACCOUNT_DB_PORT=3306
-export MELAND_ACCOUNT_DB_DATABASE=account_dev
+export MELAND_ACCOUNT_DB_DATABASE=account
  
-echo "---------------------------start DAPR and agent service --------------------------------"
+echo "---------------------------start DAPR and ACCOUNT service --------------------------------"
 dapr run --app-id ${MELAND_SERVICE_ACCOUNT_DAPR_APPID} --app-protocol grpc \
 --app-port ${MELAND_SERVICE_ACCOUNT_DAPR_APP_PORT} \
 --dapr-grpc-port ${MELAND_SERVICE_ACCOUNT_DAPR_GRPC_PORT} \

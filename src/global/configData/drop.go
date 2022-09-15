@@ -5,7 +5,7 @@ import (
 )
 
 func (mgr *ConfigDataManager) initDrop() error {
-	mgr.dropCnf = make(map[int32]*xlsxTable.DropTableRow)
+	mgr.dropCnf = make(map[int32]xlsxTable.DropTableRow)
 
 	rows := []xlsxTable.DropTableRow{}
 	err := mgr.configDb.Find(&rows).Error
@@ -14,7 +14,7 @@ func (mgr *ConfigDataManager) initDrop() error {
 	}
 
 	for _, row := range rows {
-		mgr.dropCnf[row.DropId] = &row
+		mgr.dropCnf[row.DropId] = row
 	}
 
 	return nil
@@ -25,5 +25,5 @@ func (mgr *ConfigDataManager) DropCnfById(id int32) *xlsxTable.DropTableRow {
 	if !exist {
 		return nil
 	}
-	return cnf
+	return &cnf
 }

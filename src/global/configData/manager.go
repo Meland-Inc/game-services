@@ -24,13 +24,13 @@ type ConfigDataManager struct {
 	configDb  *gorm.DB
 	loadFuncs []LoadFunc
 
-	taskCnf     map[int32]*xlsxTable.TaskTableRow
-	taskListCnf map[int32]*xlsxTable.TaskListTableRow
-	roleLvCnf   map[int32]*xlsxTable.RoleLvTableRow
-	slotLvCnf   map[int32][]*xlsxTable.SlotLvTableRow
-	rewardCnf   map[int32]*xlsxTable.RewardTableRow
-	itemCnf     map[int32]*xlsxTable.ItemTable
-	dropCnf     map[int32]*xlsxTable.DropTableRow
+	taskCnf     map[int32]xlsxTable.TaskTableRow
+	taskListCnf map[int32]xlsxTable.TaskListTableRow
+	roleLvCnf   map[int32]xlsxTable.RoleLvTableRow
+	slotLvCnf   map[int32][]xlsxTable.SlotLvTableRow
+	rewardCnf   map[int32]xlsxTable.RewardTableRow
+	itemCnf     map[int32]xlsxTable.ItemTable
+	dropCnf     map[int32]xlsxTable.DropTableRow
 }
 
 func Init() error {

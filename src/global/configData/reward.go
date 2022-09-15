@@ -5,7 +5,7 @@ import (
 )
 
 func (mgr *ConfigDataManager) initReward() error {
-	mgr.rewardCnf = make(map[int32]*xlsxTable.RewardTableRow)
+	mgr.rewardCnf = make(map[int32]xlsxTable.RewardTableRow)
 
 	rows := []xlsxTable.RewardTableRow{}
 	err := mgr.configDb.Find(&rows).Error
@@ -14,13 +14,13 @@ func (mgr *ConfigDataManager) initReward() error {
 	}
 
 	for _, row := range rows {
-		mgr.rewardCnf[row.RewardId] = &row
+		mgr.rewardCnf[row.RewardId] = row
 	}
 
 	return nil
 }
 
-func (mgr *ConfigDataManager) AllReward() map[int32]*xlsxTable.RewardTableRow {
+func (mgr *ConfigDataManager) AllReward() map[int32]xlsxTable.RewardTableRow {
 	return mgr.rewardCnf
 }
 
@@ -29,5 +29,5 @@ func (mgr *ConfigDataManager) RewardCnfById(id int32) *xlsxTable.RewardTableRow 
 	if !exist {
 		return nil
 	}
-	return cnf
+	return &cnf
 }

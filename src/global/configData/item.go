@@ -5,7 +5,7 @@ import (
 )
 
 func (mgr *ConfigDataManager) initItem() error {
-	mgr.itemCnf = make(map[int32]*xlsxTable.ItemTable)
+	mgr.itemCnf = make(map[int32]xlsxTable.ItemTable)
 
 	rows := []xlsxTable.ItemTable{}
 	err := mgr.configDb.Find(&rows).Error
@@ -14,7 +14,7 @@ func (mgr *ConfigDataManager) initItem() error {
 	}
 
 	for _, row := range rows {
-		mgr.itemCnf[row.ItemCid] = &row
+		mgr.itemCnf[row.ItemCid] = row
 	}
 
 	return nil
@@ -25,5 +25,5 @@ func (mgr *ConfigDataManager) ItemCnfById(cid int32) *xlsxTable.ItemTable {
 	if !exist {
 		return nil
 	}
-	return cnf
+	return &cnf
 }

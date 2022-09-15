@@ -44,7 +44,7 @@ func (uc *UserChannel) SetSceneService(sceneServiceAppId string) {
 }
 
 func (uc *UserChannel) OnSessionReceivedData(s *session.Session, data []byte) {
-	msg, err := uc.UnMarshalProtoMessage(data)
+	msg, err := protoTool.UnMarshalToEnvelope(data)
 	if err != nil {
 		return
 	}
@@ -98,7 +98,7 @@ func (uc *UserChannel) runChannel(channelId int, ch chan []byte, stopCh chan cha
 }
 
 func (uc *UserChannel) onProtoData(data []byte) {
-	msg, err := uc.UnMarshalProtoMessage(data)
+	msg, err := protoTool.UnMarshalToEnvelope(data)
 	if err != nil {
 		return
 	}
@@ -124,7 +124,7 @@ func (uc *UserChannel) SendToUser(msgType proto.EnvelopeType, msgBody []byte) {
 }
 
 func (uc *UserChannel) onUserSingInGame(msgType proto.EnvelopeType, msgBody []byte) {
-	respMsg, err := uc.UnMarshalProtoMessage(msgBody)
+	respMsg, err := protoTool.UnMarshalToEnvelope(msgBody)
 	if err != nil {
 		serviceLog.Error("SigninPlayer response message UnMarshal failed")
 		return

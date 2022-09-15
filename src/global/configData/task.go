@@ -5,7 +5,7 @@ import (
 )
 
 func (mgr *ConfigDataManager) initTask() error {
-	mgr.taskCnf = make(map[int32]*xlsxTable.TaskTableRow)
+	mgr.taskCnf = make(map[int32]xlsxTable.TaskTableRow)
 
 	rows := []xlsxTable.TaskTableRow{}
 	err := mgr.configDb.Find(&rows).Error
@@ -14,7 +14,7 @@ func (mgr *ConfigDataManager) initTask() error {
 	}
 
 	for _, row := range rows {
-		mgr.taskCnf[row.Id] = &row
+		mgr.taskCnf[row.Id] = row
 	}
 
 	return nil
@@ -26,7 +26,7 @@ func (mgr *ConfigDataManager) RewardTaskListRateMin() int32 { return 50 }
 
 func (mgr *ConfigDataManager) RewardTaskListRateMax() int32 { return 100 }
 
-func (mgr *ConfigDataManager) AllTaskCnfs() map[int32]*xlsxTable.TaskTableRow {
+func (mgr *ConfigDataManager) AllTaskCnfs() map[int32]xlsxTable.TaskTableRow {
 	return configMgr.taskCnf
 }
 
@@ -35,5 +35,5 @@ func (mgr *ConfigDataManager) TaskCnfById(id int32) *xlsxTable.TaskTableRow {
 	if !exist {
 		return nil
 	}
-	return cnf
+	return &cnf
 }

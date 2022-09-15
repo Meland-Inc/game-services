@@ -15,6 +15,7 @@ type PlayerRow struct {
 	FeatureJson string    `gorm:"type:text" json:"featureJson"`
 	Level       int32     `json:"level"`
 	Exp         int32     `json:"exp"`
+	Hp          int32     `json:"hp"`
 	CreatedAt   time.Time `json:"createdAt"`
 	UpdateAt    time.Time `json:"updateAt"`
 	LastLogin   time.Time `json:"lastLogin"`
@@ -23,14 +24,19 @@ type PlayerRow struct {
 }
 
 func (p *PlayerRow) SetFeature(feature *proto.PlayerFeature) error {
+	if feature == nil {
+		p.FeatureJson = ""
+		p.Feature = nil
+		return nil
+	}
+
 	bs, err := json.Marshal(feature)
 	if err != nil {
 		return err
 	}
-
 	p.FeatureJson = string(bs)
 	p.Feature = feature
-	return err
+	return nil
 }
 func (p *PlayerRow) GetFeature() *proto.PlayerFeature {
 	if p.Feature == nil && len(p.FeatureJson) >= 2 {
@@ -41,4 +47,13 @@ func (p *PlayerRow) GetFeature() *proto.PlayerFeature {
 		}
 	}
 	return p.Feature
+}
+func (p *PlayerRow) ToNetPlayerBaseData() *proto.PlayerBaseData {
+	return &proto.PlayerBaseData{
+		UserId:   p.UserId,
+		Name:     p.Name,
+		RoleId:   p.RoleId,
+		RoleIcon: p.RoleIcon,
+		Feature:  p.GetFeature(),
+	}
 }

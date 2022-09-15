@@ -1,12 +1,16 @@
 package daprCalls
 
 import (
+	"game-message-core/grpc"
+
 	"github.com/Meland-Inc/game-services/src/common/daprInvoke"
 )
 
 func InitDaprCallHandle() (err error) {
-	daprInvoke.AddServiceInvocationHandler("DemoServiceTestCallsHandler", DemoServiceTestCallsHandler)
-	if err != nil {
+	if daprInvoke.AddServiceInvocationHandler(
+		string(grpc.ProtoMessageActionPullClientMessage),
+		ClientMessageHandler,
+	); err != nil {
 		return err
 	}
 

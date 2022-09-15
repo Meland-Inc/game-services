@@ -5,7 +5,7 @@ import (
 )
 
 func (mgr *ConfigDataManager) initSlotLv() error {
-	mgr.slotLvCnf = make(map[int32][]*xlsxTable.SlotLvTableRow)
+	mgr.slotLvCnf = make(map[int32][]xlsxTable.SlotLvTableRow)
 
 	rows := []xlsxTable.SlotLvTableRow{}
 	err := mgr.configDb.Find(&rows).Error
@@ -16,9 +16,9 @@ func (mgr *ConfigDataManager) initSlotLv() error {
 	for _, row := range rows {
 		_, exist := mgr.slotLvCnf[row.Position]
 		if exist {
-			mgr.slotLvCnf[row.Position] = append(mgr.slotLvCnf[row.Position], &row)
+			mgr.slotLvCnf[row.Position] = append(mgr.slotLvCnf[row.Position], row)
 		} else {
-			mgr.slotLvCnf[row.Position] = []*xlsxTable.SlotLvTableRow{&row}
+			mgr.slotLvCnf[row.Position] = []xlsxTable.SlotLvTableRow{row}
 		}
 	}
 
@@ -29,7 +29,7 @@ func (mgr *ConfigDataManager) GetSlotCnf(position, lv int32) *xlsxTable.SlotLvTa
 	if settings, exist := mgr.slotLvCnf[position]; exist {
 		for _, setting := range settings {
 			if setting.Lv == lv {
-				return setting
+				return &setting
 			}
 		}
 	}

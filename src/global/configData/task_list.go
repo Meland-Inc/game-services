@@ -5,7 +5,7 @@ import (
 )
 
 func (mgr *ConfigDataManager) initTaskList() error {
-	mgr.taskListCnf = make(map[int32]*xlsxTable.TaskListTableRow)
+	mgr.taskListCnf = make(map[int32]xlsxTable.TaskListTableRow)
 
 	rows := []xlsxTable.TaskListTableRow{}
 	err := mgr.configDb.Find(&rows).Error
@@ -14,12 +14,12 @@ func (mgr *ConfigDataManager) initTaskList() error {
 	}
 
 	for _, row := range rows {
-		mgr.taskListCnf[row.Id] = &row
+		mgr.taskListCnf[row.Id] = row
 	}
 	return nil
 }
 
-func (mgr *ConfigDataManager) AllTaskListCnfs() map[int32]*xlsxTable.TaskListTableRow {
+func (mgr *ConfigDataManager) AllTaskListCnfs() map[int32]xlsxTable.TaskListTableRow {
 	return configMgr.taskListCnf
 }
 
@@ -28,13 +28,13 @@ func (mgr *ConfigDataManager) TaskListCnfById(id int32) *xlsxTable.TaskListTable
 	if !exist {
 		return nil
 	}
-	return cnf
+	return &cnf
 }
 
 func (mgr *ConfigDataManager) TaskListCnfByLevel(taskListType, lv int32) *xlsxTable.TaskListTableRow {
 	for _, cnf := range configMgr.taskListCnf {
 		if cnf.Level == lv && cnf.System == taskListType {
-			return cnf
+			return &cnf
 		}
 	}
 	return nil

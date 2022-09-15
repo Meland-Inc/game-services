@@ -18,9 +18,10 @@ func (uc *UserChannel) makePullClientMessageInputBytes(data []byte) ([]byte, err
 		MsgVersion: time_helper.NowUTCMill(),
 		AgentAppId: serviceCnf.GetInstance().ServerName,
 		UserId:     uc.owner,
+		SocketId:   uc.id,
 		MsgBody:    data,
 	}
-
+	serviceLog.Info("pull client msg input: %+v", input)
 	inputBytes, err := json.Marshal(input)
 	if err != nil {
 		serviceLog.Error("Marshal client msg input failed err:+v", err)
@@ -37,6 +38,23 @@ func (uc *UserChannel) parsePullClientMessageOutput(data []byte) (*methodData.Pu
 	return output, err
 }
 
+func (uc *UserChannel) getServiceAppId(serviceType proto.ServiceType) (appId string) {
+	switch proto.ServiceType(serviceType) {
+	case proto.ServiceType_ServiceTypeMain:
+		appId = string(grpc.AppIdMelandServiceMain)
+	case proto.ServiceType_ServiceTypeAccount:
+		appId = string(grpc.AppIdMelandServiceAccount)
+	case proto.ServiceType_ServiceTypeScene:
+		appId = uc.sceneServiceAppId
+	case proto.ServiceType_ServiceTypeTask:
+		appId = string(grpc.AppIdMelandServiceTask)
+	case proto.ServiceType_ServiceTypeChat:
+		appId = string(grpc.AppIdMelandServiceChat)
+	default:
+	}
+	return
+}
+
 func (uc *UserChannel) callOtherServiceClientMsg(data []byte, msg *proto.Envelope) {
 	errResponseF := func(errorCode int32, errMsg string) {
 		resMsg := &proto.Envelope{
@@ -45,7 +63,7 @@ func (uc *UserChannel) callOtherServiceClientMsg(data []byte, msg *proto.Envelop
 			ErrorCode:    errorCode,
 			ErrorMessage: errMsg,
 		}
-		if byes, err := uc.MarshalProtoMessage(resMsg); err == nil {
+		if byes, err := protoTool.MarshalEnvelope(resMsg); err == nil {
 			uc.tcpSession.Write(byes)
 		}
 	}
@@ -73,7 +91,7 @@ func (uc *UserChannel) callOtherServiceClientMsg(data []byte, msg *proto.Envelop
 		inputBytes,
 	)
 	if err != nil {
-		serviceLog.Error("send client mst to main service failed err:+v", err)
+		serviceLog.Error("send client msg to [%s] failed err: %+v", appId, err)
 		errResponseF(70001, err.Error())
 		return
 	}
