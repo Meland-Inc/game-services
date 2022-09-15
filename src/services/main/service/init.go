@@ -11,11 +11,10 @@ import (
 
 	"github.com/Meland-Inc/game-services/src/common/serviceLog"
 	"github.com/Meland-Inc/game-services/src/common/time_helper"
-	"github.com/Meland-Inc/game-services/src/global/configData"
 	gameDb "github.com/Meland-Inc/game-services/src/global/gameDB"
 	"github.com/Meland-Inc/game-services/src/global/serviceCnf"
-	accountDaprService "github.com/Meland-Inc/game-services/src/services/account/dapr"
-	accountHeart "github.com/Meland-Inc/game-services/src/services/account/heart"
+	mainDaprService "github.com/Meland-Inc/game-services/src/services/main/dapr"
+	mainHeart "github.com/Meland-Inc/game-services/src/services/main/heart"
 )
 
 func (s *Service) init() error {
@@ -29,11 +28,15 @@ func (s *Service) init() error {
 		return err
 	}
 
-	if err := configData.Init(); err != nil {
+	if err := s.initServiceModels(); err != nil {
 		return err
 	}
 
-	return s.initServiceModels()
+	if err := s.initDapr(); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (s *Service) initServiceCnf() error {
@@ -41,9 +44,9 @@ func (s *Service) initServiceCnf() error {
 	s.serviceCnf = sc
 
 	sc.StartMs = time_helper.NowUTCMill()
-	sc.ServiceType = proto.ServiceType_ServiceTypeAccount
-	sc.ServerId = cast.ToInt64(os.Getenv("MELAND_SERVICE_ACCOUNT_NODE_ID"))
-	sc.ServerName = os.Getenv("MELAND_SERVICE_ACCOUNT_DAPR_APPID")
+	sc.ServiceType = proto.ServiceType_ServiceTypeMain
+	sc.ServerId = cast.ToInt64(os.Getenv("MELAND_SERVICE_MAIN_NODE_ID"))
+	sc.ServerName = os.Getenv("MELAND_SERVICE_MAIN_DAPR_APPID")
 
 	fmt.Println(fmt.Sprintf("serviceCnf: [%+v]", sc))
 
@@ -56,26 +59,6 @@ func (s *Service) initServiceCnf() error {
 	return nil
 }
 
-func (s *Service) initServiceModels() error {
-	if err := s.initHeartModel(); err != nil {
-		return err
-	}
-
-	if err := s.initDapr(); err != nil {
-		return err
-	}
-	return nil
-}
-
-func (s *Service) initHeartModel() error {
-	heartModel := accountHeart.NewAccountHeart(s.serviceCnf)
-	err := s.modelMgr.AddModel(heartModel)
-	if err != nil {
-		serviceLog.Error("init agent heart model fail, err: %v", err)
-	}
-	return err
-}
-
 func (s *Service) initOsSignal() {
 	signal.Notify(s.osSignal,
 		syscall.SIGHUP, syscall.SIGQUIT, syscall.SIGTERM, syscall.SIGINT,
@@ -84,9 +67,25 @@ func (s *Service) initOsSignal() {
 }
 
 func (s *Service) initDapr() error {
-	if err := accountDaprService.Init(); err != nil {
+	if err := mainDaprService.Init(); err != nil {
 		serviceLog.Error("dapr init fail err:%v", err)
 		return err
 	}
 	return nil
+}
+
+func (s *Service) initServiceModels() error {
+	if err := s.initHeartModel(); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *Service) initHeartModel() error {
+	heartModel := mainHeart.NewMainHeart(s.serviceCnf)
+	err := s.modelMgr.AddModel(heartModel)
+	if err != nil {
+		serviceLog.Error("init agent heart model fail, err: %v", err)
+	}
+	return err
 }
