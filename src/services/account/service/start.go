@@ -5,6 +5,7 @@ import (
 
 	"github.com/Meland-Inc/game-services/src/common/serviceLog"
 	"github.com/Meland-Inc/game-services/src/global/serviceRegister"
+	"github.com/Meland-Inc/game-services/src/services/account/msgChannel"
 )
 
 func (s *Service) onStart() error {
@@ -15,6 +16,8 @@ func (s *Service) onStart() error {
 	if err := s.registerService(); err != nil {
 		return err
 	}
+
+	msgChannel.InitAndRun()
 
 	return nil
 }

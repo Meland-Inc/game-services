@@ -15,13 +15,13 @@ import (
 
 type HandleFunc func(*methodData.PullClientMessageInput, *proto.Envelope)
 
-func (ch *ClientMsgChannel) registerHandler() {
+func (ch *MsgChannel) registerHandler() {
 	ch.msgHandler[proto.EnvelopeType_CreatePlayer] = ch.CreatePlayerHandler
 	ch.msgHandler[proto.EnvelopeType_QueryPlayer] = ch.QueryPlayerHandler
 
 }
 
-func (ch *ClientMsgChannel) QueryPlayerHandler(
+func (ch *MsgChannel) QueryPlayerHandler(
 	input *methodData.PullClientMessageInput,
 	msg *proto.Envelope,
 ) {
@@ -73,7 +73,7 @@ func (ch *ClientMsgChannel) QueryPlayerHandler(
 	}
 }
 
-func (ch *ClientMsgChannel) CreatePlayerHandler(
+func (ch *MsgChannel) CreatePlayerHandler(
 	input *methodData.PullClientMessageInput,
 	msg *proto.Envelope,
 ) {
