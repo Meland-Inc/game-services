@@ -38,7 +38,7 @@
                 "MELAND_ACCOUNT_DB_USER": "root",
                 "MELAND_ACCOUNT_DB_PASS": "123456",
                 "MELAND_ACCOUNT_DB_PORT": "3306",
-                "MELAND_ACCOUNT_DB_DATABASE": "account_dev",
+                "MELAND_ACCOUNT_DB_DATABASE": "account",
             },
             // go 启动参数配置
             "args": [],
