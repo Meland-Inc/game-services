@@ -13,6 +13,7 @@ import (
 	"github.com/Meland-Inc/game-services/src/common/time_helper"
 	gameDb "github.com/Meland-Inc/game-services/src/global/gameDB"
 	"github.com/Meland-Inc/game-services/src/global/serviceCnf"
+	"github.com/Meland-Inc/game-services/src/global/userAgent"
 	demoDaprService "github.com/Meland-Inc/game-services/src/services/demo/dapr"
 	demoHeart "github.com/Meland-Inc/game-services/src/services/demo/heart"
 )
@@ -87,6 +88,11 @@ func (s *Service) initServiceModels() error {
 	if err := s.initHeartModel(); err != nil {
 		return err
 	}
+
+	if err := s.initUserAgentModel(); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -95,6 +101,15 @@ func (s *Service) initHeartModel() error {
 	err := s.modelMgr.AddModel(heartModel)
 	if err != nil {
 		serviceLog.Error("init agent heart model fail, err: %v", err)
+	}
+	return err
+}
+
+func (s *Service) initUserAgentModel() error {
+	m := userAgent.NewUserAgentModel()
+	err := s.modelMgr.AddModel(m)
+	if err != nil {
+		serviceLog.Error("init user agent model fail, err: %v", err)
 	}
 	return err
 }
