@@ -31,7 +31,7 @@ func (sh *ServiceHeartModel) OnInit(modelMgr *component.ModelManager) error {
 		return fmt.Errorf("service model manager is nil")
 	}
 	sh.modelMgr = modelMgr
-	sh.modelName = "SERVICE_HEART_MODEL"
+	sh.modelName = component.MODEL_NAME_HEART
 	return nil
 }
 
