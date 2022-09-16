@@ -26,6 +26,7 @@ type ConfigDataManager struct {
 
 	taskCnf     map[int32]xlsxTable.TaskTableRow
 	taskListCnf map[int32]xlsxTable.TaskListTableRow
+	roleLvMax   int32
 	roleLvCnf   map[int32]xlsxTable.RoleLvTableRow
 	slotLvCnf   map[int32][]xlsxTable.SlotLvTableRow
 	rewardCnf   map[int32]xlsxTable.RewardTableRow
