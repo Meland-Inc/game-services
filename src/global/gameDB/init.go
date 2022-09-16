@@ -18,6 +18,7 @@ func GetGameDB() *gorm.DB {
 func getDbTableModels() []interface{} {
 	return []interface{}{
 		dbData.PlayerBaseData{},
+		dbData.PlayerSceneData{},
 	}
 }
 
