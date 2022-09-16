@@ -5,6 +5,7 @@ import (
 )
 
 func (mgr *ConfigDataManager) initRoleLv() error {
+	mgr.roleLvMax = 1
 	mgr.roleLvCnf = make(map[int32]xlsxTable.RoleLvTableRow)
 
 	rows := []xlsxTable.RoleLvTableRow{}
@@ -15,6 +16,9 @@ func (mgr *ConfigDataManager) initRoleLv() error {
 
 	for _, row := range rows {
 		mgr.roleLvCnf[row.Lv] = row
+		if mgr.roleLvMax < row.Lv {
+			mgr.roleLvMax = row.Lv
+		}
 	}
 
 	return nil
@@ -26,4 +30,8 @@ func (mgr *ConfigDataManager) RoleLevelCnf(lv int32) *xlsxTable.RoleLvTableRow {
 		return nil
 	}
 	return &cnf
+}
+
+func (mgr *ConfigDataManager) RoleMaxLevel() int32 {
+	return mgr.roleLvMax
 }
