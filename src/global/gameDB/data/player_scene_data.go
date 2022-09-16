@@ -7,7 +7,8 @@ import (
 type PlayerSceneData struct {
 	UId         uint      `gorm:"primaryKey;autoIncrement" json:"uid,string"`
 	UserId      int64     `json:"userId"`
-	Level       int64     `json:"level"`
+	Hp          int32     `json:"hp"`
+	Level       int32     `json:"level"`
 	Exp         int32     `json:"exp"`
 	MapId       int32     `json:"mapId"`
 	X           float64   `json:"x"`
