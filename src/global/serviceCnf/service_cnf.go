@@ -27,4 +27,5 @@ type ServiceConfig struct {
 	Port        int32
 	MaxOnline   int32
 	StartMs     int64 // 开服时间
+	IsDevelop   bool
 }

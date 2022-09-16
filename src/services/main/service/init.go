@@ -53,6 +53,7 @@ func (s *Service) initServiceCnf() error {
 	sc.ServiceType = proto.ServiceType_ServiceTypeMain
 	sc.ServerId = cast.ToInt64(os.Getenv("MELAND_SERVICE_MAIN_NODE_ID"))
 	sc.ServerName = os.Getenv("MELAND_SERVICE_MAIN_DAPR_APPID")
+	sc.IsDevelop = os.Getenv("MELAND_SERVICE_MAIN_DEVELOP_MODEL") == "true"
 
 	fmt.Println(fmt.Sprintf("serviceCnf: [%+v]", sc))
 
