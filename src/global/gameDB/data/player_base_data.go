@@ -15,7 +15,6 @@ type PlayerBaseData struct {
 	FeatureJson string    `gorm:"type:text" json:"featureJson"`
 	CreatedAt   time.Time `json:"createdAt"`
 	UpdateAt    time.Time `json:"updateAt"`
-	LastLogin   time.Time `json:"lastLogin"`
 
 	Feature *proto.PlayerFeature `gorm:"-" json:"-"`
 }
@@ -46,6 +45,9 @@ func (p *PlayerBaseData) GetFeature() *proto.PlayerFeature {
 	return p.Feature
 }
 func (p *PlayerBaseData) ToNetPlayerBaseData() *proto.PlayerBaseData {
+	if p.UserId == 0 {
+		return nil
+	}
 	return &proto.PlayerBaseData{
 		UserId:   p.UserId,
 		Name:     p.Name,

@@ -55,13 +55,9 @@ func (ch *MsgChannel) QueryPlayerHandler(
 
 	player := &dbData.PlayerBaseData{}
 	err = gameDb.GetGameDB().Where("user_id = ?", userId).First(player).Error
-	if err != nil {
+	if err != nil && err != gorm.ErrRecordNotFound {
 		respMsg.ErrorCode = 20003 // TODO: USE PROTO ERROR CODE
 		respMsg.ErrorMessage = err.Error()
-		if err == gorm.ErrRecordNotFound {
-			respMsg.ErrorCode = 20004 // TODO: USE PROTO ERROR CODE
-			respMsg.ErrorMessage = "user not found"
-		}
 		return
 	}
 
