@@ -17,6 +17,7 @@ import (
 	"github.com/Meland-Inc/game-services/src/global/userAgent"
 	mainDaprService "github.com/Meland-Inc/game-services/src/services/main/dapr"
 	mainHeart "github.com/Meland-Inc/game-services/src/services/main/heart"
+	"github.com/Meland-Inc/game-services/src/services/main/playerModel"
 )
 
 func (s *Service) init() error {
@@ -90,6 +91,10 @@ func (s *Service) initServiceModels() error {
 		return err
 	}
 
+	if err := s.initPlayerModel(); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -107,6 +112,15 @@ func (s *Service) initUserAgentModel() error {
 	err := s.modelMgr.AddModel(m)
 	if err != nil {
 		serviceLog.Error("init user agent model fail, err: %v", err)
+	}
+	return err
+}
+
+func (s *Service) initPlayerModel() error {
+	m := playerModel.NewPlayerModel()
+	err := s.modelMgr.AddModel(m)
+	if err != nil {
+		serviceLog.Error("init player data model fail, err: %v", err)
 	}
 	return err
 }
