@@ -19,6 +19,7 @@ func getDbTableModels() []interface{} {
 	return []interface{}{
 		dbData.PlayerBaseData{},
 		dbData.PlayerSceneData{},
+		dbData.UsingNft{},
 	}
 }
 
