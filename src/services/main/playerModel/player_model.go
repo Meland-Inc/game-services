@@ -8,26 +8,26 @@ import (
 	"github.com/Meland-Inc/game-services/src/global/component"
 )
 
-type PlayerModel struct {
+type PlayerDataModel struct {
 	modelMgr  *component.ModelManager
 	modelName string
 	cache     *shardCache.ShardedCache
 	cacheTTL  time.Duration
 }
 
-func NewPlayerModel() *PlayerModel {
-	return &PlayerModel{}
+func NewPlayerModel() *PlayerDataModel {
+	return &PlayerDataModel{}
 }
 
-func (p *PlayerModel) Name() string {
+func (p *PlayerDataModel) Name() string {
 	return p.modelName
 }
 
-func (p *PlayerModel) ModelMgr() *component.ModelManager {
+func (p *PlayerDataModel) ModelMgr() *component.ModelManager {
 	return p.modelMgr
 }
 
-func (p *PlayerModel) OnInit(modelMgr *component.ModelManager) error {
+func (p *PlayerDataModel) OnInit(modelMgr *component.ModelManager) error {
 	if modelMgr == nil {
 		return fmt.Errorf("player model init service model manager is nil")
 	}
@@ -38,23 +38,23 @@ func (p *PlayerModel) OnInit(modelMgr *component.ModelManager) error {
 	return nil
 }
 
-func (p *PlayerModel) OnStart() error {
+func (p *PlayerDataModel) OnStart() error {
 	return nil
 }
 
-func (p *PlayerModel) OnTick(curMs int64) error {
+func (p *PlayerDataModel) OnTick(curMs int64) error {
 	return p.tick()
 }
 
-func (p *PlayerModel) OnStop() error {
+func (p *PlayerDataModel) OnStop() error {
 	p.modelMgr = nil
 	return nil
 }
 
-func (p *PlayerModel) OnExit() error {
+func (p *PlayerDataModel) OnExit() error {
 	return nil
 }
 
-func (p *PlayerModel) tick() error {
+func (p *PlayerDataModel) tick() error {
 	return nil
 }

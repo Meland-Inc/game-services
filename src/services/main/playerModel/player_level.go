@@ -9,7 +9,7 @@ import (
 	dbData "github.com/Meland-Inc/game-services/src/global/gameDB/data"
 )
 
-func (p *PlayerModel) canUpgradeLevel(player *dbData.PlayerSceneData) error {
+func (p *PlayerDataModel) canUpgradeLevel(player *dbData.PlayerSceneData) error {
 	maxLv := configData.ConfigMgr().RoleMaxLevel()
 	if player.Level == maxLv {
 		return fmt.Errorf("player is max level")
@@ -42,7 +42,7 @@ func (p *PlayerModel) canUpgradeLevel(player *dbData.PlayerSceneData) error {
 	return nil
 }
 
-func (p *PlayerModel) UpgradeLevel(userId int64) (lv int32, exp int32, err error) {
+func (p *PlayerDataModel) UpgradeLevel(userId int64) (lv int32, exp int32, err error) {
 	player, err := p.GetPlayerSceneData(userId)
 	if err != nil {
 		return 0, 0, err
@@ -70,7 +70,7 @@ func (p *PlayerModel) UpgradeLevel(userId int64) (lv int32, exp int32, err error
 	return player.Level, player.Exp, err
 }
 
-func (p *PlayerModel) setLevelAndExp(userId int64, lv, exp int32) error {
+func (p *PlayerDataModel) setLevelAndExp(userId int64, lv, exp int32) error {
 	if exp < 0 || lv < 0 {
 		return fmt.Errorf("level [%d] exp[%v] invalid", lv, exp)
 	}
@@ -111,7 +111,7 @@ func (p *PlayerModel) setLevelAndExp(userId int64, lv, exp int32) error {
 	return nil
 }
 
-func (p *PlayerModel) AddExp(userId int64, exp int32) error {
+func (p *PlayerDataModel) AddExp(userId int64, exp int32) error {
 	if exp < 1 {
 		return fmt.Errorf("invalid add exp [%d]", exp)
 	}
@@ -122,7 +122,7 @@ func (p *PlayerModel) AddExp(userId int64, exp int32) error {
 	return p.setLevelAndExp(userId, player.Level, player.Exp+exp)
 }
 
-func (p *PlayerModel) DeductExp(userId int64, exp int32) error {
+func (p *PlayerDataModel) DeductExp(userId int64, exp int32) error {
 	if exp < 1 {
 		return fmt.Errorf("invalid Deduct exp [%d]", exp)
 	}

@@ -12,12 +12,12 @@ import (
 	"gorm.io/gorm"
 )
 
-func (p *PlayerModel) getBirthData() (mapId int32, pos matrix.Vector3) {
+func (p *PlayerDataModel) getBirthData() (mapId int32, pos matrix.Vector3) {
 	// TODO: 此处数据需要 从配置中获取， 目前缺失
 	return 1001, matrix.Vector3{X: 440, Y: 40, Z: 85}
 }
 
-func (p *PlayerModel) initPlayerSceneData(userId int64) (*dbData.PlayerSceneData, error) {
+func (p *PlayerDataModel) initPlayerSceneData(userId int64) (*dbData.PlayerSceneData, error) {
 	defaultMap, defaultPos := p.getBirthData()
 	data := &dbData.PlayerSceneData{
 		UserId:      userId,
@@ -48,7 +48,7 @@ func (p *PlayerModel) initPlayerSceneData(userId int64) (*dbData.PlayerSceneData
 	return data, err
 }
 
-func (p *PlayerModel) GetPlayerSceneData(userId int64) (*dbData.PlayerSceneData, error) {
+func (p *PlayerDataModel) GetPlayerSceneData(userId int64) (*dbData.PlayerSceneData, error) {
 	cacheKey := p.getPlayerSceneDataKey(userId)
 	iData, err := p.cache.GetOrStore(
 		cacheKey,
@@ -70,7 +70,7 @@ func (p *PlayerModel) GetPlayerSceneData(userId int64) (*dbData.PlayerSceneData,
 	return iData.(*dbData.PlayerSceneData), nil
 }
 
-func (p *PlayerModel) UpPlayerSceneData(
+func (p *PlayerDataModel) UpPlayerSceneData(
 	userId int64,
 	hp, level, exp, mapId int32,
 	x, y, z, dirX, dirY, dirZ float64,
