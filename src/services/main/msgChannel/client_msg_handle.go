@@ -6,8 +6,8 @@ import (
 
 	"github.com/Meland-Inc/game-services/src/common/serviceLog"
 	"github.com/Meland-Inc/game-services/src/global/auth"
-	"github.com/Meland-Inc/game-services/src/global/dbData"
-	"github.com/Meland-Inc/game-services/src/services/account/accountDB"
+	gameDb "github.com/Meland-Inc/game-services/src/global/gameDB"
+	dbData "github.com/Meland-Inc/game-services/src/global/gameDB/data"
 	"github.com/spf13/cast"
 	"gorm.io/gorm"
 )
@@ -51,8 +51,8 @@ func (ch *MsgChannel) createPlayerHandle(
 	}
 	userId := cast.ToInt64(userIdStr)
 
-	player := &dbData.PlayerRow{}
-	err = accountDB.GetAccountDB().Where("user_id = ?", userId).First(player).Error
+	player := &dbData.PlayerBaseData{}
+	err = gameDb.GetGameDB().Where("user_id = ?", userId).First(player).Error
 	if err != nil {
 		respMsg.ErrorCode = 20003 // TODO: USE PROTO ERROR CODE
 		respMsg.ErrorMessage = err.Error()

@@ -1,4 +1,4 @@
-package itemModel
+package playerModel
 
 import (
 	"encoding/json"

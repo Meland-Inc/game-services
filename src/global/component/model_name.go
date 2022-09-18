@@ -9,6 +9,4 @@ const (
 
 	// user data manager model
 	MODEL_NAME_PLAYER_DATA = "MainServicePlayerDataModel"
-
-	MODEL_NAME_ITEM_DATA = "MainServicePlayerItemModel"
 )
