@@ -63,12 +63,12 @@ func (this *ServiceController) DestroyService(service ServiceData) {
 	record.RemoveServiceRecord(service.Id)
 }
 
-func (this *ServiceController) GetAliveServiceByType(sType proto.ServiceType) (*ServiceData, bool) {
+func (this *ServiceController) GetAliveServiceByType(sType proto.ServiceType, mapId int32) (*ServiceData, bool) {
 	record, ok := this.serviceRecordByType(sType)
 	if !ok {
 		return nil, false
 	}
-	return record.GetAliveService()
+	return record.GetAliveService(mapId)
 }
 
 func (this *ServiceController) AllServices() (services []ServiceData) {
