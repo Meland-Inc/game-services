@@ -7,7 +7,7 @@ import (
 )
 
 func InitDaprCallHandle() (err error) {
-	if daprInvoke.AddServiceInvocationHandler(
+	if err = daprInvoke.AddServiceInvocationHandler(
 		string(grpc.ProtoMessageActionPullClientMessage),
 		ClientMessageHandler,
 	); err != nil {

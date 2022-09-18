@@ -1,6 +1,7 @@
 package dbData
 
 import (
+	"game-message-core/proto"
 	"time"
 )
 
@@ -22,4 +23,8 @@ type PlayerSceneData struct {
 	BirthY      float64   `json:"birthY"`
 	BirthZ      float64   `json:"birthZ"`
 	LastLoginAt time.Time `json:"lastLoginAt"`
+}
+
+func (p *PlayerSceneData) ToNetData() *proto.PlayerBaseData {
+	return &proto.PlayerBaseData{}
 }

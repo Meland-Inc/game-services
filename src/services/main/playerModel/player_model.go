@@ -2,10 +2,13 @@ package playerModel
 
 import (
 	"fmt"
+	"game-message-core/proto"
 	"time"
 
 	"github.com/Meland-Inc/game-services/src/common/shardCache"
 	"github.com/Meland-Inc/game-services/src/global/component"
+	"github.com/Meland-Inc/game-services/src/global/gameDB"
+	dbData "github.com/Meland-Inc/game-services/src/global/gameDB/data"
 )
 
 type PlayerDataModel struct {
@@ -57,4 +60,30 @@ func (p *PlayerDataModel) OnExit() error {
 
 func (p *PlayerDataModel) tick() error {
 	return nil
+}
+
+func (p *PlayerDataModel) GetPlayerBaseData(userId int64) (*dbData.PlayerBaseData, error) {
+	baseData := &dbData.PlayerBaseData{}
+	err := gameDB.GetGameDB().Where("user_id = ?", userId).First(userId).Error
+	return baseData, err
+}
+
+func (p *PlayerDataModel) PlayerAllData(userId int64) (
+	baseData *dbData.PlayerBaseData,
+	sceneData *dbData.PlayerSceneData,
+	avatars []*Item,
+	profile *proto.EntityProfile,
+	err error,
+) {
+	if baseData, err = p.GetPlayerBaseData(userId); err != nil {
+		return
+	}
+	if sceneData, err = p.GetPlayerSceneData(userId); err != nil {
+		return
+	}
+	if avatars, err = p.UsingAvatars(userId); err != nil {
+		return
+	}
+	profile, err = p.GetPlayerProfile(userId)
+	return
 }
