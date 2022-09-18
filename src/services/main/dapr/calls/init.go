@@ -1,28 +1,56 @@
 package daprCalls
 
 import (
-	"context"
-	"fmt"
+	"game-message-core/grpc"
 
 	"github.com/Meland-Inc/game-services/src/common/daprInvoke"
-	"github.com/dapr/go-sdk/service/common"
 )
 
 func InitDaprCallHandle() (err error) {
-	daprInvoke.AddServiceInvocationHandler("DemoServiceTestCallsHandler", DemoServiceTestCallsHandler)
-	if err != nil {
+	if err := initClientMsgCallHandle(); err != nil {
+		return err
+	}
+
+	if err := initServiceGrpcCallHandle(); err != nil {
+		return err
+	}
+
+	if err := initServiceGrpcPubsubEventHandle(); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func DemoServiceTestCallsHandler(ctx context.Context, in *common.InvocationEvent) (*common.Content, error) {
-	fmt.Println("this is DemoServiceTestCallsHandler")
-	out := &common.Content{
-		Data:        []byte{},
-		ContentType: in.ContentType,
-		DataTypeURL: in.DataTypeURL,
+func initClientMsgCallHandle() error {
+	if err := daprInvoke.AddServiceInvocationHandler(
+		string(grpc.ProtoMessageActionPullClientMessage),
+		ClientMessageHandler,
+	); err != nil {
+		return err
 	}
-	return out, nil
+
+	return nil
+}
+
+func initServiceGrpcCallHandle() error {
+	// if err := daprInvoke.AddServiceInvocationHandler(
+	// 	string(grpc.ProtoMessageActionPullClientMessage),
+	// 	ClientMessageHandler,
+	// ); err != nil {
+	// 	return err
+	// }
+
+	return nil
+}
+
+func initServiceGrpcPubsubEventHandle() error {
+	// if err := daprInvoke.PubSubEventCall(
+	// 	string(grpc.ProtoMessageActionPullClientMessage),
+	// 	ClientMessageHandler,
+	// ); err != nil {
+	// 	return err
+	// }
+
+	return nil
 }
