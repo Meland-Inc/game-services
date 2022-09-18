@@ -61,7 +61,7 @@ func (sr *ServiceRecord) UpdateOrAddServiceRecord(service ServiceData) {
 	sr.statusRecord.AddServiceStatusRecord(service.Id, service.Online, service.MaxOnline)
 }
 
-func (sr *ServiceRecord) GetAliveService() (s *ServiceData, exist bool) {
+func (sr *ServiceRecord) GetAliveService(mapId int32) (s *ServiceData, exist bool) {
 	if len(sr.Services) == 0 {
 		return nil, false
 	}
@@ -70,6 +70,9 @@ func (sr *ServiceRecord) GetAliveService() (s *ServiceData, exist bool) {
 		for _, sId := range serIds {
 			service, ok := sr.Services[sId]
 			if !ok {
+				continue
+			}
+			if service.ServiceType == proto.ServiceType_ServiceTypeScene && service.MapId != mapId {
 				continue
 			}
 			if !sr.checkAlive(service) {

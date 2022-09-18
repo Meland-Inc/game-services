@@ -42,6 +42,14 @@ func (it *Item) ToNetItem() *proto.Item {
 	return pbIt
 }
 
+func (it *Item) ToNetPlayerAvatar() *proto.PlayerAvatar {
+	return &proto.PlayerAvatar{
+		Position:  proto.AvatarPosition(it.AvatarPos),
+		ObjectId:  it.Cid,
+		Attribute: it.Attribute,
+	}
+}
+
 type PlayerItems struct {
 	UserId int64
 	Items  []*Item

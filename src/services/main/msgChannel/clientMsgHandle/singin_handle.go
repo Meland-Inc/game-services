@@ -1,6 +1,7 @@
 package clientMsgHandle
 
 import (
+	"fmt"
 	"game-message-core/grpc/methodData"
 	"game-message-core/proto"
 
@@ -8,6 +9,7 @@ import (
 	"github.com/Meland-Inc/game-services/src/common/time_helper"
 	"github.com/Meland-Inc/game-services/src/global/auth"
 	"github.com/Meland-Inc/game-services/src/global/component"
+	"github.com/Meland-Inc/game-services/src/global/grpcAPI/grpcInvoke"
 	"github.com/Meland-Inc/game-services/src/global/serviceCnf"
 	"github.com/Meland-Inc/game-services/src/global/userAgent"
 	"github.com/Meland-Inc/game-services/src/services/main/playerModel"
@@ -70,7 +72,6 @@ func SingInHandle(input *methodData.PullClientMessageInput, msg *proto.Envelope)
 		respMsg.ErrorMessage = "player data select failed"
 		return
 	}
-
 	dataModel, _ := iPlayerModel.(*playerModel.PlayerDataModel)
 	baseData, sceneData, avatars, profile, err := dataModel.PlayerAllData(input.UserId)
 	if err != nil {
@@ -78,31 +79,42 @@ func SingInHandle(input *methodData.PullClientMessageInput, msg *proto.Envelope)
 		return
 	}
 
-	pbAvatars := []*proto.PlayerAvatar{}
-	for _, avatar := range avatars {
-		pbAvatars = append(pbAvatars, &proto.PlayerAvatar{
-			Position:  proto.AvatarPosition(avatar.AvatarPos),
-			ObjectId:  avatar.Cid,
-			Attribute: avatar.Attribute,
-		})
-	}
-
+	pos := &proto.Vector3{X: float32(sceneData.X), Y: float32(sceneData.Y), Z: float32(sceneData.Z)}
+	dir := &proto.Vector3{X: float32(sceneData.DirX), Y: float32(sceneData.DirY), Z: float32(sceneData.DirZ)}
 	res.ClientTime = req.ClientTime
 	res.ServerTime = time_helper.NowUTCMill()
 	res.LastLoginTime = sceneData.LastLoginAt.UnixMilli()
 	res.Player = &proto.Player{
 		BaseData: baseData.ToNetPlayerBaseData(),
-		Avatars:  pbAvatars,
 		Profile:  profile,
 		Active:   sceneData.Hp > 0,
 		MapId:    sceneData.MapId,
-		Position: &proto.Vector3{X: float32(sceneData.X), Y: float32(sceneData.Y), Z: float32(sceneData.Z)},
-		Dir:      &proto.Vector3{X: float32(sceneData.DirX), Y: float32(sceneData.DirY), Z: float32(sceneData.DirZ)},
+		Position: pos,
+		Dir:      dir,
+	}
+	for _, avatar := range avatars {
+		res.Player.Avatars = append(res.Player.Avatars, avatar.ToNetPlayerAvatar())
 	}
 
-	if serviceCnf.GetInstance().IsDevelop && req.SceneServiceAppId != "" {
-		res.SceneServiceAppId = req.SceneServiceAppId
-	} else {
-		// TODO GET SCENE SERVICE appId
+	sceneAppId, err := getSceneAppId(req.SceneServiceAppId, sceneData.MapId)
+	if err != nil {
+		respMsg.ErrorMessage = err.Error()
+		return
 	}
+	res.SceneServiceAppId = sceneAppId
+}
+
+func getSceneAppId(clientPushSceneAppId string, mapId int32) (string, error) {
+	if serviceCnf.GetInstance().IsDevelop && clientPushSceneAppId != "" {
+		return clientPushSceneAppId, nil
+	}
+
+	serviceOut, err := grpcInvoke.RPCSelectService(proto.ServiceType_ServiceTypeScene, mapId)
+	if err != nil {
+		return "", err
+	}
+	if serviceOut.ErrorCode > 0 {
+		return "", fmt.Errorf(serviceOut.ErrorMessage)
+	}
+	return serviceOut.ServiceAppId, nil
 }
