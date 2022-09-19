@@ -55,6 +55,19 @@ type PlayerItems struct {
 	Items  []*Item
 }
 
+func (p *PlayerItems) AddItem(item *Item) {
+	p.Items = append(p.Items, item)
+}
+
+func (p *PlayerItems) DelItem(itemId string) {
+	for idx, item := range p.Items {
+		if item.Id == itemId {
+			p.Items = append(p.Items[:idx], p.Items[idx+1:]...)
+			break
+		}
+	}
+}
+
 func NFTToItem(userId int64, nft message.NFT) *Item {
 	item := &Item{
 		Id:       nft.Id,
