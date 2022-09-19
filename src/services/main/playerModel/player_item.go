@@ -188,7 +188,7 @@ func (p *PlayerDataModel) canLoadAvatar(userId int64, item *Item, pos proto.Avat
 }
 
 // 穿装备
-func (p *PlayerDataModel) LoadAvatar(userId int64, userLv int32, itemId string, pos proto.AvatarPosition) error {
+func (p *PlayerDataModel) LoadAvatar(userId int64, itemId string, pos proto.AvatarPosition) error {
 	if pos < proto.AvatarPosition_AvatarPositionHead || pos > proto.AvatarPosition_AvatarPositionWeapon {
 		return fmt.Errorf("invalid avatar position [%v]", pos)
 	}
