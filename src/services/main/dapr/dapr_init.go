@@ -5,8 +5,8 @@ import (
 
 	"github.com/Meland-Inc/game-services/src/common/daprInvoke"
 	"github.com/Meland-Inc/game-services/src/common/serviceLog"
-	demoDaprCalls "github.com/Meland-Inc/game-services/src/services/demo/dapr/calls"
-	demoDaprEvent "github.com/Meland-Inc/game-services/src/services/demo/dapr/event"
+	daprEvent "github.com/Meland-Inc/game-services/src/services/account/dapr/event"
+	daprCalls "github.com/Meland-Inc/game-services/src/services/main/dapr/calls"
 )
 
 func Init() (err error) {
@@ -36,11 +36,11 @@ func initDaprService() (err error) {
 	if err = daprInvoke.InitServer(appPort); err != nil {
 		return err
 	}
-	if err = demoDaprEvent.InitDaprPubsubEvent(); err != nil {
+	if err = daprEvent.InitDaprPubsubEvent(); err != nil {
 		return err
 	}
 
-	if err = demoDaprCalls.InitDaprCallHandle(); err != nil {
+	if err = daprCalls.InitDaprCallHandle(); err != nil {
 		return err
 	}
 	return err

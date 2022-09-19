@@ -64,7 +64,7 @@ func (p *PlayerDataModel) tick() error {
 
 func (p *PlayerDataModel) GetPlayerBaseData(userId int64) (*dbData.PlayerBaseData, error) {
 	baseData := &dbData.PlayerBaseData{}
-	err := gameDB.GetGameDB().Where("user_id = ?", userId).First(userId).Error
+	err := gameDB.GetGameDB().Where("user_id = ?", userId).First(baseData).Error
 	return baseData, err
 }
 

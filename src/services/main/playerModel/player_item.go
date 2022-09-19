@@ -70,7 +70,7 @@ func (p *PlayerDataModel) LoadItems(userId int64) (items []*Item, err error) {
 func (p *PlayerDataModel) loadNFTS(userId int64) ([]*Item, error) {
 	beginMs := time_helper.NowUTCMill()
 	defer func() {
-		serviceLog.Info("web3 load player[%d] NFT use time MS[%V]", userId, time_helper.NowMill()-beginMs)
+		serviceLog.Info("web3 load player[%d] NFT use time MS[%v]", userId, time_helper.NowMill()-beginMs)
 	}()
 
 	userNfts, err := grpcInvoke.RPCLoadUserNFTS(userId)

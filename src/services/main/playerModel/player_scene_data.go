@@ -54,7 +54,7 @@ func (p *PlayerDataModel) GetPlayerSceneData(userId int64) (*dbData.PlayerSceneD
 		cacheKey,
 		func() (interface{}, error) {
 			data := &dbData.PlayerSceneData{}
-			err := gameDB.GetGameDB().Where("userId = ?", userId).First(data).Error
+			err := gameDB.GetGameDB().Where("user_id = ?", userId).First(data).Error
 			if err != nil && err != gorm.ErrRecordNotFound {
 				data, err = p.initPlayerSceneData(userId)
 			}

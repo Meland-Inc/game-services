@@ -8,41 +8,10 @@ import (
 	"github.com/Meland-Inc/game-services/src/common/serviceLog"
 	"github.com/Meland-Inc/game-services/src/common/time_helper"
 	"github.com/Meland-Inc/game-services/src/global/auth"
-	"github.com/Meland-Inc/game-services/src/global/component"
 	"github.com/Meland-Inc/game-services/src/global/grpcAPI/grpcInvoke"
 	"github.com/Meland-Inc/game-services/src/global/serviceCnf"
-	"github.com/Meland-Inc/game-services/src/global/userAgent"
-	"github.com/Meland-Inc/game-services/src/services/main/playerModel"
 	"github.com/spf13/cast"
 )
-
-func ResponseClientMessage(userId int64, respMsg *proto.Envelope) {
-	iUserAgentModel, exist := component.GetInstance().GetModel(component.MODEL_NAME_USER_AGENT)
-	if !exist {
-		return
-	}
-	agentModel := iUserAgentModel.(*userAgent.UserAgentModel)
-	agent, exist := agentModel.GetUserAgent(userId)
-	if !exist {
-		serviceLog.Warning("user [%d] agent data not found", userId)
-		return
-	}
-	agent.SendToPlayer(serviceCnf.GetInstance().ServerName, respMsg)
-
-	if respMsg.ErrorMessage != "" {
-		serviceLog.Error(
-			"responseClient [%v] Msg err : [%d][%s]",
-			respMsg.Type, respMsg.ErrorCode, respMsg.ErrorMessage,
-		)
-	}
-}
-
-func makeResponseMsg(msg *proto.Envelope) *proto.Envelope {
-	return &proto.Envelope{
-		Type:  msg.Type,
-		SeqId: msg.SeqId,
-	}
-}
 
 func SingInHandle(input *methodData.PullClientMessageInput, msg *proto.Envelope) {
 	res := &proto.SigninPlayerResponse{}
@@ -50,9 +19,10 @@ func SingInHandle(input *methodData.PullClientMessageInput, msg *proto.Envelope)
 	defer func() {
 		if respMsg.ErrorMessage != "" {
 			respMsg.ErrorCode = 20001 // TODO: USE PROTO ERROR CODE
+			serviceLog.Error("main service Signin Player err: %s", respMsg.ErrorMessage)
 		}
 		respMsg.Payload = &proto.Envelope_SigninPlayerResponse{SigninPlayerResponse: res}
-		ResponseClientMessage(input.UserId, respMsg)
+		ResponseClientMessage(input, respMsg)
 	}()
 
 	req := msg.GetSigninPlayerRequest()
@@ -67,12 +37,12 @@ func SingInHandle(input *methodData.PullClientMessageInput, msg *proto.Envelope)
 	}
 
 	input.UserId = cast.ToInt64(userIdStr)
-	iPlayerModel, exist := component.GetInstance().GetModel(component.MODEL_NAME_PLAYER_DATA)
-	if !exist {
-		respMsg.ErrorMessage = "player data select failed"
+	dataModel, err := getPlayerDataModel()
+	if err != nil {
+		respMsg.ErrorMessage = err.Error()
 		return
 	}
-	dataModel, _ := iPlayerModel.(*playerModel.PlayerDataModel)
+
 	baseData, sceneData, avatars, profile, err := dataModel.PlayerAllData(input.UserId)
 	if err != nil {
 		respMsg.ErrorMessage = err.Error()
