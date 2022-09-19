@@ -13,10 +13,12 @@ import (
 )
 
 type UserAgentData struct {
-	AgentAppId string `json:"agentAppId"`
-	SocketId   string `json:"socketId"`
-	UserId     int64  `json:"userId"`
-	LoginAt    int64  `json:"loginAt"`
+	AgentAppId          string `json:"agentAppId"`
+	InSceneServiceAppId string `json:"inSceneServiceAppId"`
+	InMapId             int32  `json:"inMapId"`
+	SocketId            string `json:"socketId"`
+	UserId              int64  `json:"userId"`
+	LoginAt             int64  `json:"loginAt"`
 }
 
 func (p *UserAgentData) TryUpdate(userId int64, agentAppId, socketId string) {

@@ -11,10 +11,11 @@ import (
 var chanInstance *MsgChannel
 
 type MsgChannel struct {
-	isClosed      bool
-	msgHandler    map[proto.EnvelopeType]HandleFunc
-	clientMsgChan chan *methodData.PullClientMessageInput
-	stopChan      chan chan struct{}
+	isClosed         bool
+	clientMsgHandler map[proto.EnvelopeType]HandleFunc
+	clientMsgChan    chan *methodData.PullClientMessageInput
+	serviceMsgChan   chan *ServiceMsgData
+	stopChan         chan chan struct{}
 }
 
 func GetInstance() *MsgChannel {
@@ -31,15 +32,23 @@ func InitAndRun() {
 
 func NewMsgChannel() *MsgChannel {
 	channel := &MsgChannel{
-		clientMsgChan: make(chan *methodData.PullClientMessageInput, 2048),
-		stopChan:      make(chan chan struct{}),
-		isClosed:      false,
-		msgHandler:    make(map[proto.EnvelopeType]HandleFunc),
+		stopChan:         make(chan chan struct{}),
+		isClosed:         false,
+		clientMsgChan:    make(chan *methodData.PullClientMessageInput, 2048),
+		clientMsgHandler: make(map[proto.EnvelopeType]HandleFunc),
+		serviceMsgChan:   make(chan *ServiceMsgData, 2048),
 	}
-	channel.registerHandler()
+
+	channel.registerClientMsgHandler()
 	return channel
 }
 
+func (ch *MsgChannel) CallServiceMsg(in *ServiceMsgData) {
+	if ch.isClosed {
+		return
+	}
+	ch.serviceMsgChan <- in
+}
 func (ch *MsgChannel) CallClientMsg(in *methodData.PullClientMessageInput) {
 	if ch.isClosed {
 		return
@@ -51,6 +60,7 @@ func (ch *MsgChannel) stop() {
 	ch.isClosed = true
 	close(ch.stopChan)
 	close(ch.clientMsgChan)
+	close(ch.serviceMsgChan)
 }
 
 func (ch *MsgChannel) Stop() {
@@ -74,6 +84,8 @@ func (ch *MsgChannel) run() {
 			select {
 			case input := <-ch.clientMsgChan:
 				ch.onClientMessage(input)
+			case serviceMsg := <-ch.serviceMsgChan:
+				ch.onServiceMessage(serviceMsg)
 			case stopFinished := <-ch.stopChan:
 				ch.stop()
 				stopFinished <- struct{}{}
@@ -82,6 +94,7 @@ func (ch *MsgChannel) run() {
 		}
 	}()
 }
+
 
 func (ch *MsgChannel) onClientMessage(input *methodData.PullClientMessageInput) {
 	msg, err := protoTool.UnMarshalToEnvelope(input.MsgBody)
@@ -92,7 +105,7 @@ func (ch *MsgChannel) onClientMessage(input *methodData.PullClientMessageInput) 
 
 	serviceLog.Info("received player[%v] message: %v", input.UserId, msg.Type)
 
-	if handler, exist := ch.msgHandler[msg.Type]; exist {
+	if handler, exist := ch.clientMsgHandler[msg.Type]; exist {
 		handler(input, msg)
 	}
 }

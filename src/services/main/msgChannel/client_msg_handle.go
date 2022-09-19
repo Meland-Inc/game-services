@@ -9,10 +9,10 @@ import (
 
 type HandleFunc func(*methodData.PullClientMessageInput, *proto.Envelope)
 
-func (ch *MsgChannel) registerHandler() {
-	ch.msgHandler[proto.EnvelopeType_SigninPlayer] = clientMsgHandle.SingInHandle
-	ch.msgHandler[proto.EnvelopeType_ItemGet] = clientMsgHandle.ItemGetHandle
-	ch.msgHandler[proto.EnvelopeType_ItemUse] = clientMsgHandle.ItemUseHandle
-	ch.msgHandler[proto.EnvelopeType_UpdateAvatar] = clientMsgHandle.LoadAvatarHandle
-	ch.msgHandler[proto.EnvelopeType_UnloadAvatar] = clientMsgHandle.UnloadAvatarHandle
+func (ch *MsgChannel) registerClientMsgHandler() {
+	ch.clientMsgHandler[proto.EnvelopeType_SigninPlayer] = clientMsgHandle.SingInHandle
+	ch.clientMsgHandler[proto.EnvelopeType_ItemGet] = clientMsgHandle.ItemGetHandle
+	ch.clientMsgHandler[proto.EnvelopeType_ItemUse] = clientMsgHandle.ItemUseHandle
+	ch.clientMsgHandler[proto.EnvelopeType_UpdateAvatar] = clientMsgHandle.LoadAvatarHandle
+	ch.clientMsgHandler[proto.EnvelopeType_UnloadAvatar] = clientMsgHandle.UnloadAvatarHandle
 }
