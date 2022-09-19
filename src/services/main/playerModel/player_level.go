@@ -42,7 +42,7 @@ func (p *PlayerDataModel) canUpgradeLevel(player *dbData.PlayerSceneData) error 
 	return nil
 }
 
-func (p *PlayerDataModel) UpgradeLevel(userId int64) (lv int32, exp int32, err error) {
+func (p *PlayerDataModel) UpgradePlayerLevel(userId int64) (lv int32, exp int32, err error) {
 	player, err := p.GetPlayerSceneData(userId)
 	if err != nil {
 		return 0, 0, err
