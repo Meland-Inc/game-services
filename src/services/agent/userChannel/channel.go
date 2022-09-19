@@ -1,11 +1,14 @@
 package userChannel
 
 import (
+	"game-message-core/grpc/pubsubEventData"
 	"game-message-core/proto"
 	"game-message-core/protoTool"
 
 	"github.com/Meland-Inc/game-services/src/common/net/session"
 	"github.com/Meland-Inc/game-services/src/common/serviceLog"
+	"github.com/Meland-Inc/game-services/src/common/time_helper"
+	"github.com/Meland-Inc/game-services/src/global/grpcAPI/grpcPubsubEvent"
 )
 
 type UserChannel struct {
@@ -118,9 +121,13 @@ func (uc *UserChannel) SendToUser(msgType proto.EnvelopeType, msgBody []byte) {
 	uc.tcpSession.Write(msgBody)
 
 	// update channel owner and sceneServiceAppId by SingInMsg
-	if msgType == proto.EnvelopeType_SigninPlayer {
+	switch msgType {
+	case proto.EnvelopeType_SigninPlayer:
 		uc.onUserSingInGame(msgType, msgBody)
+	case proto.EnvelopeType_EnterMap:
+		uc.onUserEnterMap(msgBody)
 	}
+
 }
 
 func (uc *UserChannel) onUserSingInGame(msgType proto.EnvelopeType, msgBody []byte) {
@@ -134,4 +141,24 @@ func (uc *UserChannel) onUserSingInGame(msgType proto.EnvelopeType, msgBody []by
 	uc.SetSceneService(payload.GetSceneServiceAppId())
 	uc.SetOwner(payload.Player.BaseData.UserId)
 	GetInstance().AddUserChannelByOwner(uc)
+}
+
+func (uc *UserChannel) onUserEnterMap(msgBody []byte) {
+	respMsg, err := protoTool.UnMarshalToEnvelope(msgBody)
+	if err != nil {
+		serviceLog.Error("enterMap response message UnMarshal failed")
+		return
+	}
+
+	payload := respMsg.GetEnterMapResponse()
+
+	env := pubsubEventData.UserEnterGameEvent{
+		MsgVersion:        time_helper.NowUTCMill(),
+		SceneServiceAppId: uc.GetSceneService(),
+		MapId:             payload.Me.MapId,
+		BaseData:          *payload.Me.BaseData,
+		Position:          *payload.Me.Position,
+		Dir:               *payload.Me.Dir,
+	}
+	grpcPubsubEvent.RPCPubsubEventEnterGame(env)
 }
