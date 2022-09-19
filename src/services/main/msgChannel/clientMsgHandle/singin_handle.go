@@ -10,6 +10,7 @@ import (
 	"github.com/Meland-Inc/game-services/src/global/auth"
 	"github.com/Meland-Inc/game-services/src/global/grpcAPI/grpcInvoke"
 	"github.com/Meland-Inc/game-services/src/global/serviceCnf"
+	"github.com/Meland-Inc/game-services/src/services/main/playerModel"
 	"github.com/spf13/cast"
 )
 
@@ -37,7 +38,7 @@ func SingInHandle(input *methodData.PullClientMessageInput, msg *proto.Envelope)
 	}
 
 	input.UserId = cast.ToInt64(userIdStr)
-	dataModel, err := getPlayerDataModel()
+	dataModel, err := playerModel.GetPlayerDataModel()
 	if err != nil {
 		respMsg.ErrorMessage = err.Error()
 		return

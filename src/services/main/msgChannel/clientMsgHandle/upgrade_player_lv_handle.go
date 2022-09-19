@@ -3,6 +3,8 @@ package clientMsgHandle
 import (
 	"game-message-core/grpc/methodData"
 	"game-message-core/proto"
+
+	"github.com/Meland-Inc/game-services/src/services/main/playerModel"
 )
 
 func UpgradePlayerLevelHandle(input *methodData.PullClientMessageInput, msg *proto.Envelope) {
@@ -21,7 +23,7 @@ func UpgradePlayerLevelHandle(input *methodData.PullClientMessageInput, msg *pro
 		return
 	}
 
-	dataModel, err := getPlayerDataModel()
+	dataModel, err := playerModel.GetPlayerDataModel()
 	if err != nil {
 		respMsg.ErrorMessage = err.Error()
 		return
