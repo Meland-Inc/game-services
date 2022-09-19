@@ -2,6 +2,7 @@ package playerModel
 
 import (
 	"fmt"
+	"game-message-core/grpc/pubsubEventData"
 	"game-message-core/proto"
 
 	"github.com/Meland-Inc/game-services/src/common/serviceLog"
@@ -9,6 +10,7 @@ import (
 	"github.com/Meland-Inc/game-services/src/global/gameDB"
 	dbData "github.com/Meland-Inc/game-services/src/global/gameDB/data"
 	"github.com/Meland-Inc/game-services/src/global/grpcAPI/grpcInvoke"
+	"github.com/Meland-Inc/game-services/src/global/grpcAPI/grpcPubsubEvent"
 	message "github.com/Meland-Inc/game-services/src/global/web3Message"
 )
 
@@ -236,4 +238,75 @@ func (p *PlayerDataModel) UnloadAvatar(userId int64, itemId string, callProfileU
 	}
 	p.noticePlayerItemMsg(userId, proto.EnvelopeType_BroadCastItemUpdate, []*Item{item})
 	return nil
+}
+
+func (p *PlayerDataModel) UseItem(userId int64, itemId string) error {
+	it, err := p.ItemById(userId, itemId)
+	if err != nil {
+		return err
+	}
+	if err = p.canUse(userId, it); err != nil {
+		return err
+	}
+
+	if err = p.callUseItem(userId, it); err != nil {
+		return err
+	}
+
+	it.Used = true
+	p.noticePlayerItemMsg(userId, proto.EnvelopeType_BroadCastItemUpdate, []*Item{it})
+	return nil
+}
+func (p *PlayerDataModel) canUse(userId int64, it *Item) error {
+	if it.Num < 1 {
+		return fmt.Errorf("item is empty")
+	}
+	if it.Used {
+		return fmt.Errorf("item is used")
+	}
+
+	player, err := p.GetPlayerSceneData(userId)
+	if err != nil {
+		return err
+	}
+
+	if player.Level < it.NFTData.UseLevel() {
+		return fmt.Errorf("Insufficient level")
+	}
+	return nil
+}
+func (p *PlayerDataModel) callUseItem(userId int64, it *Item) error {
+	switch it.NFTType {
+	case proto.NFTType_NFTTypeConsumable:
+		return p.callUseConsumable(userId, it)
+	case proto.NFTType_NFTTypePlaceable, proto.NFTType_NFTTypeThird:
+		// entities, err = m.useNFTBuild(userId, it)
+	}
+
+	return nil
+}
+
+func (p *PlayerDataModel) callUseConsumable(userId int64, item *Item) (err error) {
+	isConsumable, conData := item.NFTData.GetConsumableData()
+	if !isConsumable || conData == nil {
+		return
+	}
+
+	err = grpcInvoke.RPCCallUseConsumableToWeb3(userId, item.Id, 0, 0)
+	if err != nil {
+		return err
+	}
+
+	env := pubsubEventData.UserUseNFTEvent{
+		MsgVersion:     time_helper.NowUTCMill(),
+		UserId:         userId,
+		NftId:          item.Id,
+		Cid:            item.Cid,
+		NftType:        item.NFTType,
+		Num:            1,
+		ConsumableData: conData,
+		X:              0,
+		Z:              0,
+	}
+	return grpcPubsubEvent.RPCPubsubEventUseNft(env)
 }
