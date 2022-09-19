@@ -15,4 +15,6 @@ func (ch *MsgChannel) registerClientMsgHandler() {
 	ch.clientMsgHandler[proto.EnvelopeType_ItemUse] = clientMsgHandle.ItemUseHandle
 	ch.clientMsgHandler[proto.EnvelopeType_UpdateAvatar] = clientMsgHandle.LoadAvatarHandle
 	ch.clientMsgHandler[proto.EnvelopeType_UnloadAvatar] = clientMsgHandle.UnloadAvatarHandle
+	ch.clientMsgHandler[proto.EnvelopeType_GetItemSlot] = clientMsgHandle.ItemSlotGetHandle
+	ch.clientMsgHandler[proto.EnvelopeType_UpgradeItemSlot] = clientMsgHandle.ItemSlotUpgradeHandle
 }
