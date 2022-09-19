@@ -14,8 +14,6 @@ func InitDaprPubsubEvent() (err error) {
 		return err
 	}
 
-
-	
 	return nil
 }
 

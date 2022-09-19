@@ -19,6 +19,19 @@ type UserAgentData struct {
 	LoginAt    int64  `json:"loginAt"`
 }
 
+func (p *UserAgentData) TryUpdate(userId int64, agentAppId, socketId string) {
+	if p.UserId == 0 && userId > 0 {
+		p.UserId = userId
+	}
+
+	if socketId != "" && socketId != p.SocketId {
+		p.SocketId = socketId
+	}
+	if agentAppId != "" && agentAppId != p.AgentAppId {
+		p.AgentAppId = agentAppId
+	}
+}
+
 func (p *UserAgentData) SendToPlayer(serviceAppId string, msg *proto.Envelope) error {
 	msgBody, err := protoTool.MarshalProto(msg)
 	if err != nil {

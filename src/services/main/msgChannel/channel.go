@@ -1,16 +1,11 @@
 package msgChannel
 
 import (
-	"encoding/json"
-	"game-message-core/grpc"
 	"game-message-core/grpc/methodData"
 	"game-message-core/proto"
 	"game-message-core/protoTool"
 
-	"github.com/Meland-Inc/game-services/src/common/daprInvoke"
 	"github.com/Meland-Inc/game-services/src/common/serviceLog"
-	"github.com/Meland-Inc/game-services/src/common/time_helper"
-	"github.com/Meland-Inc/game-services/src/global/serviceCnf"
 )
 
 var chanInstance *MsgChannel
@@ -95,44 +90,9 @@ func (ch *MsgChannel) onClientMessage(input *methodData.PullClientMessageInput) 
 		return
 	}
 
+	serviceLog.Info("received player[%v] message: %v", input.UserId, msg.Type)
+
 	if handler, exist := ch.msgHandler[msg.Type]; exist {
 		handler(input, msg)
 	}
-}
-
-func (ch *MsgChannel) SendToPlayer(
-	agentAppId, socketId string,
-	userId int64,
-	msg *proto.Envelope,
-) error {
-	msgBody, err := protoTool.MarshalProto(msg)
-	if err != nil {
-		return err
-	}
-
-	input := methodData.BroadCastToClientInput{
-		MsgVersion:   time_helper.NowUTCMill(),
-		ServiceAppId: serviceCnf.GetInstance().ServerName,
-		UserId:       userId,
-		SocketId:     socketId,
-		MsgId:        int32(msg.Type),
-		MsgBody:      msgBody,
-	}
-
-	inputBytes, err := json.Marshal(input)
-	if err != nil {
-		serviceLog.Error("SendToPlayer Marshal BroadCastInput failed err: %+v", err)
-		return err
-	}
-
-	_, err = daprInvoke.InvokeMethod(
-		agentAppId,
-		string(grpc.ProtoMessageActionBroadCastToClient),
-		inputBytes,
-	)
-	if err != nil {
-		serviceLog.Error("SendToPlayer InvokeMethod  failed err:%+v", err)
-	}
-
-	return err
 }
