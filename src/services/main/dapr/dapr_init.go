@@ -5,8 +5,8 @@ import (
 
 	"github.com/Meland-Inc/game-services/src/common/daprInvoke"
 	"github.com/Meland-Inc/game-services/src/common/serviceLog"
-	daprEvent "github.com/Meland-Inc/game-services/src/services/account/dapr/event"
 	daprCalls "github.com/Meland-Inc/game-services/src/services/main/dapr/calls"
+	daprEvent "github.com/Meland-Inc/game-services/src/services/main/dapr/event"
 )
 
 func Init() (err error) {
