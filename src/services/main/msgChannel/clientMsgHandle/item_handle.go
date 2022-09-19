@@ -5,6 +5,7 @@ import (
 	"game-message-core/proto"
 
 	"github.com/Meland-Inc/game-services/src/common/serviceLog"
+	"github.com/Meland-Inc/game-services/src/services/main/playerModel"
 )
 
 func ItemGetHandle(input *methodData.PullClientMessageInput, msg *proto.Envelope) {
@@ -23,7 +24,7 @@ func ItemGetHandle(input *methodData.PullClientMessageInput, msg *proto.Envelope
 		return
 	}
 
-	dataModel, err := getPlayerDataModel()
+	dataModel, err := playerModel.GetPlayerDataModel()
 	if err != nil {
 		respMsg.ErrorMessage = err.Error()
 		return
@@ -61,7 +62,7 @@ func ItemUseHandle(input *methodData.PullClientMessageInput, msg *proto.Envelope
 		return
 	}
 
-	dataModel, err := getPlayerDataModel()
+	dataModel, err := playerModel.GetPlayerDataModel()
 	if err != nil {
 		respMsg.ErrorMessage = err.Error()
 		return

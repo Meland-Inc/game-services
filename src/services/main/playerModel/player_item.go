@@ -310,3 +310,84 @@ func (p *PlayerDataModel) callUseConsumable(userId int64, item *Item) (err error
 	}
 	return grpcPubsubEvent.RPCPubsubEventUseNft(env)
 }
+
+func (p *PlayerDataModel) UpdatePlayerNFTs(userId int64, nfts []message.NFT) {
+	needDelNfts := []message.NFT{}
+	needUpNfts := []message.NFT{}
+	for _, nft := range nfts {
+		if nft.Amount == 0 {
+			needDelNfts = append(needDelNfts, nft)
+		} else {
+			needUpNfts = append(needUpNfts, nft)
+		}
+	}
+
+	delItems := []*Item{}
+	for _, nft := range needDelNfts {
+		if it := p.deleteNft(userId, nft.Id); it != nil {
+			delItems = append(delItems, it)
+		}
+	}
+	if len(delItems) > 0 {
+		p.noticePlayerItemMsg(userId, proto.EnvelopeType_BroadCastItemDel, delItems)
+	}
+
+	addItems := []*Item{}
+	upItems := []*Item{}
+	for _, nft := range needUpNfts {
+		item, _ := p.ItemById(userId, nft.Id)
+		if item == nil {
+			it := p.addNft(userId, nft)
+			addItems = append(addItems, it)
+		} else {
+			upIt := p.updateNft(userId, item, nft)
+			upItems = append(upItems, upIt)
+		}
+	}
+	if len(upItems) > 0 {
+		p.noticePlayerItemMsg(userId, proto.EnvelopeType_BroadCastItemUpdate, upItems)
+	}
+	if len(addItems) > 0 {
+		p.noticePlayerItemMsg(userId, proto.EnvelopeType_BroadCastItemAdd, addItems)
+	}
+}
+
+func (p *PlayerDataModel) addNft(userId int64, nft message.NFT) *Item {
+	item := NFTToItem(userId, nft)
+	playerItems, _ := p.GetPlayerItems(userId)
+	playerItems.AddItem(item)
+	serviceLog.Info("add new  NFT item = %+v", item)
+	return item
+}
+
+func (p *PlayerDataModel) updateNft(userId int64, item *Item, nft message.NFT) *Item {
+	item.Num = int32(nft.Amount)
+	item.NFTData = nft
+	switch item.NFTType {
+	case proto.NFTType_NFTTypeEquipment:
+		if _, _, attr := nft.GetEquipmentData(); attr != nil {
+			item.Attribute = attr
+		}
+	case proto.NFTType_NFTTypeWearable:
+		if _, _, attr := nft.GetWearablePbData(); attr != nil {
+			item.Attribute = attr
+		}
+	}
+	serviceLog.Info("update NFT item = %+v", item)
+	return item
+}
+
+func (p *PlayerDataModel) deleteNft(userId int64, nftId string) *Item {
+	item, err := p.ItemById(userId, nftId)
+	if err != nil {
+		return nil
+	}
+
+	playerItems, _ := p.GetPlayerItems(userId)
+	playerItems.DelItem(nftId)
+	if item.Used && item.AvatarPos > 0 {
+		p.removeUsingNftRecord(userId, item.Id)
+	}
+	serviceLog.Info("delete NFT item = %+v", item)
+	return item
+}

@@ -1,7 +1,6 @@
 package clientMsgHandle
 
 import (
-	"fmt"
 	"game-message-core/grpc/methodData"
 	"game-message-core/proto"
 
@@ -10,7 +9,6 @@ import (
 	"github.com/Meland-Inc/game-services/src/global/component"
 	"github.com/Meland-Inc/game-services/src/global/serviceCnf"
 	"github.com/Meland-Inc/game-services/src/global/userAgent"
-	"github.com/Meland-Inc/game-services/src/services/main/playerModel"
 )
 
 func ResponseClientMessage(
@@ -39,15 +37,6 @@ func makeResponseMsg(msg *proto.Envelope) *proto.Envelope {
 		Type:  msg.Type,
 		SeqId: msg.SeqId,
 	}
-}
-
-func getPlayerDataModel() (*playerModel.PlayerDataModel, error) {
-	iPlayerModel, exist := component.GetInstance().GetModel(component.MODEL_NAME_PLAYER_DATA)
-	if !exist {
-		return nil, fmt.Errorf("player data model not found")
-	}
-	dataModel, _ := iPlayerModel.(*playerModel.PlayerDataModel)
-	return dataModel, nil
 }
 
 func getPlayerAgent(input *methodData.PullClientMessageInput) *userAgent.UserAgentData {
