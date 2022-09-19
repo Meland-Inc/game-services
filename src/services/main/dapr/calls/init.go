@@ -15,10 +15,7 @@ func InitDaprCallHandle() (err error) {
 		return err
 	}
 
-	if err := initServiceGrpcPubsubEventHandle(); err != nil {
-		return err
-	}
-
+	
 	return nil
 }
 
@@ -35,17 +32,6 @@ func initClientMsgCallHandle() error {
 
 func initServiceGrpcCallHandle() error {
 	// if err := daprInvoke.AddServiceInvocationHandler(
-	// 	string(grpc.ProtoMessageActionPullClientMessage),
-	// 	ClientMessageHandler,
-	// ); err != nil {
-	// 	return err
-	// }
-
-	return nil
-}
-
-func initServiceGrpcPubsubEventHandle() error {
-	// if err := daprInvoke.PubSubEventCall(
 	// 	string(grpc.ProtoMessageActionPullClientMessage),
 	// 	ClientMessageHandler,
 	// ); err != nil {

@@ -9,8 +9,18 @@ import (
 )
 
 func InitDaprPubsubEvent() (err error) {
-	daprInvoke.AddTopicEventHandler("DemoServiceTestEventHandler", DemoServiceTestEventHandler)
-	if err != nil {
+	if err := initServiceGrpcPubsubEventHandle(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func initServiceGrpcPubsubEventHandle() error {
+	if err := daprInvoke.AddTopicEventHandler(
+		"DemoServiceTestEventHandler",
+		DemoServiceTestEventHandler,
+	); err != nil {
 		return err
 	}
 
