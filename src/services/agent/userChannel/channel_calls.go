@@ -2,6 +2,7 @@ package userChannel
 
 import (
 	"encoding/json"
+	"fmt"
 	"game-message-core/grpc"
 	"game-message-core/grpc/methodData"
 	"game-message-core/proto"
@@ -12,6 +13,21 @@ import (
 	"github.com/Meland-Inc/game-services/src/common/time_helper"
 	"github.com/Meland-Inc/game-services/src/global/serviceCnf"
 )
+
+func (uc *UserChannel) clientMsgIsLegal(msgType proto.EnvelopeType) (bool, error) {
+	if uc.enterSceneService {
+		return true, nil
+	}
+	switch msgType {
+	case proto.EnvelopeType_SigninPlayer,
+		proto.EnvelopeType_EnterMap,
+		proto.EnvelopeType_QueryPlayer,
+		proto.EnvelopeType_CreatePlayer:
+		return true, nil
+	default:
+		return false, fmt.Errorf("msg is not Legal: %v", msgType)
+	}
+}
 
 func (uc *UserChannel) makePullClientMessageInputBytes(data []byte) ([]byte, error) {
 	input := methodData.PullClientMessageInput{
@@ -66,6 +82,11 @@ func (uc *UserChannel) callOtherServiceClientMsg(data []byte, msg *proto.Envelop
 		if byes, err := protoTool.MarshalEnvelope(resMsg); err == nil {
 			uc.tcpSession.Write(byes)
 		}
+	}
+
+	if _, err := uc.clientMsgIsLegal(msg.Type); err != nil {
+		errResponseF(70000, err.Error())
+		return
 	}
 
 	serviceType := protoTool.EnvelopeTypeToServiceType(msg.Type)

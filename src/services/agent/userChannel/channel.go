@@ -15,6 +15,7 @@ type UserChannel struct {
 	id                string
 	owner             int64
 	sceneServiceAppId string
+	enterSceneService bool
 	tcpSession        *session.Session
 	channels          []chan []byte
 	stopChans         []chan chan struct{}
@@ -71,6 +72,8 @@ func (uc *UserChannel) Stop() {
 	}
 	uc.tcpSession = nil
 	uc.isClosed = true
+	uc.sceneServiceAppId = ""
+	uc.enterSceneService = false
 }
 
 func (uc *UserChannel) Run() {
@@ -151,7 +154,7 @@ func (uc *UserChannel) onUserEnterMap(msgBody []byte) {
 	}
 
 	payload := respMsg.GetEnterMapResponse()
-
+	uc.enterSceneService = true
 	env := pubsubEventData.UserEnterGameEvent{
 		MsgVersion:        time_helper.NowUTCMill(),
 		SceneServiceAppId: uc.GetSceneService(),
