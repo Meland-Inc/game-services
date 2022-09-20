@@ -38,5 +38,26 @@ func initServiceGrpcPubsubEventHandle() error {
 		return err
 	}
 
+	if err := daprInvoke.AddTopicEventHandler(
+		string(grpc.SubscriptionEventSavePlayerData),
+		SavePlayerDataEventHandle,
+	); err != nil {
+		return err
+	}
+
+	if err := daprInvoke.AddTopicEventHandler(
+		string(grpc.SubscriptionEventKillMonster),
+		PlayerKillMonsterEventHandle,
+	); err != nil {
+		return err
+	}
+
+	if err := daprInvoke.AddTopicEventHandler(
+		string(grpc.SubscriptionEventPlayerDeath),
+		PlayerDeathEventHandle,
+	); err != nil {
+		return err
+	}
+
 	return nil
 }
