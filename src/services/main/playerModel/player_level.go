@@ -106,6 +106,7 @@ func (p *PlayerDataModel) setLevelAndExp(userId int64, lv, exp int32) error {
 		})
 	}
 	if len(upProfiles) > 0 {
+		p.RPCCallUpdateUserProfile(userId)
 		p.noticePlayerProfileUpdate(userId, upProfiles)
 	}
 	return nil

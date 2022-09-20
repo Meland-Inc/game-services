@@ -4,18 +4,13 @@ import (
 	"game-message-core/proto"
 
 	"github.com/Meland-Inc/game-services/src/common/serviceLog"
-	"github.com/Meland-Inc/game-services/src/global/component"
 	dbData "github.com/Meland-Inc/game-services/src/global/gameDB/data"
 	"github.com/Meland-Inc/game-services/src/global/serviceCnf"
 	"github.com/Meland-Inc/game-services/src/global/userAgent"
 )
 
 func (p *PlayerDataModel) SendToPlayer(userId int64, msg *proto.Envelope) {
-	iUserAgentModel, exist := component.GetInstance().GetModel(component.MODEL_NAME_USER_AGENT)
-	if !exist {
-		return
-	}
-	agentModel := iUserAgentModel.(*userAgent.UserAgentModel)
+	agentModel := userAgent.GetUserAgentModel()
 	agent, exist := agentModel.GetUserAgent(userId)
 	if !exist {
 		serviceLog.Warning("user [%d] agent data not found", userId)

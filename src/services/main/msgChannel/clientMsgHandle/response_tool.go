@@ -6,7 +6,6 @@ import (
 
 	"github.com/Meland-Inc/game-services/src/common/serviceLog"
 	"github.com/Meland-Inc/game-services/src/common/time_helper"
-	"github.com/Meland-Inc/game-services/src/global/component"
 	"github.com/Meland-Inc/game-services/src/global/serviceCnf"
 	"github.com/Meland-Inc/game-services/src/global/userAgent"
 )
@@ -40,11 +39,7 @@ func makeResponseMsg(msg *proto.Envelope) *proto.Envelope {
 }
 
 func getPlayerAgent(input *methodData.PullClientMessageInput) *userAgent.UserAgentData {
-	iUserAgentModel, exist := component.GetInstance().GetModel(component.MODEL_NAME_USER_AGENT)
-	if !exist {
-		return nil
-	}
-	agentModel := iUserAgentModel.(*userAgent.UserAgentModel)
+	agentModel := userAgent.GetUserAgentModel()
 	agent, exist := agentModel.GetUserAgent(input.UserId)
 	if !exist {
 		agent = &userAgent.UserAgentData{

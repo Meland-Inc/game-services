@@ -70,6 +70,7 @@ func (p *PlayerDataModel) setPlayerItemSlotLevel(
 	}
 	if broadcast {
 		p.noticeUpdatePlayerItemSlot(playerSlot)
+		p.RPCCallUpdateUserProfile(userId)
 	}
 	return playerSlot, nil
 }

@@ -2,7 +2,6 @@ package playerModel
 
 import (
 	"fmt"
-	"game-message-core/grpc/pubsubEventData"
 	"game-message-core/proto"
 
 	"github.com/Meland-Inc/game-services/src/common/serviceLog"
@@ -10,7 +9,6 @@ import (
 	"github.com/Meland-Inc/game-services/src/global/gameDB"
 	dbData "github.com/Meland-Inc/game-services/src/global/gameDB/data"
 	"github.com/Meland-Inc/game-services/src/global/grpcAPI/grpcInvoke"
-	"github.com/Meland-Inc/game-services/src/global/grpcAPI/grpcPubsubEvent"
 	message "github.com/Meland-Inc/game-services/src/global/web3Message"
 )
 
@@ -215,7 +213,7 @@ func (p *PlayerDataModel) LoadAvatar(userId int64, itemId string, pos proto.Avat
 		return err
 	}
 
-	// TODO CLIENT PLAYER PROFILE AND call scene service up player profile
+	p.RPCCallUpdateUserUsingAvatar(userId)
 	p.noticePlayerItemMsg(userId, proto.EnvelopeType_BroadCastItemUpdate, []*Item{item})
 	return nil
 }
@@ -234,7 +232,7 @@ func (p *PlayerDataModel) UnloadAvatar(userId int64, itemId string, callProfileU
 	}
 
 	if callProfileUp {
-		// TODO CLIENT PLAYER PROFILE AND call scene service up player profile
+		p.RPCCallUpdateUserUsingAvatar(userId)
 	}
 	p.noticePlayerItemMsg(userId, proto.EnvelopeType_BroadCastItemUpdate, []*Item{item})
 	return nil
@@ -296,19 +294,7 @@ func (p *PlayerDataModel) callUseConsumable(userId int64, item *Item) (err error
 	if err != nil {
 		return err
 	}
-
-	env := pubsubEventData.UserUseNFTEvent{
-		MsgVersion:     time_helper.NowUTCMill(),
-		UserId:         userId,
-		NftId:          item.Id,
-		Cid:            item.Cid,
-		NftType:        item.NFTType,
-		Num:            1,
-		ConsumableData: conData,
-		X:              0,
-		Z:              0,
-	}
-	return grpcPubsubEvent.RPCPubsubEventUseNft(env)
+	return p.RPCEventUsedConsumable(userId, item)
 }
 
 func (p *PlayerDataModel) UpdatePlayerNFTs(userId int64, nfts []message.NFT) {
