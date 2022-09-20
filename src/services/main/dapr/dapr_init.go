@@ -43,5 +43,6 @@ func initDaprService() (err error) {
 	if err = daprCalls.InitDaprCallHandle(); err != nil {
 		return err
 	}
+
 	return err
 }

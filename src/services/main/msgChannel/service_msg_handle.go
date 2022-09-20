@@ -26,5 +26,11 @@ func (ch *MsgChannel) onServiceMessage(input *ServiceMsgData) {
 	case string(message.SubscriptionEventMultiUpdateUserNFT):
 		serviceMsgHandle.Web3MultiUpdateUserNftHandler(input.MsgBody)
 
+	case string(grpc.SubscriptionEventSavePlayerData):
+		serviceMsgHandle.SavePlayerDataHandler(input.MsgBody)
+	case string(grpc.SubscriptionEventKillMonster):
+		serviceMsgHandle.KillMonsterHandler(input.MsgBody)
+	case string(grpc.SubscriptionEventPlayerDeath):
+		serviceMsgHandle.PlayerDeathHandler(input.MsgBody)
 	}
 }
