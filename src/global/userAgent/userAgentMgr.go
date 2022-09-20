@@ -18,6 +18,15 @@ func NewUserAgentModel() *UserAgentModel {
 	return &UserAgentModel{}
 }
 
+func GetUserAgentModel() *UserAgentModel {
+	iUserAgentModel, exist := component.GetInstance().GetModel(component.MODEL_NAME_USER_AGENT)
+	if !exist {
+		return nil
+	}
+	agentModel := iUserAgentModel.(*UserAgentModel)
+	return agentModel
+}
+
 func (p *UserAgentModel) Name() string {
 	return p.modelName
 }
