@@ -24,5 +24,7 @@ func UserEnterGameHandle(iMsg interface{}) {
 	if exist {
 		agent.InSceneServiceAppId = env.SceneServiceAppId
 		agent.InMapId = env.MapId
+	} else {
+		serviceLog.Error("UserEnterGameEvent user agent not found")
 	}
 }
