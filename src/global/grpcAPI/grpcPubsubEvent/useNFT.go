@@ -1,6 +1,7 @@
 package grpcPubsubEvent
 
 import (
+	"encoding/json"
 	"game-message-core/grpc"
 	"game-message-core/grpc/pubsubEventData"
 
@@ -8,5 +9,9 @@ import (
 )
 
 func RPCPubsubEventUseNft(env pubsubEventData.UserUseNFTEvent) error {
-	return daprInvoke.PubSubEventCall(string(grpc.SubscriptionEventUseNFT), env)
+	bs, err := json.Marshal(env)
+	if err != nil {
+		return err
+	}
+	return daprInvoke.PubSubEventCall(string(grpc.SubscriptionEventUseNFT), string(bs))
 }

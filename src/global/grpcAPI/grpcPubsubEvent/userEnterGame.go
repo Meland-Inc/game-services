@@ -1,6 +1,7 @@
 package grpcPubsubEvent
 
 import (
+	"encoding/json"
 	"game-message-core/grpc"
 	"game-message-core/grpc/pubsubEventData"
 
@@ -8,5 +9,9 @@ import (
 )
 
 func RPCPubsubEventEnterGame(env pubsubEventData.UserEnterGameEvent) error {
-	return daprInvoke.PubSubEventCall(string(grpc.SubscriptionEventUserEnterGame), env)
+	bs, err := json.Marshal(env)
+	if err != nil {
+		return err
+	}
+	return daprInvoke.PubSubEventCall(string(grpc.SubscriptionEventUserEnterGame), string(bs))
 }

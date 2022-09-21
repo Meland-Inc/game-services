@@ -27,8 +27,8 @@ func InvokeMethod(serviceAppId, methodName string, data []byte) ([]byte, error) 
 	)
 }
 
-func PubSubEventCall(topic string, data interface{}) error {
-	return client.PublishEvent(context.Background(), "pubsub", topic, data)
+func PubSubEventCall(topic string, jsonString string) error {
+	return client.PublishEvent(context.Background(), "pubsub", topic, jsonString)
 }
 
 func Stop() {
