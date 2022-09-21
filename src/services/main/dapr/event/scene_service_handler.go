@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"game-message-core/grpc"
 	"game-message-core/grpc/pubsubEventData"
+	"net/url"
 
 	"github.com/Meland-Inc/game-services/src/common/serviceLog"
 	"github.com/Meland-Inc/game-services/src/services/main/msgChannel"
@@ -14,11 +15,17 @@ import (
 )
 
 func SavePlayerDataEventHandle(ctx context.Context, e *common.TopicEvent) (retry bool, err error) {
-	serviceLog.Info("Receive save player data: %v %s \n", e.Data, e.DataContentType)
-
 	bs, err := json.Marshal(e.Data)
+	if err != nil {
+		serviceLog.Error("save player data  marshal e.Data  fail err: %+v", err)
+		return false, fmt.Errorf("save player data  marshal e.Data  fail err: %+v", err)
+	}
+
+	escStr, err := url.QueryUnescape(string(bs))
+	serviceLog.Info("Receive save player data: %v, err: %v", escStr, err)
+
 	input := &pubsubEventData.SavePlayerEventData{}
-	err = json.Unmarshal(bs, input)
+	err = json.Unmarshal([]byte(escStr), input)
 	if err != nil {
 		serviceLog.Error("not math to dapr msg SavePlayerEventData data : %+v", e.Data)
 		return false, fmt.Errorf("not math to dapr msg SavePlayerEventData")
@@ -39,11 +46,17 @@ func SavePlayerDataEventHandle(ctx context.Context, e *common.TopicEvent) (retry
 }
 
 func PlayerKillMonsterEventHandle(ctx context.Context, e *common.TopicEvent) (retry bool, err error) {
-	serviceLog.Info("Receive  player kill monster data: %v %s \n", e.Data, e.DataContentType)
-
 	bs, err := json.Marshal(e.Data)
+	if err != nil {
+		serviceLog.Error("KillMonsterEventData  marshal e.Data  fail err: %+v", err)
+		return false, fmt.Errorf("KillMonsterEventData  marshal e.Data  fail err: %+v", err)
+	}
+
+	escStr, err := url.QueryUnescape(string(bs))
+	serviceLog.Info("Receive KillMonsterEventData data: %v, err: %v", escStr, err)
+
 	input := &pubsubEventData.KillMonsterEventData{}
-	err = json.Unmarshal(bs, input)
+	err = json.Unmarshal([]byte(escStr), input)
 	if err != nil {
 		serviceLog.Error("not math to dapr msg KillMonsterEventData data : %+v", e.Data)
 		return false, fmt.Errorf("not math to dapr msg KillMonsterEventData")
@@ -64,11 +77,17 @@ func PlayerKillMonsterEventHandle(ctx context.Context, e *common.TopicEvent) (re
 }
 
 func PlayerDeathEventHandle(ctx context.Context, e *common.TopicEvent) (retry bool, err error) {
-	serviceLog.Info("Receive player death data: %v %s \n", e.Data, e.DataContentType)
-
 	bs, err := json.Marshal(e.Data)
+	if err != nil {
+		serviceLog.Error("PlayerDeathEventData  marshal e.Data  fail err: %+v", err)
+		return false, fmt.Errorf("PlayerDeathEventData  marshal e.Data  fail err: %+v", err)
+	}
+
+	escStr, err := url.QueryUnescape(string(bs))
+	serviceLog.Info("Receive PlayerDeathEventData data: %v, err: %v", escStr, err)
+
 	input := &pubsubEventData.PlayerDeathEventData{}
-	err = json.Unmarshal(bs, input)
+	err = json.Unmarshal([]byte(escStr), input)
 	if err != nil {
 		serviceLog.Error("not math to dapr msg PlayerDeathEventData data : %+v", e.Data)
 		return false, fmt.Errorf("not math to dapr msg PlayerDeathEventData")
