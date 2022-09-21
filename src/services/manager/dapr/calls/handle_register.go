@@ -29,7 +29,7 @@ func toLocalServiceData(input methodData.ServiceDataInput) controller.ServiceDat
 }
 
 func RegisterServiceHandler(ctx context.Context, in *common.InvocationEvent) (*common.Content, error) {
-	// serviceLog.Info("received register service  data: %v", string(in.Data))
+	serviceLog.Info("received register service  data: %v", string(in.Data))
 
 	input := methodData.ServiceDataInput{}
 	err := json.Unmarshal(in.Data, &input)
