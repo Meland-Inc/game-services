@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"game-message-core/grpc"
 	"game-message-core/grpc/pubsubEventData"
+	"net/url"
 
 	"github.com/Meland-Inc/game-services/src/common/serviceLog"
 	"github.com/Meland-Inc/game-services/src/services/main/msgChannel"
@@ -20,8 +21,11 @@ func UserEnterGameEventHandler(ctx context.Context, e *common.TopicEvent) (retry
 		return false, err
 	}
 
+	escStr, err := url.QueryUnescape(string(inputBytes))
+	serviceLog.Info("Receive data: %v, err: %v", escStr, err)
+
 	input := &pubsubEventData.UserEnterGameEvent{}
-	err = json.Unmarshal(inputBytes, &input)
+	err = json.Unmarshal([]byte(escStr), &input)
 	if err != nil {
 		serviceLog.Info("enter game Marshal to enterGameInput fail err: %v ", err)
 		return false, err

@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net/url"
 
 	"github.com/Meland-Inc/game-services/src/common/serviceLog"
 	"github.com/Meland-Inc/game-services/src/global/serviceCnf"
@@ -17,8 +18,12 @@ func Web3UpdateUserNftHandler(ctx context.Context, e *common.TopicEvent) (retry 
 	serviceLog.Info("Receive Web3 update user nft: %v %s \n", e.Data, e.DataContentType)
 
 	bs, err := json.Marshal(e.Data)
+
+	escStr, err := url.QueryUnescape(string(bs))
+	serviceLog.Info("Receive  data: %v, err: %v", escStr, err)
+
 	input := message.UpdateUserNFT{}
-	err = input.UnmarshalJSON(bs)
+	err = input.UnmarshalJSON([]byte(escStr))
 	if err != nil {
 		serviceLog.Error("not math to dapr msg UpdateUserNFT data : %+v", e.Data)
 		return false, fmt.Errorf("not math to dapr msg UpdateUserNFT")
@@ -46,8 +51,12 @@ func Web3MultiUpdateUserNftHandler(ctx context.Context, e *common.TopicEvent) (r
 	fmt.Printf("Receive Web3 Multi update user nft: %v %s \n", e.Data, e.DataContentType)
 
 	bs, err := json.Marshal(e.Data)
+
+	escStr, err := url.QueryUnescape(string(bs))
+	serviceLog.Info("Receive data: %v, err: %v", escStr, err)
+
 	input := message.MultiUpdateUserNFT{}
-	err = input.UnmarshalJSON(bs)
+	err = input.UnmarshalJSON([]byte(escStr))
 	if err != nil {
 		serviceLog.Error("not math to dapr msg MultiUpdateUserNFT data : %+v", e.Data)
 		return false, fmt.Errorf("not math to dapr msg MultiUpdateUserNFT")
