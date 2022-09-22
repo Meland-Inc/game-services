@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"game-message-core/grpc/methodData"
 	"game-message-core/proto"
+	"net/url"
 
 	"github.com/Meland-Inc/game-services/src/common/daprInvoke"
 	"github.com/Meland-Inc/game-services/src/common/serviceLog"
@@ -14,10 +15,15 @@ import (
 )
 
 func BroadCastToClientHandler(ctx context.Context, in *common.InvocationEvent) (*common.Content, error) {
-	serviceLog.Info("agent received BroadCastToClient data: %v", string(in.Data))
+	escStr, err := url.QueryUnescape(string(in.Data))
+	if err != nil {
+		return nil, err
+	}
+
+	serviceLog.Info("agent received BroadCastToClient data: %v", escStr)
 
 	input := methodData.BroadCastToClientInput{}
-	err := json.Unmarshal(in.Data, &input)
+	err = json.Unmarshal([]byte(escStr), &input)
 	if err != nil {
 		serviceLog.Error("Unmarshal to BroadCastToClientInput data : %+v, err: $+v", string(in.Data), err)
 		return nil, fmt.Errorf("data can not unMarshal to BroadCastToClientInput")
@@ -42,9 +48,15 @@ func BroadCastToClientHandler(ctx context.Context, in *common.InvocationEvent) (
 
 func MultipleBroadCastToClientHandler(ctx context.Context, in *common.InvocationEvent) (*common.Content, error) {
 	serviceLog.Info("agent received MultipleBroadCastToClient data: %v", string(in.Data))
+	escStr, err := url.QueryUnescape(string(in.Data))
+	if err != nil {
+		return nil, err
+	}
+
+	serviceLog.Info("agent received MultipleBroadCastToClient data: %v", escStr)
 
 	input := methodData.MultipleBroadCastToClientInput{}
-	err := json.Unmarshal(in.Data, &input)
+	err = json.Unmarshal([]byte(escStr), &input)
 	if err != nil {
 		serviceLog.Error("Unmarshal to MultipleBroadCastToClient data : %+v, err: $+v", string(in.Data), err)
 		return nil, fmt.Errorf("data can not unMarshal to MultipleBroadCastToClient")

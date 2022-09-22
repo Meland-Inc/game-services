@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"game-message-core/grpc/methodData"
+	"net/url"
 
 	"github.com/Meland-Inc/game-services/src/common/daprInvoke"
 	"github.com/Meland-Inc/game-services/src/common/serviceLog"
@@ -15,8 +16,13 @@ import (
 func SelectServiceHandler(ctx context.Context, in *common.InvocationEvent) (*common.Content, error) {
 	serviceLog.Info("received select service  data: %v", string(in.Data))
 
+	escStr, err := url.QueryUnescape(string(in.Data))
+	if err != nil {
+		return nil, err
+	}
+
 	input := methodData.ManagerActionSelectServiceInput{}
-	err := json.Unmarshal(in.Data, &input)
+	err = json.Unmarshal([]byte(escStr), &input)
 	if err != nil {
 		serviceLog.Error("select service  data : %+v", string(in.Data))
 		return nil, fmt.Errorf("data can not unMarshal to select service input")

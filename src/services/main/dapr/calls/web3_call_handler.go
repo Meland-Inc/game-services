@@ -3,6 +3,7 @@ package daprCalls
 import (
 	"context"
 	"fmt"
+	"net/url"
 
 	"github.com/Meland-Inc/game-services/src/common/daprInvoke"
 	"github.com/Meland-Inc/game-services/src/common/serviceLog"
@@ -27,9 +28,13 @@ func Web3DeductUserExpHandler(ctx context.Context, in *common.InvocationEvent) (
 	}
 
 	serviceLog.Info("web3 deduct user exp received data: %v", string(in.Data))
+	escStr, err := url.QueryUnescape(string(in.Data))
+	if err != nil {
+		return nil, err
+	}
 
 	input := &message.DeductUserExpInput{}
-	err := input.UnmarshalJSON(in.Data)
+	err = input.UnmarshalJSON([]byte(escStr))
 	if err != nil {
 		return resFunc(false, fmt.Errorf("not math to dapr msg DeductUserExpInput"))
 	}
