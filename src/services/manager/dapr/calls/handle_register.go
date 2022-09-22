@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"game-message-core/grpc/methodData"
+	"net/url"
 
 	"github.com/Meland-Inc/game-services/src/common/daprInvoke"
 	"github.com/Meland-Inc/game-services/src/common/serviceLog"
@@ -29,12 +30,16 @@ func toLocalServiceData(input methodData.ServiceDataInput) controller.ServiceDat
 }
 
 func RegisterServiceHandler(ctx context.Context, in *common.InvocationEvent) (*common.Content, error) {
-	serviceLog.Info("received register service  data: %v", string(in.Data))
+	escStr, err := url.QueryUnescape(string(in.Data))
+	serviceLog.Info("received register service  data: %v, err: %v", escStr, err)
+	if err != nil {
+		return nil, err
+	}
 
 	input := methodData.ServiceDataInput{}
-	err := json.Unmarshal(in.Data, &input)
+	err = json.Unmarshal([]byte(escStr), &input)
 	if err != nil {
-		serviceLog.Error("register service  data : %+v", string(in.Data))
+		serviceLog.Error("register service  data : %+v, err:%+v", string(escStr), err)
 		return nil, fmt.Errorf("data can not unMarshal to ServiceDataInput")
 	}
 
@@ -51,10 +56,14 @@ func RegisterServiceHandler(ctx context.Context, in *common.InvocationEvent) (*c
 }
 
 func DestroyServiceHandler(ctx context.Context, in *common.InvocationEvent) (*common.Content, error) {
-	serviceLog.Info("received Destroy service  data: %v", string(in.Data))
+	escStr, err := url.QueryUnescape(string(in.Data))
+	serviceLog.Info("received Destroy service  data: %v, err: %v", escStr, err)
+	if err != nil {
+		return nil, err
+	}
 
 	input := methodData.ServiceDataInput{}
-	err := json.Unmarshal(in.Data, &input)
+	err = json.Unmarshal([]byte(escStr), &input)
 	if err != nil {
 		serviceLog.Error("Destroy service  data : %+v", string(in.Data))
 		return nil, fmt.Errorf("data can not unMarshal to ServiceDataInput")

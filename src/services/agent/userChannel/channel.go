@@ -139,6 +139,11 @@ func (uc *UserChannel) onUserSingInGame(msgType proto.EnvelopeType, msgBody []by
 		serviceLog.Error("SigninPlayer response message UnMarshal failed")
 		return
 	}
+	if respMsg.ErrorCode > 0 {
+		serviceLog.Error("SigninPlayer fail err: %s", respMsg.ErrorMessage)
+		uc.Stop()
+		return
+	}
 
 	payload := respMsg.GetSigninPlayerResponse()
 	uc.SetSceneService(payload.GetSceneServiceAppId())
@@ -150,6 +155,11 @@ func (uc *UserChannel) onUserEnterMap(msgBody []byte) {
 	respMsg, err := protoTool.UnMarshalToEnvelope(msgBody)
 	if err != nil {
 		serviceLog.Error("enterMap response message UnMarshal failed")
+		return
+	}
+	if respMsg.ErrorCode > 0 {
+		serviceLog.Error("enterMap fail err: %s", respMsg.ErrorMessage)
+		uc.Stop()
 		return
 	}
 

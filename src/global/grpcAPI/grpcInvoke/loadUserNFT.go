@@ -23,6 +23,7 @@ func RPCLoadUserNFTS(userId int64) (*message.GetUserNFTsOutput, error) {
 	)
 	if err != nil {
 		serviceLog.Error("load web3 user NFT failed err:%+v", err)
+		return nil, err
 	}
 
 	nfts := &message.GetUserNFTsOutput{}
