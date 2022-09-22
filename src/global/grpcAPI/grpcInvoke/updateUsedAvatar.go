@@ -31,6 +31,7 @@ func UpdateUsedAvatar(
 	}
 
 	input := methodData.UpdateUsedAvatarInput{
+		MsgVersion:   time_helper.NowUTCMill(),
 		UserId:       userId,
 		UsingAvatars: avatars,
 		CurProfile:   profile,
