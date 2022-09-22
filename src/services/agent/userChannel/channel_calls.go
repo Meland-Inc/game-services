@@ -30,11 +30,13 @@ func (uc *UserChannel) clientMsgIsLegal(msgType proto.EnvelopeType) (bool, error
 }
 
 func (uc *UserChannel) makePullClientMessageInputBytes(data []byte) ([]byte, error) {
+	msg, _ := protoTool.UnMarshalToEnvelope(data)
 	input := methodData.PullClientMessageInput{
 		MsgVersion: time_helper.NowUTCMill(),
 		AgentAppId: serviceCnf.GetInstance().ServerName,
 		UserId:     uc.owner,
 		SocketId:   uc.id,
+		MsgId:      int32(msg.Type),
 		MsgBody:    data,
 	}
 	serviceLog.Info("pull client msg input: %+v", input)
