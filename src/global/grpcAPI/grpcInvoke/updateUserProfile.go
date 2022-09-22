@@ -27,6 +27,7 @@ func UpdateUsedProfile(userId int64, profile proto.EntityProfile) error {
 	}
 
 	input := methodData.UpdateUserProfileInput{
+		MsgVersion: time_helper.NowUTCMill(),
 		UserId:     userId,
 		CurProfile: profile,
 	}
