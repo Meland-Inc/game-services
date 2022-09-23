@@ -2,10 +2,9 @@ package daprCalls
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
-	"game-message-core/grpc/methodData"
 	"game-message-core/proto"
+	"game-message-core/protoTool"
 	"net/url"
 
 	"github.com/Meland-Inc/game-services/src/common/daprInvoke"
@@ -15,18 +14,19 @@ import (
 )
 
 func BroadCastToClientHandler(ctx context.Context, in *common.InvocationEvent) (*common.Content, error) {
-	escStr, err := url.QueryUnescape(string(in.Data))
+	input := &proto.BroadCastToClientInput{}
+	err := protoTool.UnmarshalProto(in.Data, input)
 	if err != nil {
-		return nil, err
-	}
-
-	serviceLog.Info("agent received BroadCastToClient data: %v", escStr)
-
-	input := methodData.BroadCastToClientInput{}
-	err = json.Unmarshal([]byte(escStr), &input)
-	if err != nil {
-		serviceLog.Error("Unmarshal to BroadCastToClientInput data : %+v, err: $+v", string(in.Data), err)
-		return nil, fmt.Errorf("data can not unMarshal to BroadCastToClientInput")
+		escStr, err := url.QueryUnescape(string(in.Data))
+		serviceLog.Info("agent received BroadCastToClient QueryUnescape data: %v, err: %+v", escStr, err)
+		if err != nil {
+			return nil, err
+		}
+		err = protoTool.UnmarshalProto([]byte(escStr), input)
+		if err != nil {
+			serviceLog.Error("Unmarshal to BroadCastToClientInput data : %+v, err: $+v", string(in.Data), err)
+			return nil, fmt.Errorf("data can not unMarshal to BroadCastToClientInput")
+		}
 	}
 
 	var userCh *userChannel.UserChannel
@@ -40,38 +40,38 @@ func BroadCastToClientHandler(ctx context.Context, in *common.InvocationEvent) (
 		return nil, fmt.Errorf(" user channel is not found")
 	}
 
-	userCh.SendToUser(proto.EnvelopeType(input.MsgId), input.MsgBody)
-	output := &methodData.BroadCastToClientOutput{Success: true}
+	userCh.SendToUser(input.Msg.Type, input.Msg)
+	output := &proto.BroadCastToClientOutput{Success: true}
 	serviceLog.Info("register service res = %+v", output)
 	return daprInvoke.MakeOutputContent(in, output)
 }
 
 func MultipleBroadCastToClientHandler(ctx context.Context, in *common.InvocationEvent) (*common.Content, error) {
-	serviceLog.Info("agent received MultipleBroadCastToClient data: %v", string(in.Data))
-	escStr, err := url.QueryUnescape(string(in.Data))
+	input := &proto.MultipleBroadCastToClientInput{}
+	err := protoTool.UnmarshalProto(in.Data, input)
 	if err != nil {
-		return nil, err
-	}
-
-	serviceLog.Info("agent received MultipleBroadCastToClient data: %v", escStr)
-
-	input := methodData.MultipleBroadCastToClientInput{}
-	err = json.Unmarshal([]byte(escStr), &input)
-	if err != nil {
-		serviceLog.Error("Unmarshal to MultipleBroadCastToClient data : %+v, err: $+v", string(in.Data), err)
-		return nil, fmt.Errorf("data can not unMarshal to MultipleBroadCastToClient")
+		escStr, err := url.QueryUnescape(string(in.Data))
+		serviceLog.Info("agent received MultipleBroadCastToClient QueryUnescape data: %v, err: %+v", escStr, err)
+		if err != nil {
+			return nil, err
+		}
+		err = protoTool.UnmarshalProto([]byte(escStr), input)
+		if err != nil {
+			serviceLog.Error("Unmarshal to MultipleBroadCastToClient data : %+v, err: $+v", string(in.Data), err)
+			return nil, fmt.Errorf("data can not unMarshal to BroadCastToClientInput")
+		}
 	}
 
 	for _, userId := range input.UserList {
 		userCh := userChannel.GetInstance().UserChannelByOwner(userId)
 		if userCh != nil {
-			userCh.SendToUser(proto.EnvelopeType(input.MsgId), input.MsgBody)
+			userCh.SendToUser(proto.EnvelopeType(input.MsgId), input.Msg)
 		} else {
 			serviceLog.Warning("UserChannel [%d] not found", userId)
 		}
 	}
 
-	output := &methodData.BroadCastToClientOutput{Success: true}
+	output := &proto.MultipleBroadCastToClientOutput{Success: true}
 	serviceLog.Info("register service res = %+v", output)
 	return daprInvoke.MakeOutputContent(in, output)
 }
