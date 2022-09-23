@@ -41,7 +41,7 @@ func GRPCGetUserDataHandler(ctx context.Context, in *common.InvocationEvent) (*c
 	if err != nil {
 		return nil, err
 	}
-
+	serviceLog.Info("get user data received data: %v", escStr)
 	input := &methodData.GetUserDataInput{}
 	err = json.Unmarshal([]byte(escStr), input)
 	if err != nil {
@@ -74,7 +74,7 @@ func GRPCGetUserDataHandler(ctx context.Context, in *common.InvocationEvent) (*c
 		pbAvatars = append(pbAvatars, *avatar.ToNetPlayerAvatar())
 	}
 	return resFunc(
-		false, err,
+		true, err,
 		*baseData.ToNetPlayerBaseData(),
 		*profile,
 		sceneData.MapId,

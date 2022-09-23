@@ -28,9 +28,9 @@ func (p *PlayerDataModel) initPlayerSceneData(userId int64) (*dbData.PlayerScene
 		X:           defaultPos.X,
 		Y:           defaultPos.Y,
 		Z:           defaultPos.Z,
-		DirX:        defaultPos.X,
-		DirY:        defaultPos.Y,
-		DirZ:        defaultPos.Z,
+		DirX:        0,
+		DirY:        0,
+		DirZ:        1,
 		BirthMapId:  defaultMap,
 		BirthX:      defaultPos.X,
 		BirthY:      defaultPos.Y,
@@ -44,7 +44,7 @@ func (p *PlayerDataModel) initPlayerSceneData(userId int64) (*dbData.PlayerScene
 		serviceLog.Error("role level[%v]config not found", data.Level)
 	}
 
-	err := gameDB.GetGameDB().Save(data).Error
+	err := gameDB.GetGameDB().Create(data).Error
 	return data, err
 }
 
@@ -55,7 +55,7 @@ func (p *PlayerDataModel) GetPlayerSceneData(userId int64) (*dbData.PlayerSceneD
 		func() (interface{}, error) {
 			data := &dbData.PlayerSceneData{}
 			err := gameDB.GetGameDB().Where("user_id = ?", userId).First(data).Error
-			if err != nil && err != gorm.ErrRecordNotFound {
+			if err != nil && err == gorm.ErrRecordNotFound {
 				data, err = p.initPlayerSceneData(userId)
 			}
 			return data, err

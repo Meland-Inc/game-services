@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"game-message-core/grpc/methodData"
-	"net/url"
 
 	"github.com/Meland-Inc/game-services/src/common/daprInvoke"
 	"github.com/Meland-Inc/game-services/src/common/serviceLog"
@@ -24,15 +23,10 @@ func ClientMessageHandler(ctx context.Context, in *common.InvocationEvent) (*com
 		return content, err
 	}
 
-	escStr, err := url.QueryUnescape(string(in.Data))
-	if err != nil {
-		return nil, err
-	}
-
-	serviceLog.Info("account received clientPbMsg data: %s", escStr)
+	serviceLog.Info("account received clientPbMsg data: %s", string(in.Data))
 
 	input := &methodData.PullClientMessageInput{}
-	err = json.Unmarshal([]byte(escStr), input)
+	err := json.Unmarshal(in.Data, input)
 	if err != nil {
 		serviceLog.Error("account Unmarshal to PullClientMessageInput fail err: %+v", err)
 		return resFunc(false, fmt.Errorf("PullClientMessageInput unMarshal fail"))
