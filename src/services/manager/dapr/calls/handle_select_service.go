@@ -2,9 +2,9 @@ package daprCalls
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
-	"game-message-core/grpc/methodData"
+	"game-message-core/proto"
+	"game-message-core/protoTool"
 	"net/url"
 
 	"github.com/Meland-Inc/game-services/src/common/daprInvoke"
@@ -14,21 +14,37 @@ import (
 )
 
 func SelectServiceHandler(ctx context.Context, in *common.InvocationEvent) (*common.Content, error) {
-	serviceLog.Info("received select service  data: %v", string(in.Data))
 
-	escStr, err := url.QueryUnescape(string(in.Data))
+	// escStr, err := url.QueryUnescape(string(in.Data))
+	// if err != nil {
+	// 	return nil, err
+	// }
+
+	// input := methodData.ManagerActionSelectServiceInput{}
+	// err = json.Unmarshal([]byte(escStr), &input)
+	// if err != nil {
+	// 	serviceLog.Error("select service  data : %+v", string(in.Data))
+	// 	return nil, fmt.Errorf("data can not unMarshal to select service input")
+	// }
+
+	input := &proto.ManagerActionSelectServiceInput{}
+	err := protoTool.UnmarshalProto(in.Data, input)
 	if err != nil {
-		return nil, err
+		escStr, err := url.QueryUnescape(string(in.Data))
+		serviceLog.Warning("received select service  data: %v, err: %v", input, err)
+		if err != nil {
+			return nil, err
+		}
+		err = protoTool.UnmarshalProto([]byte(escStr), input)
+		if err != nil {
+			serviceLog.Error("received select service  data: %v, err: %v", input, err)
+			return nil, fmt.Errorf("data can not unMarshal to BroadCastToClientInput")
+		}
 	}
 
-	input := methodData.ManagerActionSelectServiceInput{}
-	err = json.Unmarshal([]byte(escStr), &input)
-	if err != nil {
-		serviceLog.Error("select service  data : %+v", string(in.Data))
-		return nil, fmt.Errorf("data can not unMarshal to select service input")
-	}
+	serviceLog.Info("received select service  data: %v, err: %v", input, err)
 
-	output := methodData.ManagerActionSelectServiceOutput{}
+	output := &proto.ManagerActionSelectServiceOutput{}
 	serviceData, _ := controller.GetInstance().GetAliveServiceByType(input.ServiceType, input.MapId)
 	if serviceData == nil {
 		output.ErrorCode = 30001
@@ -41,8 +57,8 @@ func SelectServiceHandler(ctx context.Context, in *common.InvocationEvent) (*com
 		output.Port = serviceData.Port
 		output.Online = serviceData.Online
 		output.MaxOnline = serviceData.MaxOnline
-		output.CreatedAt = serviceData.CreatedAt
-		output.UpdateAt = serviceData.UpdatedAt
+		output.CreateAt = serviceData.CreateAt
+		output.UpdateAt = serviceData.UpdateAt
 	}
 	serviceLog.Info("select service res = %+v", output)
 	return daprInvoke.MakeOutputContent(in, output)

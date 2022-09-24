@@ -1,9 +1,7 @@
 package msgChannel
 
 import (
-	"encoding/json"
 	"game-message-core/grpc"
-	"game-message-core/grpc/methodData"
 	"game-message-core/proto"
 	"game-message-core/protoTool"
 
@@ -18,7 +16,7 @@ var chanInstance *MsgChannel
 type MsgChannel struct {
 	isClosed      bool
 	msgHandler    map[proto.EnvelopeType]HandleFunc
-	clientMsgChan chan *methodData.PullClientMessageInput
+	clientMsgChan chan *proto.PullClientMessageInput
 	stopChan      chan chan struct{}
 }
 
@@ -36,7 +34,7 @@ func InitAndRun() {
 
 func NewMsgChannel() *MsgChannel {
 	channel := &MsgChannel{
-		clientMsgChan: make(chan *methodData.PullClientMessageInput, 2048),
+		clientMsgChan: make(chan *proto.PullClientMessageInput, 2048),
 		stopChan:      make(chan chan struct{}),
 		isClosed:      false,
 		msgHandler:    make(map[proto.EnvelopeType]HandleFunc),
@@ -45,7 +43,7 @@ func NewMsgChannel() *MsgChannel {
 	return channel
 }
 
-func (ch *MsgChannel) CallClientMsg(in *methodData.PullClientMessageInput) {
+func (ch *MsgChannel) CallClientMsg(in *proto.PullClientMessageInput) {
 	if ch.isClosed {
 		return
 	}
@@ -88,38 +86,24 @@ func (ch *MsgChannel) run() {
 	}()
 }
 
-func (ch *MsgChannel) onClientMessage(input *methodData.PullClientMessageInput) {
-	msg, err := protoTool.UnMarshalToEnvelope(input.MsgBody)
-	if err != nil {
-		serviceLog.Error("account Unmarshal Envelope fail err: %+v", err)
-		return
-	}
-
-	if handler, exist := ch.msgHandler[msg.Type]; exist {
-		handler(input, msg)
+func (ch *MsgChannel) onClientMessage(input *proto.PullClientMessageInput) {
+	serviceLog.Info("client msg: %+v", input)
+	if handler, exist := ch.msgHandler[input.Msg.Type]; exist {
+		handler(input)
 	}
 }
 
-func (ch *MsgChannel) SendToPlayer(
-	agentAppId, socketId string,
-	userId int64,
-	msg *proto.Envelope,
-) error {
-	msgBody, err := protoTool.MarshalProto(msg)
-	if err != nil {
-		return err
-	}
-
-	input := methodData.BroadCastToClientInput{
+func (ch *MsgChannel) SendToPlayer(agentAppId, socketId string, userId int64, msg *proto.Envelope) error {
+	input := &proto.BroadCastToClientInput{
 		MsgVersion:   time_helper.NowUTCMill(),
 		ServiceAppId: serviceCnf.GetInstance().ServerName,
 		UserId:       userId,
 		SocketId:     socketId,
 		MsgId:        int32(msg.Type),
-		MsgBody:      msgBody,
+		Msg:          msg,
 	}
 
-	inputBytes, err := json.Marshal(input)
+	inputBytes, err := protoTool.MarshalProto(input)
 	if err != nil {
 		serviceLog.Error("SendToPlayer Marshal BroadCastInput failed err: %+v", err)
 		return err
