@@ -23,7 +23,7 @@ func Web3DeductUserExpHandler(ctx context.Context, in *common.InvocationEvent) (
 			out.FailedReason = err.Error()
 			serviceLog.Error("web3 deduct user exp err: %v", err)
 		}
-		content, _ := daprInvoke.MakeOutputContent(in, out)
+		content, _ := daprInvoke.MakeJsonOutputContent(in, out)
 		return content, err
 	}
 

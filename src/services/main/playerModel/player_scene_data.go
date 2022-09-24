@@ -2,8 +2,8 @@ package playerModel
 
 import (
 	"fmt"
+	"game-message-core/proto"
 
-	"github.com/Meland-Inc/game-services/src/common/matrix"
 	"github.com/Meland-Inc/game-services/src/common/serviceLog"
 	"github.com/Meland-Inc/game-services/src/common/time_helper"
 	"github.com/Meland-Inc/game-services/src/global/configData"
@@ -12,9 +12,9 @@ import (
 	"gorm.io/gorm"
 )
 
-func (p *PlayerDataModel) getBirthData() (mapId int32, pos matrix.Vector3) {
+func (p *PlayerDataModel) getBirthData() (mapId int32, pos proto.Vector3) {
 	// TODO: 此处数据需要 从配置中获取， 目前缺失
-	return 1001, matrix.Vector3{X: 440, Y: 40, Z: 85}
+	return 1001, proto.Vector3{X: 440, Y: 40, Z: 85}
 }
 
 func (p *PlayerDataModel) initPlayerSceneData(userId int64) (*dbData.PlayerSceneData, error) {
@@ -73,7 +73,7 @@ func (p *PlayerDataModel) GetPlayerSceneData(userId int64) (*dbData.PlayerSceneD
 func (p *PlayerDataModel) UpPlayerSceneData(
 	userId int64,
 	hp, level, exp, mapId int32,
-	x, y, z, dirX, dirY, dirZ float64,
+	x, y, z, dirX, dirY, dirZ float32,
 ) error {
 	if userId == 0 {
 		return fmt.Errorf("invalid player scene data")

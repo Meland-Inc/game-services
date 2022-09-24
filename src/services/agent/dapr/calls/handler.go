@@ -43,7 +43,7 @@ func BroadCastToClientHandler(ctx context.Context, in *common.InvocationEvent) (
 	userCh.SendToUser(input.Msg.Type, input.Msg)
 	output := &proto.BroadCastToClientOutput{Success: true}
 	serviceLog.Info("register service res = %+v", output)
-	return daprInvoke.MakeOutputContent(in, output)
+	return daprInvoke.MakeProtoOutputContent(in, output)
 }
 
 func MultipleBroadCastToClientHandler(ctx context.Context, in *common.InvocationEvent) (*common.Content, error) {
@@ -73,5 +73,5 @@ func MultipleBroadCastToClientHandler(ctx context.Context, in *common.Invocation
 
 	output := &proto.MultipleBroadCastToClientOutput{Success: true}
 	serviceLog.Info("register service res = %+v", output)
-	return daprInvoke.MakeOutputContent(in, output)
+	return daprInvoke.MakeProtoOutputContent(in, output)
 }

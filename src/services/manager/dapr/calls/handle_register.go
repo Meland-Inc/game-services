@@ -55,7 +55,7 @@ func RegisterServiceHandler(ctx context.Context, in *common.InvocationEvent) (*c
 	}
 	// serviceLog.Info("register service res = %+v", output)
 
-	return daprInvoke.MakeOutputContent(in, output)
+	return daprInvoke.MakeProtoOutputContent(in, output)
 }
 
 func DestroyServiceHandler(ctx context.Context, in *common.InvocationEvent) (*common.Content, error) {
@@ -84,5 +84,5 @@ func DestroyServiceHandler(ctx context.Context, in *common.InvocationEvent) (*co
 	}
 
 	serviceLog.Info("Destroy service res = %+v", output)
-	return daprInvoke.MakeOutputContent(in, output)
+	return daprInvoke.MakeProtoOutputContent(in, output)
 }

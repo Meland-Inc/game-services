@@ -5,7 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"game-message-core/grpc"
-	"game-message-core/grpc/pubsubEventData"
+	"game-message-core/proto"
+	"game-message-core/protoTool"
 	"net/url"
 
 	"github.com/Meland-Inc/game-services/src/common/serviceLog"
@@ -21,20 +22,25 @@ func SavePlayerDataEventHandle(ctx context.Context, e *common.TopicEvent) (retry
 		return false, fmt.Errorf("save player data  marshal e.Data  fail err: %+v", err)
 	}
 
-	escStr, err := url.QueryUnescape(string(bs))
-	serviceLog.Info("Receive save player data: %v, err: %v", escStr, err)
-
-	input := &pubsubEventData.SavePlayerEventData{}
-	err = json.Unmarshal([]byte(escStr), input)
+	input := &proto.SavePlayerEvent{}
+	err = protoTool.UnmarshalProto(bs, input)
 	if err != nil {
-		serviceLog.Error("not math to dapr msg SavePlayerEventData data : %+v", e.Data)
-		return false, fmt.Errorf("not math to dapr msg SavePlayerEventData")
+		escStr, err := url.QueryUnescape(string(bs))
+		serviceLog.Info("received SavePlayerEvent QueryUnescape data: %v, err: %+v", escStr, err)
+		if err != nil {
+			return false, err
+		}
+		err = protoTool.UnmarshalProto([]byte(escStr), input)
+		if err != nil {
+			serviceLog.Error("Unmarshal to SavePlayerEvent data : %+v, err: $+v", string(bs), err)
+			return false, fmt.Errorf("data can not unMarshal to SavePlayerEvent")
+		}
 	}
 
 	userId := cast.ToInt64(input.UserId)
 	if userId < 1 {
-		serviceLog.Error("SavePlayerEventData invalid Data[%v]", input)
-		return false, fmt.Errorf("SavePlayerEventData invalid Data [%v]", input)
+		serviceLog.Error("SavePlayerEvent invalid Data[%v]", input)
+		return false, fmt.Errorf("SavePlayerEvent invalid Data [%v]", input)
 	}
 
 	msgChannel.GetInstance().CallServiceMsg(&msgChannel.ServiceMsgData{
@@ -48,18 +54,23 @@ func SavePlayerDataEventHandle(ctx context.Context, e *common.TopicEvent) (retry
 func PlayerKillMonsterEventHandle(ctx context.Context, e *common.TopicEvent) (retry bool, err error) {
 	bs, err := json.Marshal(e.Data)
 	if err != nil {
-		serviceLog.Error("KillMonsterEventData  marshal e.Data  fail err: %+v", err)
-		return false, fmt.Errorf("KillMonsterEventData  marshal e.Data  fail err: %+v", err)
+		serviceLog.Error("KillMonsterEvent  marshal e.Data  fail err: %+v", err)
+		return false, fmt.Errorf("KillMonsterEvent  marshal e.Data  fail err: %+v", err)
 	}
 
-	escStr, err := url.QueryUnescape(string(bs))
-	serviceLog.Info("Receive KillMonsterEventData data: %v, err: %v", escStr, err)
-
-	input := &pubsubEventData.KillMonsterEventData{}
-	err = json.Unmarshal([]byte(escStr), input)
+	input := &proto.KillMonsterEvent{}
+	err = protoTool.UnmarshalProto(bs, input)
 	if err != nil {
-		serviceLog.Error("not math to dapr msg KillMonsterEventData data : %+v", e.Data)
-		return false, fmt.Errorf("not math to dapr msg KillMonsterEventData")
+		escStr, err := url.QueryUnescape(string(bs))
+		serviceLog.Info("received KillMonsterEvent QueryUnescape data: %v, err: %+v", escStr, err)
+		if err != nil {
+			return false, err
+		}
+		err = protoTool.UnmarshalProto([]byte(escStr), input)
+		if err != nil {
+			serviceLog.Error("Unmarshal to KillMonsterEvent data : %+v, err: $+v", string(bs), err)
+			return false, fmt.Errorf("data can not unMarshal to KillMonsterEvent")
+		}
 	}
 
 	userId := cast.ToInt64(input.UserId)
@@ -79,18 +90,23 @@ func PlayerKillMonsterEventHandle(ctx context.Context, e *common.TopicEvent) (re
 func PlayerDeathEventHandle(ctx context.Context, e *common.TopicEvent) (retry bool, err error) {
 	bs, err := json.Marshal(e.Data)
 	if err != nil {
-		serviceLog.Error("PlayerDeathEventData  marshal e.Data  fail err: %+v", err)
-		return false, fmt.Errorf("PlayerDeathEventData  marshal e.Data  fail err: %+v", err)
+		serviceLog.Error("PlayerDeathEvent  marshal e.Data  fail err: %+v", err)
+		return false, fmt.Errorf("PlayerDeathEvent  marshal e.Data  fail err: %+v", err)
 	}
 
-	escStr, err := url.QueryUnescape(string(bs))
-	serviceLog.Info("Receive PlayerDeathEventData data: %v, err: %v", escStr, err)
-
-	input := &pubsubEventData.PlayerDeathEventData{}
-	err = json.Unmarshal([]byte(escStr), input)
+	input := &proto.PlayerDeathEvent{}
+	err = protoTool.UnmarshalProto(bs, input)
 	if err != nil {
-		serviceLog.Error("not math to dapr msg PlayerDeathEventData data : %+v", e.Data)
-		return false, fmt.Errorf("not math to dapr msg PlayerDeathEventData")
+		escStr, err := url.QueryUnescape(string(bs))
+		serviceLog.Info("received PlayerDeathEvent QueryUnescape data: %v, err: %+v", escStr, err)
+		if err != nil {
+			return false, err
+		}
+		err = protoTool.UnmarshalProto([]byte(escStr), input)
+		if err != nil {
+			serviceLog.Error("Unmarshal to PlayerDeathEvent data : %+v, err: $+v", string(bs), err)
+			return false, fmt.Errorf("data can not unMarshal to PlayerDeathEvent")
+		}
 	}
 
 	userId := cast.ToInt64(input.UserId)

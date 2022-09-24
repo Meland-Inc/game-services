@@ -14,19 +14,6 @@ import (
 )
 
 func SelectServiceHandler(ctx context.Context, in *common.InvocationEvent) (*common.Content, error) {
-
-	// escStr, err := url.QueryUnescape(string(in.Data))
-	// if err != nil {
-	// 	return nil, err
-	// }
-
-	// input := methodData.ManagerActionSelectServiceInput{}
-	// err = json.Unmarshal([]byte(escStr), &input)
-	// if err != nil {
-	// 	serviceLog.Error("select service  data : %+v", string(in.Data))
-	// 	return nil, fmt.Errorf("data can not unMarshal to select service input")
-	// }
-
 	input := &proto.ManagerActionSelectServiceInput{}
 	err := protoTool.UnmarshalProto(in.Data, input)
 	if err != nil {
@@ -61,5 +48,5 @@ func SelectServiceHandler(ctx context.Context, in *common.InvocationEvent) (*com
 		output.UpdateAt = serviceData.UpdateAt
 	}
 	serviceLog.Info("select service res = %+v", output)
-	return daprInvoke.MakeOutputContent(in, output)
+	return daprInvoke.MakeProtoOutputContent(in, output)
 }

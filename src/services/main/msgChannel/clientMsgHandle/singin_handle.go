@@ -2,41 +2,40 @@ package clientMsgHandle
 
 import (
 	"fmt"
-	"game-message-core/grpc/methodData"
 	"game-message-core/proto"
 
 	"github.com/Meland-Inc/game-services/src/common/serviceLog"
 	"github.com/Meland-Inc/game-services/src/common/time_helper"
+	"github.com/Meland-Inc/game-services/src/global/auth"
 	"github.com/Meland-Inc/game-services/src/global/grpcAPI/grpcInvoke"
 	"github.com/Meland-Inc/game-services/src/global/serviceCnf"
 	"github.com/Meland-Inc/game-services/src/services/main/playerModel"
 	"github.com/spf13/cast"
 )
 
-func SingInHandle(input *methodData.PullClientMessageInput, msg *proto.Envelope) {
+func SingInHandler(input *proto.PullClientMessageInput) {
 	res := &proto.SigninPlayerResponse{}
-	respMsg := makeResponseMsg(msg)
+	respMsg := makeResponseMsg(input.Msg)
 	defer func() {
 		if respMsg.ErrorMessage != "" {
 			respMsg.ErrorCode = 20001 // TODO: USE PROTO ERROR CODE
-			serviceLog.Error("main service Signin Player err: %s", respMsg.ErrorMessage)
+			serviceLog.Error("main service SingIn Player err: %s", respMsg.ErrorMessage)
 		}
 		respMsg.Payload = &proto.Envelope_SigninPlayerResponse{SigninPlayerResponse: res}
 		ResponseClientMessage(input, respMsg)
 	}()
 
-	req := msg.GetSigninPlayerRequest()
+	req := input.Msg.GetSigninPlayerRequest()
 	if req == nil {
 		serviceLog.Error("main service singIn player request is nil")
 		return
 	}
-	// userIdStr, err := auth.CheckDefaultAuth(req.Token)
-	// if err != nil {
-	// 	respMsg.ErrorMessage = err.Error()
-	// 	return
-	// }
-
-	userIdStr := "680"
+	// check token
+	userIdStr, err := auth.CheckDefaultAuth(req.Token)
+	if err != nil {
+		respMsg.ErrorMessage = err.Error()
+		return
+	}
 
 	input.UserId = cast.ToInt64(userIdStr)
 	dataModel, err := playerModel.GetPlayerDataModel()
@@ -51,8 +50,8 @@ func SingInHandle(input *methodData.PullClientMessageInput, msg *proto.Envelope)
 		return
 	}
 
-	pos := &proto.Vector3{X: float32(sceneData.X), Y: float32(sceneData.Y), Z: float32(sceneData.Z)}
-	dir := &proto.Vector3{X: float32(sceneData.DirX), Y: float32(sceneData.DirY), Z: float32(sceneData.DirZ)}
+	pos := &proto.Vector3{X: sceneData.X, Y: sceneData.Y, Z: sceneData.Z}
+	dir := &proto.Vector3{X: sceneData.DirX, Y: sceneData.DirY, Z: sceneData.DirZ}
 	res.ClientTime = req.ClientTime
 	res.ServerTime = time_helper.NowUTCMill()
 	res.LastLoginTime = sceneData.LastLoginAt.UnixMilli()

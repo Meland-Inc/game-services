@@ -1,7 +1,6 @@
 package playerModel
 
 import (
-	"game-message-core/grpc/pubsubEventData"
 	"game-message-core/proto"
 
 	"github.com/Meland-Inc/game-services/src/common/serviceLog"
@@ -12,19 +11,15 @@ import (
 
 func (p *PlayerDataModel) RPCEventUsedConsumable(userId int64, item *Item) error {
 	_, conData := item.NFTData.GetConsumableData()
-
-	env := pubsubEventData.UserUseNFTEvent{
+	input := &proto.UserUseNFTEvent{
 		MsgVersion:     time_helper.NowUTCMill(),
 		UserId:         userId,
 		NftId:          item.Id,
-		Cid:            item.Cid,
 		NftType:        item.NFTType,
 		Num:            1,
 		ConsumableData: conData,
-		X:              0,
-		Z:              0,
 	}
-	return grpcPubsubEvent.RPCPubsubEventUseNft(env)
+	return grpcPubsubEvent.RPCPubsubEventUseNft(input)
 }
 
 func (p *PlayerDataModel) RPCCallUpdateUserUsingAvatar(userId int64) {
@@ -39,12 +34,12 @@ func (p *PlayerDataModel) RPCCallUpdateUserUsingAvatar(userId int64) {
 		return
 	}
 
-	avatars := []proto.PlayerAvatar{}
+	avatars := []*proto.PlayerAvatar{}
 	for _, it := range items {
 		avatar := it.ToNetPlayerAvatar()
-		avatars = append(avatars, *avatar)
+		avatars = append(avatars, avatar)
 	}
-	err = grpcInvoke.UpdateUsedAvatar(userId, avatars, *profile)
+	err = grpcInvoke.UpdateUsedAvatar(userId, avatars, profile)
 	if err != nil {
 		serviceLog.Error("call UpdateUsedAvatar failed err: %v", err)
 		return
@@ -57,7 +52,7 @@ func (p *PlayerDataModel) RPCCallUpdateUserProfile(userId int64) {
 		serviceLog.Error("call UpdateUsedProfile get profile failed err: %v", err)
 		return
 	}
-	err = grpcInvoke.UpdateUsedProfile(userId, *profile)
+	err = grpcInvoke.UpdateUsedProfile(userId, profile)
 	if err != nil {
 		serviceLog.Error("call UpdateUsedAvatar failed err: %v", err)
 		return

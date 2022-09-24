@@ -20,7 +20,7 @@ func ClientMessageHandler(ctx context.Context, in *common.InvocationEvent) (*com
 		if err != nil {
 			output.ErrMsg = err.Error()
 		}
-		content, _ := daprInvoke.MakeOutputContent(in, output)
+		content, _ := daprInvoke.MakeProtoOutputContent(in, output)
 		return content, err
 	}
 

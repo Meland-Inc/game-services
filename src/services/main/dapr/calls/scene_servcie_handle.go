@@ -2,9 +2,9 @@ package daprCalls
 
 import (
 	"context"
-	"encoding/json"
-	"game-message-core/grpc/methodData"
+
 	"game-message-core/proto"
+	"game-message-core/protoTool"
 	"net/url"
 
 	"github.com/Meland-Inc/game-services/src/common/daprInvoke"
@@ -15,10 +15,11 @@ import (
 
 func GRPCGetUserDataHandler(ctx context.Context, in *common.InvocationEvent) (*common.Content, error) {
 	resFunc := func(
-		success bool, err error, baseData proto.PlayerBaseData, profile proto.EntityProfile,
-		mapId int32, pos proto.Vector3, dir proto.Vector3, avatars []proto.PlayerAvatar,
+		success bool, err error, baseData *proto.PlayerBaseData,
+		profile *proto.EntityProfile, mapId int32, pos *proto.Vector3,
+		dir *proto.Vector3, avatars []*proto.PlayerAvatar,
 	) (*common.Content, error) {
-		out := &methodData.GetUserDataOutput{}
+		out := &proto.GetUserDataOutput{}
 		out.Success = success
 		if err != nil {
 			out.ErrMsg = err.Error()
@@ -27,59 +28,48 @@ func GRPCGetUserDataHandler(ctx context.Context, in *common.InvocationEvent) (*c
 			out.BaseData = baseData
 			out.Profile = profile
 			out.MapId = mapId
-			out.Pos = pos
+			out.Position = pos
 			out.Dir = dir
 			out.Avatars = avatars
 		}
-
-		content, _ := daprInvoke.MakeOutputContent(in, out)
+		content, _ := daprInvoke.MakeProtoOutputContent(in, out)
 		return content, err
 	}
 
-	serviceLog.Info("get user data received data: %v", string(in.Data))
-	escStr, err := url.QueryUnescape(string(in.Data))
+	input := &proto.GetUserDataInput{}
+	err := protoTool.UnmarshalProto(in.Data, input)
 	if err != nil {
-		return nil, err
-	}
-	serviceLog.Info("get user data received data: %v", escStr)
-	input := &methodData.GetUserDataInput{}
-	err = json.Unmarshal([]byte(escStr), input)
-	if err != nil {
-		return resFunc(
-			false, err, proto.PlayerBaseData{}, proto.EntityProfile{},
-			0, proto.Vector3{}, proto.Vector3{}, []proto.PlayerAvatar{},
-		)
+		escStr, err := url.QueryUnescape(string(in.Data))
+		serviceLog.Info("GetUserDataInput data: %v, err: %+v", escStr, err)
+		if err != nil {
+			return resFunc(false, err, nil, nil, 0, nil, nil, nil)
+		}
+		err = protoTool.UnmarshalProto([]byte(escStr), input)
+		if err != nil {
+			serviceLog.Error("Unmarshal to GetUserDataInput data : %+v, err: $+v", string(in.Data), err)
+			return resFunc(false, err, nil, nil, 0, nil, nil, nil)
+		}
 	}
 
 	dataModel, err := playerModel.GetPlayerDataModel()
 	if err != nil {
-		return resFunc(
-			false, err, proto.PlayerBaseData{}, proto.EntityProfile{},
-			0, proto.Vector3{}, proto.Vector3{}, []proto.PlayerAvatar{},
-		)
+		return resFunc(false, err, nil, nil, 0, nil, nil, nil)
 	}
 
 	baseData, sceneData, avatars, profile, err := dataModel.PlayerAllData(input.UserId)
 	if err != nil {
-		return resFunc(
-			false, err, proto.PlayerBaseData{}, proto.EntityProfile{},
-			0, proto.Vector3{}, proto.Vector3{}, []proto.PlayerAvatar{},
-		)
+		return resFunc(false, err, nil, nil, 0, nil, nil, nil)
 	}
 
-	pos := proto.Vector3{X: float32(sceneData.X), Y: float32(sceneData.Y), Z: float32(sceneData.Z)}
-	dir := proto.Vector3{X: float32(sceneData.DirX), Y: float32(sceneData.DirY), Z: float32(sceneData.DirZ)}
-	pbAvatars := []proto.PlayerAvatar{}
+	pos := &proto.Vector3{X: sceneData.X, Y: sceneData.Y, Z: sceneData.Z}
+	dir := &proto.Vector3{X: sceneData.DirX, Y: sceneData.DirY, Z: sceneData.DirZ}
+	pbAvatars := []*proto.PlayerAvatar{}
 	for _, avatar := range avatars {
-		pbAvatars = append(pbAvatars, *avatar.ToNetPlayerAvatar())
+		pbAvatars = append(pbAvatars, avatar.ToNetPlayerAvatar())
 	}
+
 	return resFunc(
-		true, err,
-		*baseData.ToNetPlayerBaseData(),
-		*profile,
-		sceneData.MapId,
-		pos,
-		dir,
-		pbAvatars,
+		true, nil, baseData.ToNetPlayerBaseData(), profile,
+		sceneData.MapId, pos, dir, pbAvatars,
 	)
 }
