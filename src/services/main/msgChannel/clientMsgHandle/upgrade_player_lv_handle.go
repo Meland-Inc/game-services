@@ -1,14 +1,15 @@
 package clientMsgHandle
 
 import (
+	"game-message-core/grpc/methodData"
 	"game-message-core/proto"
 
 	"github.com/Meland-Inc/game-services/src/services/main/playerModel"
 )
 
-func UpgradePlayerLevelHandle(input *proto.PullClientMessageInput) {
+func UpgradePlayerLevelHandle(input *methodData.PullClientMessageInput, msg *proto.Envelope) {
 	res := &proto.UpgradePlayerLevelResponse{}
-	respMsg := makeResponseMsg(input.Msg)
+	respMsg := makeResponseMsg(msg)
 	defer func() {
 		if respMsg.ErrorMessage != "" {
 			respMsg.ErrorCode = 20006 // TODO: USE PROTO ERROR CODE

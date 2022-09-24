@@ -1,25 +1,27 @@
 package grpcInvoke
 
 import (
+	"encoding/json"
 	"game-message-core/grpc"
-	"game-message-core/protoTool"
+	"game-message-core/grpc/methodData"
 
 	"game-message-core/proto"
 
 	"github.com/Meland-Inc/game-services/src/common/daprInvoke"
 	"github.com/Meland-Inc/game-services/src/common/serviceLog"
 	"github.com/Meland-Inc/game-services/src/common/time_helper"
+	"github.com/Meland-Inc/game-services/src/global/grpcAPI/grpcNetTool"
 )
 
 func RPCSelectService(
 	serviceType proto.ServiceType, mapId int32,
-) (*proto.ManagerActionSelectServiceOutput, error) {
-	input := &proto.ManagerActionSelectServiceInput{
+) (*methodData.ManagerActionSelectServiceOutput, error) {
+	input := &methodData.ManagerActionSelectServiceInput{
 		MsgVersion:  time_helper.NowUTCMill(),
 		ServiceType: serviceType,
 		MapId:       mapId,
 	}
-	inputBytes, err := protoTool.MarshalProto(input)
+	inputBytes, err := json.Marshal(input)
 	if err != nil {
 		serviceLog.Error("Marshal ManagerActionSelectServiceInput failed err: %+v", err)
 		return nil, err
@@ -32,10 +34,14 @@ func RPCSelectService(
 	)
 	if err != nil {
 		serviceLog.Error("select service[%v][%d] failed err:%+v", serviceType, mapId, err)
+		return nil, err
 	}
 
-	output := &proto.ManagerActionSelectServiceOutput{}
-	err = protoTool.UnmarshalProto(outBytes, output)
+	output := &methodData.ManagerActionSelectServiceOutput{}
+	err = grpcNetTool.UnmarshalGrpcData(outBytes, input)
+	if err != nil {
+		return nil, err
+	}
 	if err != nil {
 		serviceLog.Error("select service Output Unmarshal : err : %+v", err)
 		return nil, err

@@ -4,10 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"game-message-core/grpc"
-	"game-message-core/proto"
-	"game-message-core/protoTool"
+	"game-message-core/grpc/pubsubEventData"
 
 	"github.com/Meland-Inc/game-services/src/common/serviceLog"
+	"github.com/Meland-Inc/game-services/src/global/grpcAPI/grpcNetTool"
 	"github.com/Meland-Inc/game-services/src/services/main/msgChannel"
 	"github.com/dapr/go-sdk/service/common"
 )
@@ -20,10 +20,9 @@ func UserEnterGameEventHandler(ctx context.Context, e *common.TopicEvent) (retry
 		return false, err
 	}
 
-	input := &proto.UserEnterGameEvent{}
-	err = protoTool.UnmarshalProto(inputBytes, input)
+	input := &pubsubEventData.UserEnterGameEvent{}
+	err = grpcNetTool.UnmarshalGrpcData(inputBytes, input)
 	if err != nil {
-		serviceLog.Info("enter game Marshal to enterGameInput fail err: %v ", err)
 		return false, err
 	}
 

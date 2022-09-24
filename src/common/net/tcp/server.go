@@ -80,10 +80,6 @@ func (s *Server) listen() {
 	var tempDelay time.Duration
 	for {
 		connect, err := s.listener.Accept()
-
-		serviceLog.Debug("tcp socket connected removeAddr[%v], localAddress[%v]",
-			connect.RemoteAddr(), connect.LocalAddr())
-
 		if err != nil {
 			if ne, ok := err.(net.Error); ok && ne.Temporary() {
 				tempDelay = 5 * time.Millisecond
@@ -110,6 +106,8 @@ func (s *Server) onConnect(connect net.Conn) {
 
 	session := session.NewSession(connect)
 	if session != nil {
+		serviceLog.Info("tcp socket connected remoteAddr[%v], localAddress[%v], socketId[%s]",
+			connect.RemoteAddr(), connect.LocalAddr(), session.SessionId())
 		s.sessionMgr.AddSession(session)
 		s.onConnectCallback(session)
 		go func() {

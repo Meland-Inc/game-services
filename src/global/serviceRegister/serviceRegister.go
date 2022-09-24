@@ -1,19 +1,20 @@
 package serviceRegister
 
 import (
+	"encoding/json"
 	"fmt"
 	"game-message-core/grpc"
-	"game-message-core/proto"
-	"game-message-core/protoTool"
+	"game-message-core/grpc/methodData"
 
 	"github.com/Meland-Inc/game-services/src/common/daprInvoke"
-	"github.com/Meland-Inc/game-services/src/common/serviceLog"
 	"github.com/Meland-Inc/game-services/src/common/time_helper"
 	"github.com/Meland-Inc/game-services/src/global/serviceCnf"
 )
 
-func serviceRealInfo(cnf serviceCnf.ServiceConfig, online int32) *proto.ServiceRegisterInput {
-	return &proto.ServiceRegisterInput{
+func serviceRealInfo(
+	cnf serviceCnf.ServiceConfig, online int32,
+) methodData.ServiceDataInput {
+	return methodData.ServiceDataInput{
 		MsgVersion:  time_helper.NowUTCMill(),
 		Id:          cnf.ServerId,
 		Name:        cnf.ServerName,
@@ -24,17 +25,15 @@ func serviceRealInfo(cnf serviceCnf.ServiceConfig, online int32) *proto.ServiceR
 		MapId:       cnf.MapId,
 		Online:      online,
 		MaxOnline:   cnf.MaxOnline,
-		CreateAt:    cnf.StartMs,
-		UpdateAt:    time_helper.NowUTCMill(),
+		CreatedAt:   cnf.StartMs,
+		UpdatedAt:   time_helper.NowUTCMill(),
 	}
 }
 
 func RegisterService(cnf serviceCnf.ServiceConfig, online int32) error {
 	input := serviceRealInfo(cnf, online)
-
-	inputBytes, err := protoTool.MarshalProto(input)
+	inputBytes, err := json.Marshal(input)
 	if err != nil {
-		serviceLog.Error("Marshal RegisterService failed err: %+v", err)
 		return err
 	}
 
@@ -46,29 +45,28 @@ func RegisterService(cnf serviceCnf.ServiceConfig, online int32) error {
 	if err != nil {
 		return err
 	}
-	out := &proto.ServiceRegisterOutput{}
-	err = protoTool.UnmarshalProto(bs, out)
+	out := &methodData.ServiceDataOutput{}
+	err = json.Unmarshal(bs, out)
 	if err != nil {
 		return err
 	}
 	if !out.Success {
-		return fmt.Errorf(out.ErrMsg)
+		return fmt.Errorf("register service failed")
 	}
 	return err
 }
 
 func UnRegisterService(cnf serviceCnf.ServiceConfig, online int32) error {
 	input := serviceRealInfo(cnf, online)
-	inputBytes, err := protoTool.MarshalProto(input)
+	inBytes, err := json.Marshal(input)
 	if err != nil {
-		serviceLog.Error("Marshal UnRegisterService failed err: %+v", err)
 		return err
 	}
 
 	_, err = daprInvoke.InvokeMethod(
 		string(grpc.AppIdMelandServiceManager),
 		string(grpc.ManagerServiceActionDestroy),
-		inputBytes,
+		inBytes,
 	)
 
 	return err

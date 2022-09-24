@@ -2,6 +2,7 @@ package userChannel
 
 import (
 	"game-message-core/proto"
+	"game-message-core/protoTool"
 )
 
 func (uc *UserChannel) agentClientMsg(msg *proto.Envelope) {
@@ -19,5 +20,6 @@ func (uc *UserChannel) handlePing(msg *proto.Envelope) {
 			PingResponse: &proto.PingResponse{},
 		},
 	}
-	uc.SendToUser(msg.Type, resMsg)
+	msgBody, _ := protoTool.MarshalEnvelope(resMsg)
+	uc.SendToUser(msg.Type, msgBody)
 }

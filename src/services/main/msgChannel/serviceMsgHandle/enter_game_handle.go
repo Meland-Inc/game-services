@@ -1,14 +1,14 @@
 package serviceMsgHandle
 
 import (
-	"game-message-core/proto"
+	"game-message-core/grpc/pubsubEventData"
 
 	"github.com/Meland-Inc/game-services/src/common/serviceLog"
 	"github.com/Meland-Inc/game-services/src/global/userAgent"
 )
 
 func UserEnterGameHandle(iMsg interface{}) {
-	env, ok := iMsg.(*proto.UserEnterGameEvent)
+	env, ok := iMsg.(*pubsubEventData.UserEnterGameEvent)
 	if !ok {
 		serviceLog.Error("iMsg to UserEnterGameEvent failed")
 		return

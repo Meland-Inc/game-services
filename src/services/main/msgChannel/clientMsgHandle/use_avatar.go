@@ -1,15 +1,16 @@
 package clientMsgHandle
 
 import (
+	"game-message-core/grpc/methodData"
 	"game-message-core/proto"
 
 	"github.com/Meland-Inc/game-services/src/common/serviceLog"
 	"github.com/Meland-Inc/game-services/src/services/main/playerModel"
 )
 
-func LoadAvatarHandle(input *proto.PullClientMessageInput) {
+func LoadAvatarHandle(input *methodData.PullClientMessageInput, msg *proto.Envelope) {
 	res := &proto.UpdateAvatarResponse{}
-	respMsg := makeResponseMsg(input.Msg)
+	respMsg := makeResponseMsg(msg)
 	defer func() {
 		if respMsg.ErrorMessage != "" {
 			respMsg.ErrorCode = 20005 // TODO: USE PROTO ERROR CODE
@@ -23,7 +24,7 @@ func LoadAvatarHandle(input *proto.PullClientMessageInput) {
 		return
 	}
 
-	req := input.Msg.GetUpdateAvatarRequest()
+	req := msg.GetUpdateAvatarRequest()
 	if req == nil {
 		serviceLog.Error("main service use item request is nil")
 		return
@@ -42,9 +43,9 @@ func LoadAvatarHandle(input *proto.PullClientMessageInput) {
 	}
 }
 
-func UnloadAvatarHandle(input *proto.PullClientMessageInput) {
+func UnloadAvatarHandle(input *methodData.PullClientMessageInput, msg *proto.Envelope) {
 	res := &proto.UnloadAvatarResponse{}
-	respMsg := makeResponseMsg(input.Msg)
+	respMsg := makeResponseMsg(msg)
 	defer func() {
 		if respMsg.ErrorMessage != "" {
 			respMsg.ErrorCode = 20005 // TODO: USE PROTO ERROR CODE
@@ -58,7 +59,7 @@ func UnloadAvatarHandle(input *proto.PullClientMessageInput) {
 		return
 	}
 
-	req := input.Msg.GetUnloadAvatarRequest()
+	req := msg.GetUnloadAvatarRequest()
 	if req == nil {
 		serviceLog.Error("main service use item request is nil")
 		return

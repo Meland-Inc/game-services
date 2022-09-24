@@ -1,6 +1,8 @@
 package playerModel
 
 import (
+	base_data "game-message-core/grpc/baseData"
+	"game-message-core/grpc/pubsubEventData"
 	"game-message-core/proto"
 
 	"github.com/Meland-Inc/game-services/src/common/serviceLog"
@@ -11,14 +13,16 @@ import (
 
 func (p *PlayerDataModel) RPCEventUsedConsumable(userId int64, item *Item) error {
 	_, conData := item.NFTData.GetConsumableData()
-	input := &proto.UserUseNFTEvent{
-		MsgVersion:     time_helper.NowUTCMill(),
-		UserId:         userId,
-		NftId:          item.Id,
-		NftType:        item.NFTType,
-		Num:            1,
-		ConsumableData: conData,
+	input := &pubsubEventData.UserUseNFTEvent{
+		MsgVersion: time_helper.NowUTCMill(),
+		UserId:     userId,
+		NftId:      item.Id,
+		NftType:    item.NFTType,
+		Num:        1,
 	}
+	input.ConsumableData = &base_data.GrpcNFTConsumableInfo{}
+	input.ConsumableData.Set(conData)
+
 	return grpcPubsubEvent.RPCPubsubEventUseNft(input)
 }
 

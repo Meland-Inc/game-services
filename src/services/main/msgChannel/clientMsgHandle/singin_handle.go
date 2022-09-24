@@ -2,20 +2,20 @@ package clientMsgHandle
 
 import (
 	"fmt"
+	"game-message-core/grpc/methodData"
 	"game-message-core/proto"
 
 	"github.com/Meland-Inc/game-services/src/common/serviceLog"
 	"github.com/Meland-Inc/game-services/src/common/time_helper"
-	"github.com/Meland-Inc/game-services/src/global/auth"
 	"github.com/Meland-Inc/game-services/src/global/grpcAPI/grpcInvoke"
 	"github.com/Meland-Inc/game-services/src/global/serviceCnf"
 	"github.com/Meland-Inc/game-services/src/services/main/playerModel"
 	"github.com/spf13/cast"
 )
 
-func SingInHandler(input *proto.PullClientMessageInput) {
+func SingInHandler(input *methodData.PullClientMessageInput, msg *proto.Envelope) {
 	res := &proto.SigninPlayerResponse{}
-	respMsg := makeResponseMsg(input.Msg)
+	respMsg := makeResponseMsg(msg)
 	defer func() {
 		if respMsg.ErrorMessage != "" {
 			respMsg.ErrorCode = 20001 // TODO: USE PROTO ERROR CODE
@@ -25,17 +25,19 @@ func SingInHandler(input *proto.PullClientMessageInput) {
 		ResponseClientMessage(input, respMsg)
 	}()
 
-	req := input.Msg.GetSigninPlayerRequest()
+	req := msg.GetSigninPlayerRequest()
 	if req == nil {
 		serviceLog.Error("main service singIn player request is nil")
 		return
 	}
 	// check token
-	userIdStr, err := auth.CheckDefaultAuth(req.Token)
-	if err != nil {
-		respMsg.ErrorMessage = err.Error()
-		return
-	}
+	// userIdStr, err := auth.CheckDefaultAuth(req.Token)
+	// if err != nil {
+	// 	respMsg.ErrorMessage = err.Error()
+	// 	return
+	// }
+
+	userIdStr := "680"
 
 	input.UserId = cast.ToInt64(userIdStr)
 	dataModel, err := playerModel.GetPlayerDataModel()
