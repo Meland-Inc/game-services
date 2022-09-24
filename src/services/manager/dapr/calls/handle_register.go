@@ -2,9 +2,9 @@ package daprCalls
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
-	"game-message-core/grpc/methodData"
+	"game-message-core/proto"
+	"game-message-core/protoTool"
 	"net/url"
 
 	"github.com/Meland-Inc/game-services/src/common/daprInvoke"
@@ -13,7 +13,7 @@ import (
 	"github.com/dapr/go-sdk/service/common"
 )
 
-func toLocalServiceData(input methodData.ServiceDataInput) controller.ServiceData {
+func toLocalServiceData(input *proto.ServiceRegisterInput) controller.ServiceData {
 	return controller.ServiceData{
 		Id:          input.Id,
 		Name:        input.Name,
@@ -24,59 +24,65 @@ func toLocalServiceData(input methodData.ServiceDataInput) controller.ServiceDat
 		MapId:       input.MapId,
 		Online:      input.Online,
 		MaxOnline:   input.MaxOnline,
-		CreatedAt:   input.CreatedAt,
-		UpdatedAt:   input.UpdatedAt,
+		CreateAt:    input.CreateAt,
+		UpdateAt:    input.UpdateAt,
 	}
 }
 
 func RegisterServiceHandler(ctx context.Context, in *common.InvocationEvent) (*common.Content, error) {
-	escStr, err := url.QueryUnescape(string(in.Data))
-	serviceLog.Info("received register service  data: %v, err: %v", escStr, err)
+	input := &proto.ServiceRegisterInput{}
+	err := protoTool.UnmarshalProto(in.Data, input)
 	if err != nil {
-		return nil, err
+		serviceLog.Warning("manager received ServiceRegisterInput  data: %v, err: %v", input, err)
+		escStr, err := url.QueryUnescape(string(in.Data))
+		serviceLog.Info("manager received ServiceRegisterInput data: %v, err: %+v", escStr, err)
+		if err != nil {
+			return nil, err
+		}
+		err = protoTool.UnmarshalProto([]byte(escStr), input)
+		if err != nil {
+			serviceLog.Error("Unmarshal to ServiceRegisterInput data : %+v, err: $+v", string(in.Data), err)
+			return nil, fmt.Errorf("data can not unMarshal to ServiceRegisterInput")
+		}
 	}
-
-	input := methodData.ServiceDataInput{}
-	err = json.Unmarshal([]byte(escStr), &input)
-	if err != nil {
-		serviceLog.Error("register service  data : %+v, err:%+v", string(escStr), err)
-		return nil, fmt.Errorf("data can not unMarshal to ServiceDataInput")
-	}
+	serviceLog.Info("received ServiceRegisterInput data: %v, err: %v", input, err)
 
 	service := toLocalServiceData(input)
 	controller.GetInstance().RegisterService(service)
 
-	output := methodData.ServiceDataOutput{
-		MsgVersion: input.MsgVersion,
-		Success:    true,
+	output := &proto.ServiceRegisterOutput{
+		Success: true,
 	}
 	// serviceLog.Info("register service res = %+v", output)
 
-	return daprInvoke.MakeOutputContent(in, output)
+	return daprInvoke.MakeProtoOutputContent(in, output)
 }
 
 func DestroyServiceHandler(ctx context.Context, in *common.InvocationEvent) (*common.Content, error) {
-	escStr, err := url.QueryUnescape(string(in.Data))
-	serviceLog.Info("received Destroy service  data: %v, err: %v", escStr, err)
+	input := &proto.ServiceRegisterInput{}
+	err := protoTool.UnmarshalProto(in.Data, input)
 	if err != nil {
-		return nil, err
+		serviceLog.Warning("manager received DestroyService  data: %v, err: %v", input, err)
+		escStr, err := url.QueryUnescape(string(in.Data))
+		serviceLog.Info("manager received DestroyService data: %v, err: %+v", escStr, err)
+		if err != nil {
+			return nil, err
+		}
+		err = protoTool.UnmarshalProto([]byte(escStr), input)
+		if err != nil {
+			serviceLog.Error("Unmarshal to DestroyService data : %+v, err: $+v", string(in.Data), err)
+			return nil, fmt.Errorf("data can not unMarshal to ServiceRegisterInput")
+		}
 	}
-
-	input := methodData.ServiceDataInput{}
-	err = json.Unmarshal([]byte(escStr), &input)
-	if err != nil {
-		serviceLog.Error("Destroy service  data : %+v", string(in.Data))
-		return nil, fmt.Errorf("data can not unMarshal to ServiceDataInput")
-	}
+	serviceLog.Info("received DestroyService data: %v, err: %v", input, err)
 
 	service := toLocalServiceData(input)
 	controller.GetInstance().DestroyService(service)
 
-	output := methodData.ServiceDataOutput{
-		MsgVersion: input.MsgVersion,
-		Success:    true,
+	output := &proto.ServiceRegisterOutput{
+		Success: true,
 	}
 
 	serviceLog.Info("Destroy service res = %+v", output)
-	return daprInvoke.MakeOutputContent(in, output)
+	return daprInvoke.MakeProtoOutputContent(in, output)
 }

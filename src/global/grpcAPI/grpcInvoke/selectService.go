@@ -1,9 +1,9 @@
 package grpcInvoke
 
 import (
-	"encoding/json"
 	"game-message-core/grpc"
-	"game-message-core/grpc/methodData"
+	"game-message-core/protoTool"
+
 	"game-message-core/proto"
 
 	"github.com/Meland-Inc/game-services/src/common/daprInvoke"
@@ -13,14 +13,15 @@ import (
 
 func RPCSelectService(
 	serviceType proto.ServiceType, mapId int32,
-) (*methodData.ManagerActionSelectServiceOutput, error) {
-	input := methodData.ManagerActionSelectServiceInput{
+) (*proto.ManagerActionSelectServiceOutput, error) {
+	input := &proto.ManagerActionSelectServiceInput{
 		MsgVersion:  time_helper.NowUTCMill(),
 		ServiceType: serviceType,
 		MapId:       mapId,
 	}
-	inputBytes, err := json.Marshal(input)
+	inputBytes, err := protoTool.MarshalProto(input)
 	if err != nil {
+		serviceLog.Error("Marshal ManagerActionSelectServiceInput failed err: %+v", err)
 		return nil, err
 	}
 
@@ -33,8 +34,8 @@ func RPCSelectService(
 		serviceLog.Error("select service[%v][%d] failed err:%+v", serviceType, mapId, err)
 	}
 
-	output := &methodData.ManagerActionSelectServiceOutput{}
-	err = json.Unmarshal(outBytes, output)
+	output := &proto.ManagerActionSelectServiceOutput{}
+	err = protoTool.UnmarshalProto(outBytes, output)
 	if err != nil {
 		serviceLog.Error("select service Output Unmarshal : err : %+v", err)
 		return nil, err

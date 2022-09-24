@@ -1,16 +1,15 @@
 package clientMsgHandle
 
 import (
-	"game-message-core/grpc/methodData"
 	"game-message-core/proto"
 
 	"github.com/Meland-Inc/game-services/src/common/serviceLog"
 	"github.com/Meland-Inc/game-services/src/services/main/playerModel"
 )
 
-func ItemGetHandle(input *methodData.PullClientMessageInput, msg *proto.Envelope) {
+func ItemGetHandle(input *proto.PullClientMessageInput) {
 	res := &proto.ItemGetResponse{}
-	respMsg := makeResponseMsg(msg)
+	respMsg := makeResponseMsg(input.Msg)
 	defer func() {
 		if respMsg.ErrorMessage != "" {
 			respMsg.ErrorCode = 20002 // TODO: USE PROTO ERROR CODE
@@ -40,9 +39,9 @@ func ItemGetHandle(input *methodData.PullClientMessageInput, msg *proto.Envelope
 	}
 }
 
-func ItemUseHandle(input *methodData.PullClientMessageInput, msg *proto.Envelope) {
+func ItemUseHandle(input *proto.PullClientMessageInput) {
 	res := &proto.ItemUseResponse{}
-	respMsg := makeResponseMsg(msg)
+	respMsg := makeResponseMsg(input.Msg)
 	defer func() {
 		if respMsg.ErrorMessage != "" {
 			respMsg.ErrorCode = 20004 // TODO: USE PROTO ERROR CODE
@@ -56,7 +55,7 @@ func ItemUseHandle(input *methodData.PullClientMessageInput, msg *proto.Envelope
 		return
 	}
 
-	req := msg.GetItemUseRequest()
+	req := input.Msg.GetItemUseRequest()
 	if req == nil {
 		serviceLog.Error("main service use item request is nil")
 		return

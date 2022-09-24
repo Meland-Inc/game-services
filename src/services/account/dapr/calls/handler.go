@@ -2,10 +2,10 @@ package daprCalls
 
 import (
 	"context"
-	"encoding/json"
+
 	"fmt"
-	"game-message-core/grpc/methodData"
-	"net/url"
+	"game-message-core/proto"
+	"game-message-core/protoTool"
 
 	"github.com/Meland-Inc/game-services/src/common/daprInvoke"
 	"github.com/Meland-Inc/game-services/src/common/serviceLog"
@@ -15,24 +15,18 @@ import (
 
 func ClientMessageHandler(ctx context.Context, in *common.InvocationEvent) (*common.Content, error) {
 	resFunc := func(success bool, err error) (*common.Content, error) {
-		out := &methodData.PullClientMessageOutput{}
-		out.Success = success
+		output := &proto.PullClientMessageOutput{}
+		output.Success = success
 		if err != nil {
-			out.ErrMsg = err.Error()
+			output.ErrMsg = err.Error()
 		}
-		content, _ := daprInvoke.MakeOutputContent(in, out)
+		content, _ := daprInvoke.MakeProtoOutputContent(in, output)
 		return content, err
 	}
 
-	escStr, err := url.QueryUnescape(string(in.Data))
-	if err != nil {
-		return nil, err
-	}
-
-	serviceLog.Info("account received clientPbMsg data: %s", escStr)
-
-	input := &methodData.PullClientMessageInput{}
-	err = json.Unmarshal([]byte(escStr), input)
+	input := &proto.PullClientMessageInput{}
+	err := protoTool.UnmarshalProto(in.Data, input)
+	serviceLog.Info("account received clientPbMsg input:%+v, err: %v", input, err)
 	if err != nil {
 		serviceLog.Error("account Unmarshal to PullClientMessageInput fail err: %+v", err)
 		return resFunc(false, fmt.Errorf("PullClientMessageInput unMarshal fail"))

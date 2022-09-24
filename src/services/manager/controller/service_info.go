@@ -19,8 +19,8 @@ type ServiceData struct {
 	MapId       int32             `json:"mapId"`
 	Online      int32             `json:"online"`
 	MaxOnline   int32             `json:"maxOnline"`
-	CreatedAt   int64             `json:"createdAt"`
-	UpdatedAt   int64             `json:"updatedAt"`
+	CreateAt    int64             `json:"createdAt"`
+	UpdateAt    int64             `json:"updatedAt"`
 }
 
 type ServiceRecord struct {
@@ -39,7 +39,7 @@ func NewServiceRecord(serviceType proto.ServiceType) *ServiceRecord {
 
 func (sr *ServiceRecord) checkAlive(s ServiceData) bool {
 	nowMs := time_helper.NowUTCMill()
-	return nowMs < s.UpdatedAt+ServiceTimeoutMs
+	return nowMs < s.UpdateAt+ServiceTimeoutMs
 }
 
 func (sr *ServiceRecord) RemoveServiceRecord(serviceId int64) {

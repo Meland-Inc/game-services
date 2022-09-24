@@ -1,17 +1,20 @@
 package grpcPubsubEvent
 
 import (
-	"encoding/json"
 	"game-message-core/grpc"
-	"game-message-core/grpc/pubsubEventData"
+	"game-message-core/proto"
+	"game-message-core/protoTool"
 
 	"github.com/Meland-Inc/game-services/src/common/daprInvoke"
+	"github.com/Meland-Inc/game-services/src/common/serviceLog"
 )
 
-func RPCPubsubEventEnterGame(env pubsubEventData.UserEnterGameEvent) error {
-	bs, err := json.Marshal(env)
+func RPCPubsubEventEnterGame(env *proto.UserEnterGameEvent) error {
+	inputBytes, err := protoTool.MarshalProto(env)
 	if err != nil {
+
+		serviceLog.Error("RPCPubsubEventEnterGame Marshal Input failed err: %+v", err)
 		return err
 	}
-	return daprInvoke.PubSubEventCall(string(grpc.SubscriptionEventUserEnterGame), string(bs))
+	return daprInvoke.PubSubEventCall(string(grpc.SubscriptionEventUserEnterGame), string(inputBytes))
 }

@@ -1,11 +1,10 @@
 package grpcInvoke
 
 import (
-	"encoding/json"
 	"fmt"
 	"game-message-core/grpc"
-	"game-message-core/grpc/methodData"
 	"game-message-core/proto"
+	"game-message-core/protoTool"
 
 	"github.com/Meland-Inc/game-services/src/common/daprInvoke"
 	"github.com/Meland-Inc/game-services/src/common/serviceLog"
@@ -16,8 +15,8 @@ import (
 // to scene service update user used avatars and profile
 func UpdateUsedAvatar(
 	userId int64,
-	avatars []proto.PlayerAvatar,
-	profile proto.EntityProfile,
+	avatars []*proto.PlayerAvatar,
+	profile *proto.EntityProfile,
 ) error {
 	beginMs := time_helper.NowMill()
 	defer func() {
@@ -30,14 +29,14 @@ func UpdateUsedAvatar(
 		return fmt.Errorf("user in scene service not found")
 	}
 
-	input := methodData.UpdateUsedAvatarInput{
+	input := &proto.UpdateUsedAvatarInput{
 		MsgVersion:   time_helper.NowUTCMill(),
 		UserId:       userId,
 		UsingAvatars: avatars,
 		CurProfile:   profile,
 	}
-	serviceLog.Info("UpdateUsedAvatar = %+v", input)
-	inputBytes, err := json.Marshal(input)
+	serviceLog.Info("UpdateUsedAvatar: %+v", input)
+	inputBytes, err := protoTool.MarshalProto(input)
 	if err != nil {
 		return err
 	}
@@ -50,8 +49,8 @@ func UpdateUsedAvatar(
 
 	serviceLog.Info("UpdateUsedAvatar outBytes = %+v", string(outBytes))
 
-	output := &methodData.UpdateUsedAvatarOutput{}
-	err = json.Unmarshal(outBytes, output)
+	output := &proto.UpdateUsedAvatarOutput{}
+	err = protoTool.UnmarshalProto(outBytes, output)
 	if err != nil {
 		serviceLog.Error("UpdateUsedAvatar Unmarshal : err : %+v", err)
 		return err

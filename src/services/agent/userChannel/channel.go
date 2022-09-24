@@ -1,7 +1,6 @@
 package userChannel
 
 import (
-	"game-message-core/grpc/pubsubEventData"
 	"game-message-core/proto"
 	"game-message-core/protoTool"
 
@@ -17,7 +16,7 @@ type UserChannel struct {
 	sceneServiceAppId string
 	enterSceneService bool
 	tcpSession        *session.Session
-	channels          []chan []byte
+	channels          []chan *proto.Envelope
 	stopChans         []chan chan struct{}
 	isClosed          bool
 }
@@ -29,10 +28,10 @@ func NewUserChannel(se *session.Session) *UserChannel {
 	uc.isClosed = false
 
 	count := int(proto.ServiceType_ServiceTypeLimit)
-	uc.channels = make([]chan []byte, count, count)
+	uc.channels = make([]chan *proto.Envelope, count, count)
 	uc.stopChans = make([]chan chan struct{}, count, count)
 	for i := 0; i < len(uc.channels); i++ {
-		uc.channels[i] = make(chan []byte, 256)
+		uc.channels[i] = make(chan *proto.Envelope, 256)
 		uc.stopChans[i] = make(chan chan struct{})
 	}
 	return uc
@@ -47,14 +46,13 @@ func (uc *UserChannel) SetSceneService(sceneServiceAppId string) {
 	uc.sceneServiceAppId = sceneServiceAppId
 }
 
-func (uc *UserChannel) OnSessionReceivedData(s *session.Session, data []byte) {
-	msg, err := protoTool.UnMarshalToEnvelope(data)
+func (uc *UserChannel) OnSessionReceivedData(s *session.Session, bytes []byte) {
+	msg, err := protoTool.UnMarshalToEnvelope(bytes)
 	if err != nil {
 		return
 	}
-
 	serviceId := protoTool.EnvelopeTypeToServiceType(msg.Type)
-	uc.channels[serviceId] <- data
+	uc.channels[serviceId] <- msg
 }
 
 func (uc *UserChannel) OnSessionClose(s *session.Session) {
@@ -82,7 +80,7 @@ func (uc *UserChannel) Run() {
 	}
 }
 
-func (uc *UserChannel) runChannel(channelId int, ch chan []byte, stopCh chan chan struct{}) {
+func (uc *UserChannel) runChannel(channelId int, ch chan *proto.Envelope, stopCh chan chan struct{}) {
 	go func() {
 		defer func() {
 			if err := recover(); err != nil {
@@ -93,8 +91,8 @@ func (uc *UserChannel) runChannel(channelId int, ch chan []byte, stopCh chan cha
 
 		for {
 			select {
-			case data := <-ch:
-				uc.onProtoData(data)
+			case msg := <-ch:
+				uc.onProtoMessage(msg)
 			case stopDone := <-stopCh:
 				stopDone <- struct{}{}
 				return
@@ -103,42 +101,34 @@ func (uc *UserChannel) runChannel(channelId int, ch chan []byte, stopCh chan cha
 	}()
 }
 
-func (uc *UserChannel) onProtoData(data []byte) {
-	msg, err := protoTool.UnMarshalToEnvelope(data)
-	if err != nil {
-		return
-	}
-
+func (uc *UserChannel) onProtoMessage(msg *proto.Envelope) {
 	serviceType := protoTool.EnvelopeTypeToServiceType(msg.Type)
 	if serviceType == proto.ServiceType_ServiceTypeAgent {
 		uc.agentClientMsg(msg)
 	} else {
-		uc.callOtherServiceClientMsg(data, msg)
+		uc.callOtherServiceClientMsg(msg)
 	}
 }
 
-func (uc *UserChannel) SendToUser(msgType proto.EnvelopeType, msgBody []byte) {
+func (uc *UserChannel) SendToUser(msgType proto.EnvelopeType, msg *proto.Envelope) {
 	if uc.isClosed || uc.tcpSession == nil {
 		return
 	}
+	msgBody, _ := protoTool.MarshalEnvelope(msg)
 	uc.tcpSession.Write(msgBody)
 
 	// update channel owner and sceneServiceAppId by SingInMsg
 	switch msgType {
 	case proto.EnvelopeType_SigninPlayer:
-		uc.onUserSingInGame(msgType, msgBody)
+		uc.onUserSingInGame(msg)
 	case proto.EnvelopeType_EnterMap:
-		uc.onUserEnterMap(msgBody)
+		uc.onUserEnterMap(msg)
 	}
 
 }
 
-func (uc *UserChannel) onUserSingInGame(msgType proto.EnvelopeType, msgBody []byte) {
-	respMsg, err := protoTool.UnMarshalToEnvelope(msgBody)
-	if err != nil {
-		serviceLog.Error("SigninPlayer response message UnMarshal failed")
-		return
-	}
+func (uc *UserChannel) onUserSingInGame(respMsg *proto.Envelope) {
+
 	if respMsg.ErrorCode > 0 {
 		serviceLog.Error("SigninPlayer fail err: %s", respMsg.ErrorMessage)
 		uc.Stop()
@@ -151,12 +141,7 @@ func (uc *UserChannel) onUserSingInGame(msgType proto.EnvelopeType, msgBody []by
 	GetInstance().AddUserChannelByOwner(uc)
 }
 
-func (uc *UserChannel) onUserEnterMap(msgBody []byte) {
-	respMsg, err := protoTool.UnMarshalToEnvelope(msgBody)
-	if err != nil {
-		serviceLog.Error("enterMap response message UnMarshal failed")
-		return
-	}
+func (uc *UserChannel) onUserEnterMap(respMsg *proto.Envelope) {
 	if respMsg.ErrorCode > 0 {
 		serviceLog.Error("enterMap fail err: %s", respMsg.ErrorMessage)
 		uc.Stop()
@@ -165,13 +150,13 @@ func (uc *UserChannel) onUserEnterMap(msgBody []byte) {
 
 	payload := respMsg.GetEnterMapResponse()
 	uc.enterSceneService = true
-	env := pubsubEventData.UserEnterGameEvent{
+	env := &proto.UserEnterGameEvent{
 		MsgVersion:        time_helper.NowUTCMill(),
 		SceneServiceAppId: uc.GetSceneService(),
 		MapId:             payload.Me.MapId,
-		BaseData:          *payload.Me.BaseData,
-		Position:          *payload.Me.Position,
-		Dir:               *payload.Me.Dir,
+		BaseData:          payload.Me.BaseData,
+		Position:          payload.Me.Position,
+		Dir:               payload.Me.Dir,
 	}
 	grpcPubsubEvent.RPCPubsubEventEnterGame(env)
 }

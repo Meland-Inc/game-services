@@ -1,16 +1,15 @@
 package clientMsgHandle
 
 import (
-	"game-message-core/grpc/methodData"
 	"game-message-core/proto"
 
 	"github.com/Meland-Inc/game-services/src/common/serviceLog"
 	"github.com/Meland-Inc/game-services/src/services/main/playerModel"
 )
 
-func ItemSlotGetHandle(input *methodData.PullClientMessageInput, msg *proto.Envelope) {
+func ItemSlotGetHandle(input *proto.PullClientMessageInput) {
 	res := &proto.GetItemSlotResponse{}
-	respMsg := makeResponseMsg(msg)
+	respMsg := makeResponseMsg(input.Msg)
 	defer func() {
 		if respMsg.ErrorMessage != "" {
 			respMsg.ErrorCode = 20006 // TODO: USE PROTO ERROR CODE
@@ -43,9 +42,9 @@ func ItemSlotGetHandle(input *methodData.PullClientMessageInput, msg *proto.Enve
 	}
 }
 
-func ItemSlotUpgradeHandle(input *methodData.PullClientMessageInput, msg *proto.Envelope) {
+func ItemSlotUpgradeHandle(input *proto.PullClientMessageInput) {
 	res := &proto.UpgradeItemSlotResponse{}
-	respMsg := makeResponseMsg(msg)
+	respMsg := makeResponseMsg(input.Msg)
 	defer func() {
 		if respMsg.ErrorMessage != "" {
 			respMsg.ErrorCode = 20007 // TODO: USE PROTO ERROR CODE
@@ -59,7 +58,7 @@ func ItemSlotUpgradeHandle(input *methodData.PullClientMessageInput, msg *proto.
 		return
 	}
 
-	req := msg.GetUpgradeItemSlotRequest()
+	req := input.Msg.GetUpgradeItemSlotRequest()
 	if req == nil {
 		serviceLog.Error("main service upgrade slot request is nil")
 		return

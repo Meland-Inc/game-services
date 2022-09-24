@@ -1,17 +1,19 @@
 package grpcPubsubEvent
 
 import (
-	"encoding/json"
 	"game-message-core/grpc"
-	"game-message-core/grpc/pubsubEventData"
+	"game-message-core/proto"
+	"game-message-core/protoTool"
 
 	"github.com/Meland-Inc/game-services/src/common/daprInvoke"
+	"github.com/Meland-Inc/game-services/src/common/serviceLog"
 )
 
-func RPCPubsubEventUseNft(env pubsubEventData.UserUseNFTEvent) error {
-	bs, err := json.Marshal(env)
+func RPCPubsubEventUseNft(env *proto.UserUseNFTEvent) error {
+	inputBytes, err := protoTool.MarshalProto(env)
 	if err != nil {
+		serviceLog.Error("RPCPubsubEventUseNft Marshal Input failed err: %+v", err)
 		return err
 	}
-	return daprInvoke.PubSubEventCall(string(grpc.SubscriptionEventUseNFT), string(bs))
+	return daprInvoke.PubSubEventCall(string(grpc.SubscriptionEventUseNFT), string(inputBytes))
 }

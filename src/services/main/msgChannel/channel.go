@@ -1,9 +1,7 @@
 package msgChannel
 
 import (
-	"game-message-core/grpc/methodData"
 	"game-message-core/proto"
-	"game-message-core/protoTool"
 
 	"github.com/Meland-Inc/game-services/src/common/serviceLog"
 )
@@ -13,7 +11,7 @@ var chanInstance *MsgChannel
 type MsgChannel struct {
 	isClosed         bool
 	clientMsgHandler map[proto.EnvelopeType]HandleFunc
-	clientMsgChan    chan *methodData.PullClientMessageInput
+	clientMsgChan    chan *proto.PullClientMessageInput
 	serviceMsgChan   chan *ServiceMsgData
 	stopChan         chan chan struct{}
 }
@@ -34,7 +32,7 @@ func NewMsgChannel() *MsgChannel {
 	channel := &MsgChannel{
 		stopChan:         make(chan chan struct{}),
 		isClosed:         false,
-		clientMsgChan:    make(chan *methodData.PullClientMessageInput, 2048),
+		clientMsgChan:    make(chan *proto.PullClientMessageInput, 2048),
 		clientMsgHandler: make(map[proto.EnvelopeType]HandleFunc),
 		serviceMsgChan:   make(chan *ServiceMsgData, 2048),
 	}
@@ -49,7 +47,7 @@ func (ch *MsgChannel) CallServiceMsg(in *ServiceMsgData) {
 	}
 	ch.serviceMsgChan <- in
 }
-func (ch *MsgChannel) CallClientMsg(in *methodData.PullClientMessageInput) {
+func (ch *MsgChannel) CallClientMsg(in *proto.PullClientMessageInput) {
 	if ch.isClosed {
 		return
 	}
@@ -95,17 +93,10 @@ func (ch *MsgChannel) run() {
 	}()
 }
 
+func (ch *MsgChannel) onClientMessage(input *proto.PullClientMessageInput) {
+	serviceLog.Info("received player[%v] message: %v", input.UserId, input.Msg.Type)
 
-func (ch *MsgChannel) onClientMessage(input *methodData.PullClientMessageInput) {
-	msg, err := protoTool.UnMarshalToEnvelope(input.MsgBody)
-	if err != nil {
-		serviceLog.Error("account Unmarshal Envelope fail err: %+v", err)
-		return
-	}
-
-	serviceLog.Info("received player[%v] message: %v", input.UserId, msg.Type)
-
-	if handler, exist := ch.clientMsgHandler[msg.Type]; exist {
-		handler(input, msg)
+	if handler, exist := ch.clientMsgHandler[input.Msg.Type]; exist {
+		handler(input)
 	}
 }

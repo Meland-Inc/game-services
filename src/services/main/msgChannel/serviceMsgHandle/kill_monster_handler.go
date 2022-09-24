@@ -1,7 +1,7 @@
 package serviceMsgHandle
 
 import (
-	"game-message-core/grpc/pubsubEventData"
+	"game-message-core/proto"
 
 	"github.com/Meland-Inc/game-services/src/common/serviceLog"
 	"github.com/Meland-Inc/game-services/src/global/grpcAPI/grpcInvoke"
@@ -9,21 +9,21 @@ import (
 )
 
 func KillMonsterHandler(iMsg interface{}) {
-	input, ok := iMsg.(*pubsubEventData.KillMonsterEventData)
+	input, ok := iMsg.(*proto.KillMonsterEvent)
 	if !ok {
-		serviceLog.Error("iMsg to KillMonsterEventData failed")
+		serviceLog.Error("iMsg to KillMonsterEvent failed")
 		return
 	}
 
 	dataModel, err := playerModel.GetPlayerDataModel()
 	if err != nil {
-		serviceLog.Error("KillMonsterEventData playerDataModel not found")
+		serviceLog.Error("KillMonsterEvent playerDataModel not found")
 		return
 	}
 
 	err = dataModel.AddExp(input.UserId, input.Exp)
 	if err != nil {
-		serviceLog.Error("KillMonsterEventData add exp failed: %v", err)
+		serviceLog.Error("KillMonsterEvent add exp failed: %v", err)
 		return
 	}
 
@@ -31,7 +31,7 @@ func KillMonsterHandler(iMsg interface{}) {
 		if err := grpcInvoke.MintNFT(
 			input.UserId,
 			drop.Cid, drop.Num, drop.Quality,
-			int32(input.PosX), int32(input.PosZ),
+			int32(input.Position.X), int32(input.Position.Z),
 		); err != nil {
 			serviceLog.Error("mint nft[%d] failed: %v", drop.Cid, err)
 			return

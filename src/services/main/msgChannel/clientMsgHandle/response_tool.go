@@ -1,7 +1,6 @@
 package clientMsgHandle
 
 import (
-	"game-message-core/grpc/methodData"
 	"game-message-core/proto"
 
 	"github.com/Meland-Inc/game-services/src/common/serviceLog"
@@ -11,7 +10,7 @@ import (
 )
 
 func ResponseClientMessage(
-	input *methodData.PullClientMessageInput,
+	input *proto.PullClientMessageInput,
 	respMsg *proto.Envelope,
 ) {
 	if respMsg.ErrorMessage != "" {
@@ -38,7 +37,7 @@ func makeResponseMsg(msg *proto.Envelope) *proto.Envelope {
 	}
 }
 
-func getPlayerAgent(input *methodData.PullClientMessageInput) *userAgent.UserAgentData {
+func getPlayerAgent(input *proto.PullClientMessageInput) *userAgent.UserAgentData {
 	agentModel := userAgent.GetUserAgentModel()
 	agent, exist := agentModel.GetUserAgent(input.UserId)
 	if !exist {
