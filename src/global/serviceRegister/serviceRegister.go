@@ -1,6 +1,7 @@
 package serviceRegister
 
 import (
+	"fmt"
 	"game-message-core/grpc"
 	"game-message-core/proto"
 	"game-message-core/protoTool"
@@ -37,12 +38,22 @@ func RegisterService(cnf serviceCnf.ServiceConfig, online int32) error {
 		return err
 	}
 
-	_, err = daprInvoke.InvokeMethod(
+	bs, err := daprInvoke.InvokeMethod(
 		string(grpc.AppIdMelandServiceManager),
 		string(grpc.ManagerServiceActionRegister),
 		inputBytes,
 	)
-
+	if err != nil {
+		return err
+	}
+	out := &proto.ServiceRegisterOutput{}
+	err = protoTool.UnmarshalProto(bs, out)
+	if err != nil {
+		return err
+	}
+	if !out.Success {
+		return fmt.Errorf(out.ErrMsg)
+	}
 	return err
 }
 
