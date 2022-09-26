@@ -2,7 +2,6 @@ package daprEvent
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 
 	"github.com/Meland-Inc/game-services/src/common/serviceLog"
@@ -15,17 +14,12 @@ import (
 )
 
 func Web3UpdateUserNftHandler(ctx context.Context, e *common.TopicEvent) (retry bool, err error) {
-	serviceLog.Info("Receive Web3 update user nft: %v, :%s ", e.Data, e.DataContentType)
-
-	inputBytes, err := json.Marshal(e.Data)
-	if err != nil {
-		serviceLog.Error("Web3UpdateUserNftHandler  marshal e.Data  fail err: %+v", err)
-		return false, fmt.Errorf("Web3UpdateUserNftHandler  marshal e.Data  fail err: %+v", err)
-	}
+	serviceLog.Info("Receive Web3UpdateUserNft nft: %v, :%s ", e.Data, e.DataContentType)
 
 	input := &message.UpdateUserNFT{}
-	err = grpcNetTool.UnmarshalGrpcData(inputBytes, input)
+	err = grpcNetTool.UnmarshalGrpcTopicEvent(e, input)
 	if err != nil {
+		serviceLog.Error("Web3UpdateUserNft UnmarshalEvent fail err: %v ", err)
 		return false, err
 	}
 
@@ -35,8 +29,8 @@ func Web3UpdateUserNftHandler(ctx context.Context, e *common.TopicEvent) (retry 
 
 	userId := cast.ToInt64(input.UserId)
 	if userId < 1 {
-		serviceLog.Error("dapr update user nft invalid nft Data[%v]", input)
-		return false, fmt.Errorf("dapr update user nft invalid userId [%v]", input)
+		serviceLog.Error("dapr Web3UpdateUserNft invalid nft Data[%v]", input)
+		return false, fmt.Errorf("dapr Web3UpdateUserNft invalid userId [%v]", input)
 	}
 
 	msgChannel.GetInstance().CallServiceMsg(&msgChannel.ServiceMsgData{
@@ -48,17 +42,12 @@ func Web3UpdateUserNftHandler(ctx context.Context, e *common.TopicEvent) (retry 
 }
 
 func Web3MultiUpdateUserNftHandler(ctx context.Context, e *common.TopicEvent) (retry bool, err error) {
-	fmt.Printf("Receive Web3 Multi update user nft: %v, %s ", e.Data, e.DataContentType)
-
-	inputBytes, err := json.Marshal(e.Data)
-	if err != nil {
-		serviceLog.Error("Web3MultiUpdateUserNftHandler  marshal e.Data  fail err: %+v", err)
-		return false, fmt.Errorf("Web3MultiUpdateUserNftHandler  marshal e.Data  fail err: %+v", err)
-	}
+	fmt.Printf("Receive Web3 MultiWeb3UpdateUserNft nft: %v, %s ", e.Data, e.DataContentType)
 
 	input := &message.MultiUpdateUserNFT{}
-	err = grpcNetTool.UnmarshalGrpcData(inputBytes, input)
+	err = grpcNetTool.UnmarshalGrpcTopicEvent(e, input)
 	if err != nil {
+		serviceLog.Error("MultiWeb3UpdateUserNft UnmarshalEvent fail err: %v ", err)
 		return false, err
 	}
 

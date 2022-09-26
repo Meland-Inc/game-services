@@ -15,7 +15,7 @@ func UserEnterGameHandle(iMsg interface{}) {
 	}
 
 	agentModel := userAgent.GetUserAgentModel()
-	agent, exist := agentModel.GetUserAgent(env.BaseData.UserId)
+	agent, exist := agentModel.GetUserAgent(env.UserId)
 	if exist {
 		agent.InSceneServiceAppId = env.SceneServiceAppId
 		agent.InMapId = env.MapId

@@ -7,6 +7,7 @@ import (
 
 	"github.com/Meland-Inc/game-services/src/common/serviceLog"
 	"github.com/Meland-Inc/game-services/src/common/time_helper"
+	"github.com/Meland-Inc/game-services/src/global/auth"
 	"github.com/Meland-Inc/game-services/src/global/grpcAPI/grpcInvoke"
 	"github.com/Meland-Inc/game-services/src/global/serviceCnf"
 	"github.com/Meland-Inc/game-services/src/services/main/playerModel"
@@ -30,15 +31,14 @@ func SingInHandler(input *methodData.PullClientMessageInput, msg *proto.Envelope
 		serviceLog.Error("main service singIn player request is nil")
 		return
 	}
-	// check token
-	// userIdStr, err := auth.CheckDefaultAuth(req.Token)
+
+	// //check token
+	userIdStr, err := auth.CheckDefaultAuth(req.Token)
 	// if err != nil {
 	// 	respMsg.ErrorMessage = err.Error()
 	// 	return
 	// }
-
-	userIdStr := "680"
-
+	userIdStr = "6680"
 	input.UserId = cast.ToInt64(userIdStr)
 	dataModel, err := playerModel.GetPlayerDataModel()
 	if err != nil {
@@ -83,6 +83,7 @@ func getSceneAppId(clientPushSceneAppId string, mapId int32) (string, error) {
 	}
 
 	serviceOut, err := grpcInvoke.RPCSelectService(proto.ServiceType_ServiceTypeScene, mapId)
+	serviceLog.Debug("getSceneAppId output = %+v", serviceOut)
 	if err != nil {
 		return "", err
 	}

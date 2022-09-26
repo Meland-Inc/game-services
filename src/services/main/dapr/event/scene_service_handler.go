@@ -2,7 +2,6 @@ package daprEvent
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"game-message-core/grpc"
 	"game-message-core/grpc/pubsubEventData"
@@ -15,15 +14,12 @@ import (
 )
 
 func SavePlayerDataEventHandle(ctx context.Context, e *common.TopicEvent) (retry bool, err error) {
-	inputBytes, err := json.Marshal(e.Data)
-	if err != nil {
-		serviceLog.Error("save player data  marshal e.Data  fail err: %+v", err)
-		return false, fmt.Errorf("save player data  marshal e.Data  fail err: %+v", err)
-	}
+	serviceLog.Info("Receive SavePlayerDataEvent nft: %v, :%s ", e.Data, e.DataContentType)
 
 	input := &pubsubEventData.SavePlayerEventData{}
-	err = grpcNetTool.UnmarshalGrpcData(inputBytes, input)
+	err = grpcNetTool.UnmarshalGrpcTopicEvent(e, input)
 	if err != nil {
+		serviceLog.Error("SavePlayerDataEvent UnmarshalEvent fail err: %v ", err)
 		return false, err
 	}
 
@@ -42,15 +38,12 @@ func SavePlayerDataEventHandle(ctx context.Context, e *common.TopicEvent) (retry
 }
 
 func PlayerKillMonsterEventHandle(ctx context.Context, e *common.TopicEvent) (retry bool, err error) {
-	inputBytes, err := json.Marshal(e.Data)
-	if err != nil {
-		serviceLog.Error("KillMonsterEvent  marshal e.Data  fail err: %+v", err)
-		return false, fmt.Errorf("KillMonsterEvent  marshal e.Data  fail err: %+v", err)
-	}
+	serviceLog.Info("Receive KillMonsterEvent nft: %v, :%s ", e.Data, e.DataContentType)
 
 	input := &pubsubEventData.KillMonsterEventData{}
-	err = grpcNetTool.UnmarshalGrpcData(inputBytes, input)
+	err = grpcNetTool.UnmarshalGrpcTopicEvent(e, input)
 	if err != nil {
+		serviceLog.Error("KillMonsterEvent UnmarshalEvent fail err: %v ", err)
 		return false, err
 	}
 
@@ -69,15 +62,12 @@ func PlayerKillMonsterEventHandle(ctx context.Context, e *common.TopicEvent) (re
 }
 
 func PlayerDeathEventHandle(ctx context.Context, e *common.TopicEvent) (retry bool, err error) {
-	inputBytes, err := json.Marshal(e.Data)
-	if err != nil {
-		serviceLog.Error("PlayerDeathEvent  marshal e.Data  fail err: %+v", err)
-		return false, fmt.Errorf("PlayerDeathEvent  marshal e.Data  fail err: %+v", err)
-	}
+	serviceLog.Info("Receive PlayerDeathEvent nft: %v, :%s ", e.Data, e.DataContentType)
 
 	input := &pubsubEventData.PlayerDeathEventData{}
-	err = grpcNetTool.UnmarshalGrpcData(inputBytes, input)
+	err = grpcNetTool.UnmarshalGrpcTopicEvent(e, input)
 	if err != nil {
+		serviceLog.Error("PlayerDeathEvent UnmarshalEvent fail err: %v ", err)
 		return false, err
 	}
 

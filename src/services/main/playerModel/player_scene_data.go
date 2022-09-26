@@ -14,7 +14,7 @@ import (
 
 func (p *PlayerDataModel) getBirthData() (mapId int32, pos proto.Vector3) {
 	// TODO: 此处数据需要 从配置中获取， 目前缺失
-	return 1001, proto.Vector3{X: 440, Y: 40, Z: 85}
+	return 10001, proto.Vector3{X: 440, Y: 40, Z: 85}
 }
 
 func (p *PlayerDataModel) initPlayerSceneData(userId int64) (*dbData.PlayerSceneData, error) {

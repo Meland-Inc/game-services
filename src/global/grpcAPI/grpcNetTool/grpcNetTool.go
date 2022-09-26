@@ -5,6 +5,7 @@ import (
 	"net/url"
 
 	"github.com/Meland-Inc/game-services/src/common/serviceLog"
+	"github.com/dapr/go-sdk/service/common"
 )
 
 func UnmarshalGrpcData(data []byte, v interface{}) error {
@@ -23,4 +24,27 @@ func UnmarshalGrpcData(data []byte, v interface{}) error {
 		}
 	}
 	return err
+}
+
+func UnmarshalGrpcTopicEvent(e *common.TopicEvent, v interface{}) error {
+	inputJson, ok := e.Data.(string)
+	if ok {
+		escStr, err := url.QueryUnescape(inputJson)
+		if err != nil {
+			serviceLog.Info("QueryUnescape TopicEvent failed err: %v", err)
+			return err
+		}
+		err = json.Unmarshal([]byte(escStr), v)
+		if err == nil {
+			return nil
+		}
+	}
+
+	inputBytes, err := json.Marshal(e.Data)
+	if err != nil {
+		serviceLog.Info("TopicEvent Marshal(e.Data) fail err: %v ", err)
+		return err
+	}
+
+	return UnmarshalGrpcData(inputBytes, v)
 }
