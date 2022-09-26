@@ -1,7 +1,7 @@
 package serviceMsgHandle
 
 import (
-	"game-message-core/proto"
+	"game-message-core/grpc/pubsubEventData"
 
 	"github.com/Meland-Inc/game-services/src/common/serviceLog"
 	"github.com/Meland-Inc/game-services/src/global/grpcAPI/grpcInvoke"
@@ -9,7 +9,7 @@ import (
 )
 
 func KillMonsterHandler(iMsg interface{}) {
-	input, ok := iMsg.(*proto.KillMonsterEvent)
+	input, ok := iMsg.(*pubsubEventData.KillMonsterEventData)
 	if !ok {
 		serviceLog.Error("iMsg to KillMonsterEvent failed")
 		return
@@ -31,7 +31,7 @@ func KillMonsterHandler(iMsg interface{}) {
 		if err := grpcInvoke.MintNFT(
 			input.UserId,
 			drop.Cid, drop.Num, drop.Quality,
-			int32(input.Position.X), int32(input.Position.Z),
+			int32(input.PosX), int32(input.PosZ),
 		); err != nil {
 			serviceLog.Error("mint nft[%d] failed: %v", drop.Cid, err)
 			return

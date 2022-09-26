@@ -123,8 +123,6 @@ func (s *Session) loop() {
 		case stopFinished := <-s.stopChan:
 			serviceLog.Info("Stop session(%v)  by stop event", s.RemoteAddr())
 			s.close()
-			close(s.sendChan)
-			close(s.stopChan)
 			stopFinished <- struct{}{}
 			return
 		}
@@ -175,9 +173,11 @@ func (s *Session) Write(data []byte) error {
 
 func (s *Session) close() {
 	if !s.IsClosed() {
+		s.closed = true
 		s.conn.(*net.TCPConn).SetLinger(0)
 		s.conn.Close()
-		s.closed = true
+		close(s.sendChan)
+		close(s.stopChan)
 		if s.onCloseCallback != nil {
 			s.onCloseCallback(s)
 		}

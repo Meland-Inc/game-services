@@ -1,6 +1,7 @@
 package msgChannel
 
 import (
+	"game-message-core/grpc/methodData"
 	"game-message-core/proto"
 
 	"github.com/Meland-Inc/game-services/src/common/serviceLog"
@@ -11,22 +12,22 @@ import (
 	"gorm.io/gorm"
 )
 
-type HandleFunc func(*proto.PullClientMessageInput)
+type HandleFunc func(*methodData.PullClientMessageInput, *proto.Envelope)
 
 func (ch *MsgChannel) registerHandler() {
 	ch.msgHandler[proto.EnvelopeType_CreatePlayer] = ch.CreatePlayerHandler
 }
 
-func (ch *MsgChannel) CreatePlayerHandler(input *proto.PullClientMessageInput) {
-	req := input.Msg.GetCreatePlayerRequest()
+func (ch *MsgChannel) CreatePlayerHandler(input *methodData.PullClientMessageInput, msg *proto.Envelope) {
+	req := msg.GetCreatePlayerRequest()
 	if req == nil {
 		serviceLog.Error("account create player request is nil")
 		return
 	}
 
 	respMsg := &proto.Envelope{
-		Type:  input.Msg.Type,
-		SeqId: input.Msg.SeqId,
+		Type:  msg.Type,
+		SeqId: msg.SeqId,
 	}
 	defer func() {
 		if respMsg.ErrorMessage != "" {

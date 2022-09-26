@@ -3,35 +3,26 @@ package daprCalls
 import (
 	"context"
 	"fmt"
-	"game-message-core/proto"
-	"game-message-core/protoTool"
-	"net/url"
+	"game-message-core/grpc/methodData"
 
 	"github.com/Meland-Inc/game-services/src/common/daprInvoke"
 	"github.com/Meland-Inc/game-services/src/common/serviceLog"
+	"github.com/Meland-Inc/game-services/src/global/grpcAPI/grpcNetTool"
 	"github.com/Meland-Inc/game-services/src/services/manager/controller"
 	"github.com/dapr/go-sdk/service/common"
 )
 
 func SelectServiceHandler(ctx context.Context, in *common.InvocationEvent) (*common.Content, error) {
-	input := &proto.ManagerActionSelectServiceInput{}
-	err := protoTool.UnmarshalProto(in.Data, input)
+	serviceLog.Warning("received select service  data: %v", in.Data)
+	input := &methodData.ManagerActionSelectServiceInput{}
+	err := grpcNetTool.UnmarshalGrpcData(in.Data, input)
 	if err != nil {
-		escStr, err := url.QueryUnescape(string(in.Data))
-		serviceLog.Warning("received select service  data: %v, err: %v", input, err)
-		if err != nil {
-			return nil, err
-		}
-		err = protoTool.UnmarshalProto([]byte(escStr), input)
-		if err != nil {
-			serviceLog.Error("received select service  data: %v, err: %v", input, err)
-			return nil, fmt.Errorf("data can not unMarshal to BroadCastToClientInput")
-		}
+		return nil, err
 	}
 
 	serviceLog.Info("received select service  data: %v, err: %v", input, err)
 
-	output := &proto.ManagerActionSelectServiceOutput{}
+	output := &methodData.ManagerActionSelectServiceOutput{}
 	serviceData, _ := controller.GetInstance().GetAliveServiceByType(input.ServiceType, input.MapId)
 	if serviceData == nil {
 		output.ErrorCode = 30001
@@ -44,9 +35,9 @@ func SelectServiceHandler(ctx context.Context, in *common.InvocationEvent) (*com
 		output.Port = serviceData.Port
 		output.Online = serviceData.Online
 		output.MaxOnline = serviceData.MaxOnline
-		output.CreateAt = serviceData.CreateAt
+		output.CreatedAt = serviceData.CreateAt
 		output.UpdateAt = serviceData.UpdateAt
 	}
 	serviceLog.Info("select service res = %+v", output)
-	return daprInvoke.MakeProtoOutputContent(in, output)
+	return daprInvoke.MakeOutputContent(in, output)
 }

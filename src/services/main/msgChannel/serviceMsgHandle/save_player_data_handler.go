@@ -1,14 +1,14 @@
 package serviceMsgHandle
 
 import (
-	"game-message-core/proto"
+	"game-message-core/grpc/pubsubEventData"
 
 	"github.com/Meland-Inc/game-services/src/common/serviceLog"
 	"github.com/Meland-Inc/game-services/src/services/main/playerModel"
 )
 
 func SavePlayerDataHandler(iMsg interface{}) {
-	input, ok := iMsg.(*proto.SavePlayerEvent)
+	input, ok := iMsg.(*pubsubEventData.SavePlayerEventData)
 	if !ok {
 		serviceLog.Error("iMsg to SavePlayerEvent failed")
 		return
@@ -28,15 +28,15 @@ func SavePlayerDataHandler(iMsg interface{}) {
 
 	dataModel.UpPlayerSceneData(
 		input.UserId,
-		input.CurHp,
+		input.CurHP,
 		sceneData.Level,
 		sceneData.Exp,
 		input.MapId,
-		input.Position.X,
-		input.Position.Y,
-		input.Position.Z,
-		input.Dir.X,
-		input.Dir.Y,
-		input.Dir.Z,
+		input.PosX,
+		input.PosY,
+		input.PosZ,
+		input.DirX,
+		input.DirY,
+		input.DirZ,
 	)
 }

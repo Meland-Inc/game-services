@@ -1,8 +1,10 @@
 package userChannel
 
 import (
+	"encoding/json"
 	"fmt"
 	"game-message-core/grpc"
+	"game-message-core/grpc/methodData"
 	"game-message-core/proto"
 	"game-message-core/protoTool"
 
@@ -27,27 +29,28 @@ func (uc *UserChannel) clientMsgIsLegal(msgType proto.EnvelopeType) (bool, error
 	}
 }
 
-func (uc *UserChannel) makePullClientMessageInputBytes(msg *proto.Envelope) ([]byte, error) {
-	input := &proto.PullClientMessageInput{
+func (uc *UserChannel) makePullClientMessageInputBytes(data []byte) ([]byte, error) {
+	msg, _ := protoTool.UnMarshalToEnvelope(data)
+	input := &methodData.PullClientMessageInput{
 		MsgVersion: time_helper.NowUTCMill(),
 		AgentAppId: serviceCnf.GetInstance().ServerName,
 		UserId:     uc.owner,
 		SocketId:   uc.id,
 		MsgId:      int32(msg.Type),
-		Msg:        msg,
+		MsgBody:    data,
 	}
 	serviceLog.Info("pull client msg input: %+v", input)
 
-	inputBytes, err := protoTool.MarshalProto(input)
+	inputBytes, err := json.Marshal(input)
 	if err != nil {
 		serviceLog.Error("Marshal client msg input failed err:+v", err)
 	}
 	return inputBytes, err
 }
 
-func (uc *UserChannel) parsePullClientMessageOutput(data []byte) (*proto.PullClientMessageOutput, error) {
-	output := &proto.PullClientMessageOutput{}
-	err := protoTool.UnmarshalProto(data, output)
+func (uc *UserChannel) parsePullClientMessageOutput(data []byte) (*methodData.PullClientMessageOutput, error) {
+	output := &methodData.PullClientMessageOutput{}
+	err := json.Unmarshal(data, output)
 	if err != nil {
 		serviceLog.Error("Unmarshal client msg output failed err:+v", err)
 	}
@@ -71,7 +74,7 @@ func (uc *UserChannel) getServiceAppId(serviceType proto.ServiceType) (appId str
 	return
 }
 
-func (uc *UserChannel) callOtherServiceClientMsg(msg *proto.Envelope) {
+func (uc *UserChannel) callOtherServiceClientMsg(data []byte, msg *proto.Envelope) {
 	errResponseF := func(errorCode int32, errMsg string) {
 		resMsg := &proto.Envelope{
 			Type:         msg.Type,
@@ -97,7 +100,7 @@ func (uc *UserChannel) callOtherServiceClientMsg(msg *proto.Envelope) {
 		return
 	}
 
-	inputBytes, err := uc.makePullClientMessageInputBytes(msg)
+	inputBytes, err := uc.makePullClientMessageInputBytes(data)
 	if err != nil {
 		serviceLog.Error("make client proto msg bytes failed err:+v", err)
 		errResponseF(70001, "make client proto msg bytes failed")
@@ -130,12 +133,12 @@ func (uc *UserChannel) callOtherServiceClientMsg(msg *proto.Envelope) {
 }
 
 func (uc *UserChannel) callPlayerLeaveGame() {
-	input := &proto.UserLeaveGameInput{
-		MsgVersion:   time_helper.NowUTCMill(),
-		ServiceAppId: serviceCnf.GetInstance().ServerName,
-		UserId:       uc.owner,
+	input := &methodData.UserLeaveGameInput{
+		MsgVersion: time_helper.NowUTCMill(),
+		AgentAppId: serviceCnf.GetInstance().ServerName,
+		UserId:     uc.owner,
 	}
-	inputBytes, err := protoTool.MarshalProto(input)
+	inputBytes, err := json.Marshal(input)
 	if err != nil {
 		serviceLog.Error("Marshal player leave input failed err:+v", err)
 		return

@@ -1,7 +1,9 @@
 package userAgent
 
 import (
+	"encoding/json"
 	"game-message-core/grpc"
+	"game-message-core/grpc/methodData"
 	"game-message-core/proto"
 	"game-message-core/protoTool"
 
@@ -33,16 +35,21 @@ func (p *UserAgentData) TryUpdate(userId int64, agentAppId, socketId string) {
 }
 
 func (p *UserAgentData) SendToPlayer(serviceAppId string, msg *proto.Envelope) error {
-	input := &proto.BroadCastToClientInput{
+	msgBody, err := protoTool.MarshalProto(msg)
+	if err != nil {
+		return err
+	}
+
+	input := methodData.BroadCastToClientInput{
 		MsgVersion:   time_helper.NowUTCMill(),
 		ServiceAppId: serviceAppId,
 		UserId:       p.UserId,
 		SocketId:     p.SocketId,
 		MsgId:        int32(msg.Type),
-		Msg:          msg,
+		MsgBody:      msgBody,
 	}
 
-	inputBytes, err := protoTool.MarshalProto(input)
+	inputBytes, err := json.Marshal(input)
 	if err != nil {
 		serviceLog.Error("SendToPlayer Marshal BroadCastInput failed err: %+v", err)
 		return err

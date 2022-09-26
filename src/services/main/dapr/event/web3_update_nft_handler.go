@@ -4,9 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"net/url"
 
 	"github.com/Meland-Inc/game-services/src/common/serviceLog"
+	"github.com/Meland-Inc/game-services/src/global/grpcAPI/grpcNetTool"
 	"github.com/Meland-Inc/game-services/src/global/serviceCnf"
 	message "github.com/Meland-Inc/game-services/src/global/web3Message"
 	"github.com/Meland-Inc/game-services/src/services/main/msgChannel"
@@ -15,18 +15,18 @@ import (
 )
 
 func Web3UpdateUserNftHandler(ctx context.Context, e *common.TopicEvent) (retry bool, err error) {
-	serviceLog.Info("Receive Web3 update user nft: %v %s \n", e.Data, e.DataContentType)
+	serviceLog.Info("Receive Web3 update user nft: %v, :%s ", e.Data, e.DataContentType)
 
-	bs, err := json.Marshal(e.Data)
-
-	escStr, err := url.QueryUnescape(string(bs))
-	serviceLog.Info("Receive  data: %v, err: %v", escStr, err)
-
-	input := message.UpdateUserNFT{}
-	err = input.UnmarshalJSON([]byte(escStr))
+	inputBytes, err := json.Marshal(e.Data)
 	if err != nil {
-		serviceLog.Error("not math to dapr msg UpdateUserNFT data : %+v", e.Data)
-		return false, fmt.Errorf("not math to dapr msg UpdateUserNFT")
+		serviceLog.Error("Web3UpdateUserNftHandler  marshal e.Data  fail err: %+v", err)
+		return false, fmt.Errorf("Web3UpdateUserNftHandler  marshal e.Data  fail err: %+v", err)
+	}
+
+	input := &message.UpdateUserNFT{}
+	err = grpcNetTool.UnmarshalGrpcData(inputBytes, input)
+	if err != nil {
+		return false, err
 	}
 
 	if input.Etag < int(serviceCnf.GetInstance().StartMs) {
@@ -48,18 +48,18 @@ func Web3UpdateUserNftHandler(ctx context.Context, e *common.TopicEvent) (retry 
 }
 
 func Web3MultiUpdateUserNftHandler(ctx context.Context, e *common.TopicEvent) (retry bool, err error) {
-	fmt.Printf("Receive Web3 Multi update user nft: %v %s \n", e.Data, e.DataContentType)
+	fmt.Printf("Receive Web3 Multi update user nft: %v, %s ", e.Data, e.DataContentType)
 
-	bs, err := json.Marshal(e.Data)
-
-	escStr, err := url.QueryUnescape(string(bs))
-	serviceLog.Info("Receive data: %v, err: %v", escStr, err)
-
-	input := message.MultiUpdateUserNFT{}
-	err = input.UnmarshalJSON([]byte(escStr))
+	inputBytes, err := json.Marshal(e.Data)
 	if err != nil {
-		serviceLog.Error("not math to dapr msg MultiUpdateUserNFT data : %+v", e.Data)
-		return false, fmt.Errorf("not math to dapr msg MultiUpdateUserNFT")
+		serviceLog.Error("Web3MultiUpdateUserNftHandler  marshal e.Data  fail err: %+v", err)
+		return false, fmt.Errorf("Web3MultiUpdateUserNftHandler  marshal e.Data  fail err: %+v", err)
+	}
+
+	input := &message.MultiUpdateUserNFT{}
+	err = grpcNetTool.UnmarshalGrpcData(inputBytes, input)
+	if err != nil {
+		return false, err
 	}
 
 	if input.Etag < int(serviceCnf.GetInstance().StartMs) {

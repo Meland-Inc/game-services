@@ -1,6 +1,7 @@
 package serviceMsgHandle
 
 import (
+	"game-message-core/grpc/pubsubEventData"
 	"game-message-core/proto"
 
 	"github.com/Meland-Inc/game-services/src/common/serviceLog"
@@ -8,7 +9,7 @@ import (
 )
 
 func PlayerDeathHandler(iMsg interface{}) {
-	input, ok := iMsg.(*proto.PlayerDeathEvent)
+	input, ok := iMsg.(*pubsubEventData.PlayerDeathEventData)
 	if !ok {
 		serviceLog.Error("iMsg to PlayerDeathEventData failed")
 		return
@@ -20,8 +21,9 @@ func PlayerDeathHandler(iMsg interface{}) {
 		return
 	}
 
+	pos := &proto.Vector3{X: input.PosX, Y: input.PosY, Z: input.PosZ}
 	if err = dataModel.OnPlayerDeath(
-		input.UserId, input.Position, input.KillerId,
+		input.UserId, pos, input.KillerId,
 		proto.EntityType(input.KillerType), input.KillerName,
 	); err != nil {
 		serviceLog.Error("PlayerDeathEventData OnPlayerDeath err: %v", err)

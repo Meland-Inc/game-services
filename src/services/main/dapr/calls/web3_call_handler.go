@@ -3,11 +3,11 @@ package daprCalls
 import (
 	"context"
 	"fmt"
-	"net/url"
 
 	"github.com/Meland-Inc/game-services/src/common/daprInvoke"
 	"github.com/Meland-Inc/game-services/src/common/serviceLog"
 	"github.com/Meland-Inc/game-services/src/global/component"
+	"github.com/Meland-Inc/game-services/src/global/grpcAPI/grpcNetTool"
 	message "github.com/Meland-Inc/game-services/src/global/web3Message"
 	"github.com/Meland-Inc/game-services/src/services/main/msgChannel"
 	"github.com/Meland-Inc/game-services/src/services/main/playerModel"
@@ -23,27 +23,26 @@ func Web3DeductUserExpHandler(ctx context.Context, in *common.InvocationEvent) (
 			out.FailedReason = err.Error()
 			serviceLog.Error("web3 deduct user exp err: %v", err)
 		}
-		content, _ := daprInvoke.MakeJsonOutputContent(in, out)
+		content, _ := daprInvoke.MakeOutputContent(in, out)
 		return content, err
 	}
 
 	serviceLog.Info("web3 deduct user exp received data: %v", string(in.Data))
-	escStr, err := url.QueryUnescape(string(in.Data))
-	if err != nil {
-		return nil, err
-	}
 
 	input := &message.DeductUserExpInput{}
-	err = input.UnmarshalJSON([]byte(escStr))
+	err := grpcNetTool.UnmarshalGrpcData(in.Data, input)
 	if err != nil {
-		return resFunc(false, fmt.Errorf("not math to dapr msg DeductUserExpInput"))
+		return nil, err
 	}
 
 	deductExp := cast.ToInt64(input.DeductExp)
 	userId, err := cast.ToInt64E(input.UserId)
 	if err != nil || userId < 1 || deductExp < 1 {
-		return resFunc(false,
-			fmt.Errorf("web3 deduct user exp invalid userId [%s] or expr[%d]", input.UserId, input.DeductExp),
+		return resFunc(
+			false,
+			fmt.Errorf("web3 deduct user exp invalid userId [%s] or expr[%d]",
+				input.UserId, input.DeductExp,
+			),
 		)
 	}
 
