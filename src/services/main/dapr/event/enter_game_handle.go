@@ -2,7 +2,6 @@ package daprEvent
 
 import (
 	"context"
-	"encoding/json"
 	"game-message-core/grpc"
 	"game-message-core/grpc/pubsubEventData"
 
@@ -14,15 +13,11 @@ import (
 
 func UserEnterGameEventHandler(ctx context.Context, e *common.TopicEvent) (retry bool, err error) {
 	serviceLog.Info("received enter game: %v, %s", e.Data, e.DataContentType)
-	inputBytes, err := json.Marshal(e.Data)
-	if err != nil {
-		serviceLog.Info("enter game Marshal(e.Data) fail err: %v ", err)
-		return false, err
-	}
 
 	input := &pubsubEventData.UserEnterGameEvent{}
-	err = grpcNetTool.UnmarshalGrpcData(inputBytes, input)
+	err = grpcNetTool.UnmarshalGrpcTopicEvent(e, input)
 	if err != nil {
+		serviceLog.Error("UserEnterGame UnmarshalEvent fail err: %v ", err)
 		return false, err
 	}
 

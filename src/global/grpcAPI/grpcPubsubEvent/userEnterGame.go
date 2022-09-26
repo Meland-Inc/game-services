@@ -15,5 +15,6 @@ func RPCPubsubEventEnterGame(env *pubsubEventData.UserEnterGameEvent) error {
 		serviceLog.Error("RPCPubsubEventEnterGame Marshal Input failed err: %+v", err)
 		return err
 	}
+	serviceLog.Info("RPCPubsubEventEnterGame  call: %+v", string(inputBytes))
 	return daprInvoke.PubSubEventCall(string(grpc.SubscriptionEventUserEnterGame), string(inputBytes))
 }

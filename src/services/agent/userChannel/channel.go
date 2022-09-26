@@ -165,7 +165,7 @@ func (uc *UserChannel) onUserEnterMap(msgBody []byte) {
 	}
 
 	payload := respMsg.GetEnterMapResponse()
-	if payload == nil || payload.Me == nil ||
+	if payload == nil || payload.Me == nil || payload.Location == nil ||
 		payload.Me.Position == nil || payload.Me.Dir == nil {
 		serviceLog.Error("enterMapResponse msg payload data: %+v, is invalid", payload)
 		return
@@ -174,11 +174,29 @@ func (uc *UserChannel) onUserEnterMap(msgBody []byte) {
 	env := &pubsubEventData.UserEnterGameEvent{
 		MsgVersion:        time_helper.NowUTCMill(),
 		SceneServiceAppId: uc.GetSceneService(),
-		MapId:             payload.Me.MapId,
-		Position:          *payload.Me.Position,
-		Dir:               *payload.Me.Dir,
+		MapId:             payload.Location.MapId,
+		UserId:            payload.Me.BaseData.UserId,
+		Name:              payload.Me.BaseData.Name,
+		RoleId:            payload.Me.BaseData.RoleId,
+		Gender:            payload.Me.BaseData.Gender,
+		RoleIcon:          payload.Me.BaseData.RoleIcon,
+		Guide:             payload.Me.BaseData.Guide,
+		Eyebrow:           payload.Me.BaseData.Feature.Eyebrow,
+		Mouth:             payload.Me.BaseData.Feature.Mouth,
+		Eye:               payload.Me.BaseData.Feature.Eye,
+		Face:              payload.Me.BaseData.Feature.Face,
+		Hair:              payload.Me.BaseData.Feature.Hair,
+		Glove:             payload.Me.BaseData.Feature.Glove,
+		Clothes:           payload.Me.BaseData.Feature.Clothes,
+		Pants:             payload.Me.BaseData.Feature.Pants,
+		X:                 payload.Me.Position.X,
+		Y:                 payload.Me.Position.Y,
+		Z:                 payload.Me.Position.Z,
+		DirX:              payload.Me.Dir.X,
+		DirY:              payload.Me.Dir.Y,
+		DirZ:              payload.Me.Dir.Z,
 	}
-	env.BaseData.Set(payload.Me.BaseData)
+
 	uc.enterSceneService = true
 
 	grpcPubsubEvent.RPCPubsubEventEnterGame(env)

@@ -32,13 +32,14 @@ func RPCSelectService(
 		string(grpc.ManagerServiceActionSelectService),
 		inputBytes,
 	)
+	serviceLog.Info("  ManagerActionSelectServiceInput @@@ outBytes = %+v, err:%+v", string(outBytes), err)
 	if err != nil {
 		serviceLog.Error("select service[%v][%d] failed err:%+v", serviceType, mapId, err)
 		return nil, err
 	}
 
 	output := &methodData.ManagerActionSelectServiceOutput{}
-	err = grpcNetTool.UnmarshalGrpcData(outBytes, input)
+	err = grpcNetTool.UnmarshalGrpcData(outBytes, output)
 	if err != nil {
 		return nil, err
 	}
