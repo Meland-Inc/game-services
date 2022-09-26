@@ -16,6 +16,7 @@ import (
 	"github.com/Meland-Inc/game-services/src/global/userAgent"
 	taskDaprService "github.com/Meland-Inc/game-services/src/services/task/dapr"
 	taskHeart "github.com/Meland-Inc/game-services/src/services/task/heart"
+	"github.com/Meland-Inc/game-services/src/services/task/taskModel"
 )
 
 func (s *Service) init() error {
@@ -80,6 +81,10 @@ func (s *Service) initDapr() error {
 }
 
 func (s *Service) initServiceModels() error {
+	if err := s.initTaskModel(); err != nil {
+		return err
+	}
+
 	if err := s.initHeartModel(); err != nil {
 		return err
 	}
@@ -105,6 +110,15 @@ func (s *Service) initUserAgentModel() error {
 	err := s.modelMgr.AddModel(m)
 	if err != nil {
 		serviceLog.Error("init user agent model fail, err: %v", err)
+	}
+	return err
+}
+
+func (s *Service) initTaskModel() error {
+	m := taskModel.NewTaskModel()
+	err := s.modelMgr.AddModel(m)
+	if err != nil {
+		serviceLog.Error("init player data model fail, err: %v", err)
 	}
 	return err
 }
