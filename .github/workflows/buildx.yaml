@@ -1,0 +1,67 @@
+name: Build docker image to Amazon ERC
+
+on:
+  workflow_call:
+    inputs:
+      build_env:
+        required: true
+        type: string
+    secrets:
+      self_token:
+        required: true
+      aws_access_key_id:
+        required: true
+      aws_secret_access_key:
+        required: true
+
+env:
+  AWS_REGION: ap-southeast-1
+
+jobs:
+  build-image:
+    name: Build container
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+      - name: Cancel Previous Runs
+        uses: styfle/cancel-workflow-action@0.9.1
+        with:
+          access_token: ${{ github.token }}
+
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.aws_access_key_id }}
+          aws-secret-access-key: ${{ secrets.aws_secret_access_key }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: setup-go
+        uses: actions/setup-go@v2
+        with:
+          go-version: "1.14"
+
+      - run: |
+          git submodule update --init --recursive
+          IMAGE_TAG=${{ github.sha }} bash ./scripts/dev/buildx.sh ${{ inputs.build_env }}
+
+      # - name: Publish Helm chart
+      #   uses: Meland-Inc/helm-gh-pages@master
+      #   with:
+      #     charts_url: https://meland-inc.github.io/charts/
+      #     repository: charts
+      #     target_dir: bian
+      #     branch: gh-pages
+      #     charts_dir: charts
+      #     token: ${{ secrets.self_token }}
+
+      - run: |
+          curl -X POST --data '{"event_type": "updateVersion"}'  https://api.github.com/Meland-Inc/omnibus/dispatches -H "Accept: application/vnd.github.everest-preview+json" -H "Authorization: token ${{ github.token }}"
+

@@ -48,7 +48,7 @@ account-windows:
 .PHONY: account-linux
 account-linux: 
 	@./scripts/build_binary.sh 	account 	services/account 	linux		
- 
+
 # ------------- build  agent to target OS -----------------
 .PHONY: agent
 agent: 
