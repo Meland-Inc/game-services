@@ -181,7 +181,7 @@ func (p *TaskModel) InitPlayerTask(userId int64) (*dbData.PlayerTask, error) {
 }
 
 func (p *TaskModel) acceptRewardedTask(userId int64) (*dbData.TaskList, error) {
-	pt, err := p.getPlayerTask(userId)
+	pt, err := p.GetPlayerTask(userId)
 	if err != nil {
 		return nil, err
 	}
@@ -234,7 +234,7 @@ func (p *TaskModel) acceptRewardedTask(userId int64) (*dbData.TaskList, error) {
 }
 
 func (p *TaskModel) acceptDailyTask(userId int64) (*dbData.TaskList, error) {
-	pt, err := p.getPlayerTask(userId)
+	pt, err := p.GetPlayerTask(userId)
 	if err != nil {
 		return nil, err
 	}
@@ -274,7 +274,7 @@ func (p *TaskModel) AcceptTask(userId int64, kind proto.TaskListType) (*dbData.T
 
 // 放弃任务
 func (p *TaskModel) AbandonmentTask(userId int64, kind proto.TaskListType) (*dbData.TaskList, error) {
-	pt, err := p.getPlayerTask(userId)
+	pt, err := p.GetPlayerTask(userId)
 	if err != nil {
 		return nil, err
 	}
@@ -305,7 +305,7 @@ func (p *TaskModel) AbandonmentTask(userId int64, kind proto.TaskListType) (*dbD
 	return tl, err
 }
 
-func (p *TaskModel) upGradeTaskProgress(
+func (p *TaskModel) UpGradeTaskProgress(
 	userId int64,
 	taskListKind proto.TaskListType,
 	items []*proto.TaskOptionItem,
@@ -314,7 +314,7 @@ func (p *TaskModel) upGradeTaskProgress(
 	monsterCid int32,
 	usedItemCid, usedItemNum, optionLandNum int32,
 ) (*dbData.TaskList, error) {
-	pt, err := p.getPlayerTask(userId)
+	pt, err := p.GetPlayerTask(userId)
 	if err != nil {
 		return nil, err
 	}

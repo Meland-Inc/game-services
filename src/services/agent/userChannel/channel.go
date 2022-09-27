@@ -9,6 +9,7 @@ import (
 	"github.com/Meland-Inc/game-services/src/common/serviceLog"
 	"github.com/Meland-Inc/game-services/src/common/time_helper"
 	"github.com/Meland-Inc/game-services/src/global/grpcAPI/grpcPubsubEvent"
+	"github.com/Meland-Inc/game-services/src/global/serviceCnf"
 )
 
 type UserChannel struct {
@@ -174,7 +175,8 @@ func (uc *UserChannel) onUserEnterMap(msgBody []byte) {
 	env := &pubsubEventData.UserEnterGameEvent{
 		MsgVersion:        time_helper.NowUTCMill(),
 		SceneServiceAppId: uc.GetSceneService(),
-		MapId:             payload.Location.MapId,
+		AgentAppId:        serviceCnf.GetInstance().ServerName,
+		UserSocketId:      uc.GetSession().SessionId(),
 		UserId:            payload.Me.BaseData.UserId,
 		Name:              payload.Me.BaseData.Name,
 		RoleId:            payload.Me.BaseData.RoleId,
@@ -189,6 +191,7 @@ func (uc *UserChannel) onUserEnterMap(msgBody []byte) {
 		Glove:             payload.Me.BaseData.Feature.Glove,
 		Clothes:           payload.Me.BaseData.Feature.Clothes,
 		Pants:             payload.Me.BaseData.Feature.Pants,
+		MapId:             payload.Location.MapId,
 		X:                 payload.Me.Position.X,
 		Y:                 payload.Me.Position.Y,
 		Z:                 payload.Me.Position.Z,

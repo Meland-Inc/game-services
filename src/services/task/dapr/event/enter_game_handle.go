@@ -8,7 +8,7 @@ import (
 	"github.com/Meland-Inc/game-services/src/common/serviceLog"
 	"github.com/Meland-Inc/game-services/src/global/grpcAPI/grpcNetTool"
 	"github.com/Meland-Inc/game-services/src/global/serviceCnf"
-	"github.com/Meland-Inc/game-services/src/services/main/msgChannel"
+	"github.com/Meland-Inc/game-services/src/services/task/msgChannel"
 	"github.com/dapr/go-sdk/service/common"
 )
 

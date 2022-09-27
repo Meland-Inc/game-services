@@ -14,7 +14,7 @@ func (p *TaskModel) getPlayerTaskCacheKey(userId int64) string {
 
 }
 
-func (p *TaskModel) getPlayerTask(userId int64) (*dbData.PlayerTask, error) {
+func (p *TaskModel) GetPlayerTask(userId int64) (*dbData.PlayerTask, error) {
 	cacheKey := p.getPlayerTaskCacheKey(userId)
 	rv, err := p.cache.GetOrStore(
 		cacheKey,
