@@ -32,5 +32,9 @@ func (ch *MsgChannel) onServiceMessage(input *ServiceMsgData) {
 		serviceMsgHandle.KillMonsterHandler(input.MsgBody)
 	case string(grpc.SubscriptionEventPlayerDeath):
 		serviceMsgHandle.PlayerDeathHandler(input.MsgBody)
+
+	case string(grpc.UserActionLeaveGame):
+		serviceMsgHandle.PlayerLeaveGameHandler(input.MsgBody)
+
 	}
 }
