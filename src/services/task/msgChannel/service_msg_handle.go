@@ -18,5 +18,8 @@ func (ch *MsgChannel) onServiceMessage(input *ServiceMsgData) {
 	switch input.MsgId {
 	case string(grpc.SubscriptionEventKillMonster):
 		serviceMsgHandle.KillMonsterHandler(input.MsgBody)
+
+	case string(grpc.SubscriptionEventUseNFT):
+		serviceMsgHandle.PlayerUseItemHandler(input.MsgBody)
 	}
 }

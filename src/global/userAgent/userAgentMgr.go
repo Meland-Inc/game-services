@@ -70,9 +70,9 @@ func (p *UserAgentModel) GetUserAgent(userId int64) (*UserAgentData, bool) {
 	return iAgent.(*UserAgentData), exist
 }
 
-func (p *UserAgentModel) AddUserAgentRecord(userId int64, agentAppId, socketId string) error {
+func (p *UserAgentModel) AddUserAgentRecord(userId int64, agentAppId, socketId string) (*UserAgentData, error) {
 	if userId == 0 || agentAppId == "" || socketId == "" {
-		return fmt.Errorf("user agent data is invalid")
+		return nil, fmt.Errorf("user agent data is invalid")
 	}
 
 	agentData := &UserAgentData{
@@ -82,10 +82,10 @@ func (p *UserAgentModel) AddUserAgentRecord(userId int64, agentAppId, socketId s
 		LoginAt:    time_helper.NowUTCMill(),
 	}
 	p.record.Store(userId, agentData)
-	return nil
+	return agentData, nil
 }
 
-func (p *UserAgentModel) CheckAndAddUserAgentRecord(userId int64, agentAppId, socketId string) error {
+func (p *UserAgentModel) CheckAndAddUserAgentRecord(userId int64, agentAppId, socketId string) (*UserAgentData, error) {
 	return p.AddUserAgentRecord(userId, agentAppId, socketId)
 }
 

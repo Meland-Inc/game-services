@@ -57,7 +57,7 @@ func (p *TaskModel) randomRewardItem(obj *xlsxTable.TaskObjectList) (cid, num, q
 
 func (p *TaskModel) TaskReward(userId int64, taskListKind proto.TaskListType) (*dbData.TaskList, error) {
 
-	pt, err := p.getPlayerTask(userId)
+	pt, err := p.GetPlayerTask(userId)
 	if err != nil {
 		return nil, err
 	}
@@ -108,7 +108,7 @@ func (p *TaskModel) TaskReward(userId int64, taskListKind proto.TaskListType) (*
 }
 
 func (p *TaskModel) TaskListReward(userId int64, taskListKind proto.TaskListType) (*dbData.TaskList, error) {
-	pt, err := p.getPlayerTask(userId)
+	pt, err := p.GetPlayerTask(userId)
 	if err != nil {
 		return nil, err
 	}
