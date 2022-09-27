@@ -9,6 +9,7 @@ import (
 )
 
 func LoadAvatarHandle(input *methodData.PullClientMessageInput, msg *proto.Envelope) {
+	agent := GetOrStoreUserAgent(input)
 	res := &proto.UpdateAvatarResponse{}
 	respMsg := makeResponseMsg(msg)
 	defer func() {
@@ -16,17 +17,17 @@ func LoadAvatarHandle(input *methodData.PullClientMessageInput, msg *proto.Envel
 			respMsg.ErrorCode = 20005 // TODO: USE PROTO ERROR CODE
 		}
 		respMsg.Payload = &proto.Envelope_UpdateAvatarResponse{UpdateAvatarResponse: res}
-		ResponseClientMessage(input, respMsg)
+		ResponseClientMessage(agent, input, respMsg)
 	}()
 
 	if input.UserId < 1 {
-		respMsg.ErrorMessage = "Invalid User ID"
+		respMsg.ErrorMessage = "load avatar Invalid User ID"
 		return
 	}
 
 	req := msg.GetUpdateAvatarRequest()
 	if req == nil {
-		serviceLog.Error("main service use item request is nil")
+		serviceLog.Error("main service load avatar request is nil")
 		return
 	}
 
@@ -44,6 +45,7 @@ func LoadAvatarHandle(input *methodData.PullClientMessageInput, msg *proto.Envel
 }
 
 func UnloadAvatarHandle(input *methodData.PullClientMessageInput, msg *proto.Envelope) {
+	agent := GetOrStoreUserAgent(input)
 	res := &proto.UnloadAvatarResponse{}
 	respMsg := makeResponseMsg(msg)
 	defer func() {
@@ -51,17 +53,17 @@ func UnloadAvatarHandle(input *methodData.PullClientMessageInput, msg *proto.Env
 			respMsg.ErrorCode = 20005 // TODO: USE PROTO ERROR CODE
 		}
 		respMsg.Payload = &proto.Envelope_UnloadAvatarResponse{UnloadAvatarResponse: res}
-		ResponseClientMessage(input, respMsg)
+		ResponseClientMessage(agent, input, respMsg)
 	}()
 
 	if input.UserId < 1 {
-		respMsg.ErrorMessage = "Invalid User ID"
+		respMsg.ErrorMessage = "unload avatar Invalid User ID"
 		return
 	}
 
 	req := msg.GetUnloadAvatarRequest()
 	if req == nil {
-		serviceLog.Error("main service use item request is nil")
+		serviceLog.Error("main service unload avatar request is nil")
 		return
 	}
 

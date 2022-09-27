@@ -11,6 +11,7 @@ import (
 )
 
 func ResponseClientMessage(
+	agent *userAgent.UserAgentData,
 	input *methodData.PullClientMessageInput,
 	respMsg *proto.Envelope,
 ) {
@@ -20,15 +21,12 @@ func ResponseClientMessage(
 			respMsg.Type, respMsg.ErrorCode, respMsg.ErrorMessage,
 		)
 	}
-
-	agent := getPlayerAgent(input)
 	if agent == nil {
 		serviceLog.Error("player[%d] agent not found", input.UserId)
 		return
 	}
 	serviceLog.Info("response player:[%d], msg:[%s]", input.UserId, respMsg.Type)
 	agent.SendToPlayer(serviceCnf.GetInstance().ServerName, respMsg)
-
 }
 
 func makeResponseMsg(msg *proto.Envelope) *proto.Envelope {
@@ -53,5 +51,16 @@ func getPlayerAgent(input *methodData.PullClientMessageInput) *userAgent.UserAge
 		agent.TryUpdate(input.UserId, input.AgentAppId, input.SocketId)
 	}
 
+	return agent
+}
+
+func GetOrStoreUserAgent(input *methodData.PullClientMessageInput) *userAgent.UserAgentData {
+	agentModel := userAgent.GetUserAgentModel()
+	agent, exist := agentModel.GetUserAgent(input.UserId)
+	if !exist {
+		agent, _ = agentModel.AddUserAgentRecord(input.UserId, input.AgentAppId, input.SocketId)
+	} else {
+		agent.TryUpdate(input.UserId, input.AgentAppId, input.SocketId)
+	}
 	return agent
 }

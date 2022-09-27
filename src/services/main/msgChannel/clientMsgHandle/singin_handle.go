@@ -15,6 +15,7 @@ import (
 )
 
 func SingInHandler(input *methodData.PullClientMessageInput, msg *proto.Envelope) {
+	agent := GetOrStoreUserAgent(input)
 	res := &proto.SigninPlayerResponse{}
 	respMsg := makeResponseMsg(msg)
 	defer func() {
@@ -23,7 +24,7 @@ func SingInHandler(input *methodData.PullClientMessageInput, msg *proto.Envelope
 			serviceLog.Error("main service SingIn Player err: %s", respMsg.ErrorMessage)
 		}
 		respMsg.Payload = &proto.Envelope_SigninPlayerResponse{SigninPlayerResponse: res}
-		ResponseClientMessage(input, respMsg)
+		ResponseClientMessage(agent, input, respMsg)
 	}()
 
 	req := msg.GetSigninPlayerRequest()
@@ -34,11 +35,11 @@ func SingInHandler(input *methodData.PullClientMessageInput, msg *proto.Envelope
 
 	// //check token
 	userIdStr, err := auth.CheckDefaultAuth(req.Token)
-	// if err != nil {
-	// 	respMsg.ErrorMessage = err.Error()
-	// 	return
-	// }
-	userIdStr = "6680"
+	if err != nil {
+		respMsg.ErrorMessage = err.Error()
+		return
+	}
+
 	input.UserId = cast.ToInt64(userIdStr)
 	dataModel, err := playerModel.GetPlayerDataModel()
 	if err != nil {

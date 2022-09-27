@@ -8,6 +8,7 @@ import (
 )
 
 func UpgradePlayerLevelHandle(input *methodData.PullClientMessageInput, msg *proto.Envelope) {
+	agent := GetOrStoreUserAgent(input)
 	res := &proto.UpgradePlayerLevelResponse{}
 	respMsg := makeResponseMsg(msg)
 	defer func() {
@@ -15,11 +16,11 @@ func UpgradePlayerLevelHandle(input *methodData.PullClientMessageInput, msg *pro
 			respMsg.ErrorCode = 20006 // TODO: USE PROTO ERROR CODE
 		}
 		respMsg.Payload = &proto.Envelope_UpgradePlayerLevelResponse{UpgradePlayerLevelResponse: res}
-		ResponseClientMessage(input, respMsg)
+		ResponseClientMessage(agent, input, respMsg)
 	}()
 
 	if input.UserId < 1 {
-		respMsg.ErrorMessage = "Invalid User ID"
+		respMsg.ErrorMessage = "upgrade player level Invalid User ID"
 		return
 	}
 

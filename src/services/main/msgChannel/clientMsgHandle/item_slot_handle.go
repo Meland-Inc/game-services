@@ -9,6 +9,7 @@ import (
 )
 
 func ItemSlotGetHandle(input *methodData.PullClientMessageInput, msg *proto.Envelope) {
+	agent := GetOrStoreUserAgent(input)
 	res := &proto.GetItemSlotResponse{}
 	respMsg := makeResponseMsg(msg)
 	defer func() {
@@ -16,11 +17,11 @@ func ItemSlotGetHandle(input *methodData.PullClientMessageInput, msg *proto.Enve
 			respMsg.ErrorCode = 20006 // TODO: USE PROTO ERROR CODE
 		}
 		respMsg.Payload = &proto.Envelope_GetItemSlotResponse{GetItemSlotResponse: res}
-		ResponseClientMessage(input, respMsg)
+		ResponseClientMessage(agent, input, respMsg)
 	}()
 
 	if input.UserId < 1 {
-		respMsg.ErrorMessage = "Invalid User ID"
+		respMsg.ErrorMessage = "item slot get Invalid User ID"
 		return
 	}
 
@@ -44,6 +45,7 @@ func ItemSlotGetHandle(input *methodData.PullClientMessageInput, msg *proto.Enve
 }
 
 func ItemSlotUpgradeHandle(input *methodData.PullClientMessageInput, msg *proto.Envelope) {
+	agent := GetOrStoreUserAgent(input)
 	res := &proto.UpgradeItemSlotResponse{}
 	respMsg := makeResponseMsg(msg)
 	defer func() {
@@ -51,11 +53,11 @@ func ItemSlotUpgradeHandle(input *methodData.PullClientMessageInput, msg *proto.
 			respMsg.ErrorCode = 20007 // TODO: USE PROTO ERROR CODE
 		}
 		respMsg.Payload = &proto.Envelope_UpgradeItemSlotResponse{UpgradeItemSlotResponse: res}
-		ResponseClientMessage(input, respMsg)
+		ResponseClientMessage(agent, input, respMsg)
 	}()
 
 	if input.UserId < 1 {
-		respMsg.ErrorMessage = "Invalid User ID"
+		respMsg.ErrorMessage = "item slot upgrade Invalid User ID"
 		return
 	}
 

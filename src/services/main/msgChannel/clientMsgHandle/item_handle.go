@@ -9,6 +9,7 @@ import (
 )
 
 func ItemGetHandle(input *methodData.PullClientMessageInput, msg *proto.Envelope) {
+	agent := GetOrStoreUserAgent(input)
 	res := &proto.ItemGetResponse{}
 	respMsg := makeResponseMsg(msg)
 	defer func() {
@@ -16,11 +17,11 @@ func ItemGetHandle(input *methodData.PullClientMessageInput, msg *proto.Envelope
 			respMsg.ErrorCode = 20002 // TODO: USE PROTO ERROR CODE
 		}
 		respMsg.Payload = &proto.Envelope_ItemGetResponse{ItemGetResponse: res}
-		ResponseClientMessage(input, respMsg)
+		ResponseClientMessage(agent, input, respMsg)
 	}()
 
 	if input.UserId < 1 {
-		respMsg.ErrorMessage = "Invalid User ID"
+		respMsg.ErrorMessage = "item Get Invalid User ID"
 		return
 	}
 
@@ -41,6 +42,7 @@ func ItemGetHandle(input *methodData.PullClientMessageInput, msg *proto.Envelope
 }
 
 func ItemUseHandle(input *methodData.PullClientMessageInput, msg *proto.Envelope) {
+	agent := GetOrStoreUserAgent(input)
 	res := &proto.ItemUseResponse{}
 	respMsg := makeResponseMsg(msg)
 	defer func() {
@@ -48,11 +50,11 @@ func ItemUseHandle(input *methodData.PullClientMessageInput, msg *proto.Envelope
 			respMsg.ErrorCode = 20004 // TODO: USE PROTO ERROR CODE
 		}
 		respMsg.Payload = &proto.Envelope_ItemUseResponse{ItemUseResponse: res}
-		ResponseClientMessage(input, respMsg)
+		ResponseClientMessage(agent, input, respMsg)
 	}()
 
 	if input.UserId < 1 {
-		respMsg.ErrorMessage = "Invalid User ID"
+		respMsg.ErrorMessage = "item use Invalid User ID"
 		return
 	}
 
