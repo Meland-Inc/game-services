@@ -8,18 +8,21 @@ import (
 )
 
 func UserEnterGameHandle(iMsg interface{}) {
-	env, ok := iMsg.(*pubsubEventData.UserEnterGameEvent)
+	input, ok := iMsg.(*pubsubEventData.UserEnterGameEvent)
 	if !ok {
 		serviceLog.Error("iMsg to UserEnterGameEvent failed")
 		return
 	}
 
 	agentModel := userAgent.GetUserAgentModel()
-	agent, exist := agentModel.GetUserAgent(env.UserId)
+	agent, exist := agentModel.GetUserAgent(input.UserId)
 	if exist {
-		agent.InSceneServiceAppId = env.SceneServiceAppId
-		agent.InMapId = env.MapId
+		agent.InSceneServiceAppId = input.SceneServiceAppId
+		agent.SocketId = input.UserSocketId
+		agent.AgentAppId = input.AgentAppId
+		agent.InMapId = input.MapId
 	} else {
-		serviceLog.Error("UserEnterGameEvent user agent not found")
+		agent, _ = agentModel.AddUserAgentRecord(input.UserId, input.AgentAppId, input.UserSocketId)
+		agent.InSceneServiceAppId = input.SceneServiceAppId
 	}
 }
