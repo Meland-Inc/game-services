@@ -40,7 +40,7 @@ func MintNFT(userId int64, itemCid, num, quality, x, y int32) error {
 
 	outBytes, err := daprInvoke.InvokeMethod(
 		string(message.AppIdWeb3Service),
-		string(message.AppIdWeb3Service),
+		string(message.Web3ServiceActionMintNFTWithItemId),
 		inputBytes,
 	)
 	serviceLog.Info("请求 Web3ServiceActionMintNFTWithItemId outPut:[%v], err: %v", string(outBytes), err)

@@ -9,4 +9,7 @@ const (
 
 	// user data manager model
 	MODEL_NAME_PLAYER_DATA = "MainServicePlayerDataModel"
+
+	// user task model
+	MODEL_NAME_TASK = "MainServiceTaskDataModel"
 )

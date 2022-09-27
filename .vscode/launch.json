@@ -44,6 +44,10 @@
                 "MELAND_SERVICE_MAIN_DAPR_APP_PORT": "5300",
                 "MELAND_SERVICE_MAIN_DAPR_GRPC_PORT": "5350",
                 "MELAND_SERVICE_MAIN_DEVELOP_MODEL": "true",
+                "MELAND_SERVICE_TASK_NODE_ID": "401",
+                "MELAND_SERVICE_TASK_DAPR_APPID": "meland_service_task",
+                "MELAND_SERVICE_TASK_DAPR_APP_PORT": "5400",
+                "MELAND_SERVICE_TASK_DAPR_GRPC_PORT": "5450",
             },
             // go 启动参数配置
             "args": [],
