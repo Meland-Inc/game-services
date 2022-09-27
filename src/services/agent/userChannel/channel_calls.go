@@ -146,19 +146,16 @@ func (uc *UserChannel) callPlayerLeaveGame() {
 
 	serviceLog.Info("call player leave game: %+v", input)
 
-	if _, err = daprInvoke.InvokeMethod(
-		string(grpc.AppIdMelandServiceChat),
-		string(grpc.UserActionLeaveGame),
-		inputBytes,
-	); err != nil {
-		serviceLog.Error("call chat service UserActionLeaveGame failed err: %+v", err)
+	leaveEventTarSerArr := map[string]string{
+		"chat service":  string(grpc.AppIdMelandServiceChat),
+		"scene service": uc.sceneServiceAppId,
+		"task service":  string(grpc.AppIdMelandServiceTask),
+		"main service":  string(grpc.AppIdMelandServiceMain),
 	}
-
-	if _, err = daprInvoke.InvokeMethod(
-		uc.sceneServiceAppId,
-		string(grpc.UserActionLeaveGame),
-		inputBytes,
-	); err != nil {
-		serviceLog.Error("call scene service UserActionLeaveGame failed err: %+v", err)
+	for name, serAppId := range leaveEventTarSerArr {
+		_, err = daprInvoke.InvokeMethod(serAppId, string(grpc.UserActionLeaveGame), inputBytes)
+		if err != nil {
+			serviceLog.Error("call [%s] UserActionLeaveGame failed err: %+v", name, err)
+		}
 	}
 }
