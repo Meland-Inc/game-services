@@ -57,7 +57,7 @@ jobs:
         with:
           charts_url: https://meland-inc.github.io/charts/
           repository: charts
-          target_dir: bian
+          target_dir: game-services
           branch: gh-pages
           charts_dir: charts
           token: ${{ secrets.self_token }}
