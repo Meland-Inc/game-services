@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "game-services.fullname" . }}
+  labels:
+    {{- include "game-services.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "game-services.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "game-services.selectorLabels" . | nindent 8 }}
+      annotations:
+        {{- if .Values.dapr.enabled }}
+        dapr.io/enabled: "true"
+        dapr.io/app-id: {{ .Values.dapr.appId | default .Chart.Name | quote }}
+        dapr.io/app-port: {{ .Values.dapr.containerPort | quote }}
+        {{- end }}
+    spec:
+      imagePullSecrets:
+      {{- tpl (toYaml .Values.imagePullSecrets) . | nindent 8 }}
+      serviceAccountName: {{ include "game-services.serviceAccountName" . }}
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+          {{- range $env_key,$env_value := .Values.extEnvs }}
+          {{- if (typeIs "string" $env_value) }}
+          - name: {{ $env_key }}
+            value: {{ $env_value | quote }}
+          {{- else }}
+          {{- toYaml $env_value | nindent 10 }}
+          {{- end }}
+          {{- end }}
+          command:
+            - {{ .Values.exec }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.containerPort }}
+              protocol: TCP
+          #livenessProbe:
+          #  httpGet:
+          #    path: /
+          #    port: http
+          #readinessProbe:
+          #  httpGet:
+          #    path: /
+          #    port: http
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
