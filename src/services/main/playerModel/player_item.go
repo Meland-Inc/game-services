@@ -38,8 +38,6 @@ func (p *PlayerDataModel) GetPlayerItems(userId int64) (*PlayerItems, error) {
 }
 
 func (p *PlayerDataModel) LoadItems(userId int64) (items []*Item, err error) {
-	return []*Item{}, nil
-
 	checkUsed := func(item *Item, usingNfts []dbData.UsingNft) (used bool, avatarPos int32) {
 		for _, info := range usingNfts {
 			if info.NftId == item.Id {
