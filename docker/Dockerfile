@@ -23,7 +23,7 @@ RUN apk --no-cache add  \
 
 RUN mkdir /opt/services
 
-COPY --from=builder /go/src/game-services/bin/* /opt/services
+COPY --from=builder /go/src/game-services/bin/* /opt/services/
 
 RUN chmod +x /opt/services
 
