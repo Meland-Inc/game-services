@@ -37,9 +37,7 @@ spec:
           {{- end }}
           {{- end }}
           command:
-            - /opt/bellplanet/game
-          args:
-            - -gid={{ .Values.gid }}
+            - {{ .Values.exec }}
           ports:
             - name: http
               containerPort: {{ .Values.containerPort }}
