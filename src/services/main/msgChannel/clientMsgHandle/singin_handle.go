@@ -1,10 +1,14 @@
 package clientMsgHandle
 
 import (
+	"encoding/json"
 	"fmt"
+	"game-message-core/grpc"
 	"game-message-core/grpc/methodData"
 	"game-message-core/proto"
+	"game-message-core/protoTool"
 
+	"github.com/Meland-Inc/game-services/src/common/daprInvoke"
 	"github.com/Meland-Inc/game-services/src/common/serviceLog"
 	"github.com/Meland-Inc/game-services/src/common/time_helper"
 	"github.com/Meland-Inc/game-services/src/global/auth"
@@ -14,8 +18,36 @@ import (
 	"github.com/spf13/cast"
 )
 
+func responseSingInMessage(agentAppId, UserSocketId string, msg *proto.Envelope) error {
+	msgBody, err := protoTool.MarshalProto(msg)
+	if err != nil {
+		return err
+	}
+	input := methodData.BroadCastToClientInput{
+		MsgVersion:   time_helper.NowUTCMill(),
+		ServiceAppId: serviceCnf.GetInstance().ServerName,
+		SocketId:     UserSocketId,
+		MsgId:        int32(msg.Type),
+		MsgBody:      msgBody,
+	}
+
+	inputBytes, err := json.Marshal(input)
+	if err != nil {
+		serviceLog.Error("SendToPlayer Marshal BroadCastInput failed err: %+v", err)
+		return err
+	}
+	_, err = daprInvoke.InvokeMethod(
+		agentAppId,
+		string(grpc.ProtoMessageActionBroadCastToClient),
+		inputBytes,
+	)
+	if err != nil {
+		serviceLog.Error("UserAgentData SendToPlayer InvokeMethod  failed err:%+v", err)
+	}
+	return err
+}
+
 func SingInHandler(input *methodData.PullClientMessageInput, msg *proto.Envelope) {
-	agent := GetOrStoreUserAgent(input)
 	res := &proto.SigninPlayerResponse{}
 	respMsg := makeResponseMsg(msg)
 	defer func() {
@@ -24,7 +56,7 @@ func SingInHandler(input *methodData.PullClientMessageInput, msg *proto.Envelope
 			serviceLog.Error("main service SingIn Player err: %s", respMsg.ErrorMessage)
 		}
 		respMsg.Payload = &proto.Envelope_SigninPlayerResponse{SigninPlayerResponse: res}
-		ResponseClientMessage(agent, input, respMsg)
+		responseSingInMessage(input.AgentAppId, input.SocketId, respMsg)
 	}()
 
 	req := msg.GetSigninPlayerRequest()
@@ -41,6 +73,8 @@ func SingInHandler(input *methodData.PullClientMessageInput, msg *proto.Envelope
 	}
 
 	input.UserId = cast.ToInt64(userIdStr)
+	GetOrStoreUserAgent(input)
+
 	dataModel, err := playerModel.GetPlayerDataModel()
 	if err != nil {
 		respMsg.ErrorMessage = err.Error()
