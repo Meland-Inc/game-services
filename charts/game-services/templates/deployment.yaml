@@ -16,6 +16,7 @@ spec:
       annotations:
         {{- if .Values.dapr.enabled }}
         dapr.io/enabled: "true"
+        dapr.io/app-protocol: "grpc"
         dapr.io/app-id: {{ .Values.dapr.appId | default .Chart.Name | quote }}
         dapr.io/app-port: {{ .Values.dapr.containerPort | quote }}
         {{- end }}
