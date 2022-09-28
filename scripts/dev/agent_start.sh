@@ -3,7 +3,7 @@ set -o errexit
 
 ## ---------------meland agent service settings ----------------
 export MELAND_SERVICE_AGENT_NODE_ID=601
-export MELAND_SERVICE_AGENT_DAPR_APPID=meland_service_agent_${MELAND_SERVICE_AGENT_NODE_ID}
+export MELAND_SERVICE_AGENT_DAPR_APPID=meland-service-agent-${MELAND_SERVICE_AGENT_NODE_ID}
 export MELAND_SERVICE_AGENT_DAPR_APP_PORT=5600
 export MELAND_SERVICE_AGENT_DAPR_GRPC_PORT=5650 
 export MELAND_SERVICE_AGENT_SOCKET_HOST=192.168.50.171 

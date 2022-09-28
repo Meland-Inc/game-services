@@ -7,7 +7,7 @@ set -o errexit
 ## ---------------meland chat service settings ----------------
 ## chatService         appPort:(5500~5549)  grpc:(5550~5599)
 export MELAND_SERVICE_CHAT_NODE_ID=501
-export MELAND_SERVICE_CHAT_DAPR_APPID=meland_service_chat
+export MELAND_SERVICE_CHAT_DAPR_APPID=meland-service-chat
 export MELAND_SERVICE_CHAT_DAPR_APP_PORT=5500
 export MELAND_SERVICE_CHAT_DAPR_GRPC_PORT=5550   
  
