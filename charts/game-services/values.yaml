@@ -1,0 +1,57 @@
+# Default values for game-services-services.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 1
+
+image:
+  repository: icw-registry.cn-shenzhen.cr.aliyuncs.com/icw/game-services
+  pullPolicy: IfNotPresent
+  tag:
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name:
+
+
+service:
+  # omnibus 注入
+  # 默认是 release_name
+  name: x
+  type: ClusterIP
+  port: 80
+
+containerPort: 80
+
+ingress:
+  enabled: true
+  annotations: 
+    kubernetes.io/ingress.class: traefik
+  hosts:
+    - host: game-services.bellplanet.io
+      path: /
+    - host: game-services.wkcoding.com
+      path: /
+  tls: []
+
+resources: 
+  limits:
+    cpu: 1
+    memory: 500Mi
+
+### 默认情况下，不需要开启，大世界服才需要开启
+dapr:
+  enabled: false
+  containerPort: 9103
+
+### 扩展环境变量.
+### 用于支持 omnibus 传入统一的环境变量
+extEnvs:
+  MODE:
+    - name: MODE
+      value: "dev"
+
+exec: 

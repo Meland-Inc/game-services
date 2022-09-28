@@ -52,15 +52,15 @@ jobs:
           git submodule update --init --recursive
           IMAGE_TAG=${{ github.sha }} bash ./scripts/dev/buildx.sh ${{ inputs.build_env }}
 
-      # - name: Publish Helm chart
-      #   uses: Meland-Inc/helm-gh-pages@master
-      #   with:
-      #     charts_url: https://meland-inc.github.io/charts/
-      #     repository: charts
-      #     target_dir: bian
-      #     branch: gh-pages
-      #     charts_dir: charts
-      #     token: ${{ secrets.self_token }}
+      - name: Publish Helm chart
+        uses: Meland-Inc/helm-gh-pages@master
+        with:
+          charts_url: https://meland-inc.github.io/charts/
+          repository: charts
+          target_dir: bian
+          branch: gh-pages
+          charts_dir: charts
+          token: ${{ secrets.self_token }}
 
       - run: |
           curl -X POST --data '{"event_type": "updateVersion"}'  https://api.github.com/Meland-Inc/omnibus/dispatches -H "Accept: application/vnd.github.everest-preview+json" -H "Authorization: token ${{ github.token }}"
