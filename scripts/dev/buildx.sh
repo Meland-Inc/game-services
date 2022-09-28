@@ -46,7 +46,7 @@ get_docker_tag() {
 }
 
 buildGame() {
-    local PROJECT_NAME='bellplanet-game'
+    local PROJECT_NAME=${SERVICE_TYPE}
     local IMAGE_NAME=$(get_docker_tag $PROJECT_NAME $(get_current_version))
      docker build \
      -f $PROJECT_ROOT/docker/Dockerfile \
