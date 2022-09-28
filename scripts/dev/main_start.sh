@@ -2,7 +2,7 @@
 set -o errexit
 
 # ------ export meland config DB settings --------
-. start/global.sh 
+. scripts/dev/global.sh 
 
 ## ---------------meland agent service settings ----------------
 ## mainService         appPort:(5300~5349)  grpc:(5350~5399) 

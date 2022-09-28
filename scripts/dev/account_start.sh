@@ -2,7 +2,7 @@
 set -o errexit
 
 # ------ export meland config DB settings --------
-. start/global.sh 
+. scripts/dev/global.sh 
 
 ## ---------------meland agent service settings ----------------
 export MELAND_SERVICE_ACCOUNT_NODE_ID=201

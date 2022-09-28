@@ -2,7 +2,7 @@
 set -o errexit
 
 # ------ export meland config DB settings --------
-. start/global.sh 
+. scripts/dev/global.sh 
 
 ## ---------------meland task service settings ----------------
 # taskService         appPort:(5400~5449)  grpc:(5450~5499)  

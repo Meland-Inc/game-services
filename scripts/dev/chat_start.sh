@@ -2,7 +2,7 @@
 set -o errexit
 
 # ------ export meland config DB settings --------
-. start/global.sh 
+. scripts/dev/global.sh 
 
 ## ---------------meland chat service settings ----------------
 ## chatService         appPort:(5500~5549)  grpc:(5550~5599)
