@@ -6,7 +6,7 @@ set -o errexit
 
 ## ---------------meland agent service settings ----------------
 export MELAND_SERVICE_ACCOUNT_NODE_ID=201
-export MELAND_SERVICE_ACCOUNT_DAPR_APPID=meland_service_account
+export MELAND_SERVICE_ACCOUNT_DAPR_APPID=meland-service-account
 export MELAND_SERVICE_ACCOUNT_DAPR_APP_PORT=5200
 export MELAND_SERVICE_ACCOUNT_DAPR_GRPC_PORT=5250  
  

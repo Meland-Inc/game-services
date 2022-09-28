@@ -6,7 +6,7 @@ set -o errexit
 
 ## ---------------meland services manager settings  ----------------
 export MELAND_SERVICE_MGR_NODE_ID=101
-export MELAND_SERVICE_MGR_DAPR_APPID=meland_service_manager
+export MELAND_SERVICE_MGR_DAPR_APPID=meland-service-manager
 export MELAND_SERVICE_MGR_DAPR_APP_PORT=5100
 export MELAND_SERVICE_MGR_DAPR_GRPC_PORT=5150
 export MELAND_SERVICE_MGR_HTTP_PORT=5180

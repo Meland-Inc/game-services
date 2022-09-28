@@ -7,7 +7,7 @@ set -o errexit
 ## ---------------meland agent service settings ----------------
 ## mainService         appPort:(5300~5349)  grpc:(5350~5399) 
 export MELAND_SERVICE_MAIN_NODE_ID=301
-export MELAND_SERVICE_MAIN_DAPR_APPID=meland_service_main
+export MELAND_SERVICE_MAIN_DAPR_APPID=meland-service-main
 export MELAND_SERVICE_MAIN_DAPR_APP_PORT=5300
 export MELAND_SERVICE_MAIN_DAPR_GRPC_PORT=5350
 export MELAND_SERVICE_MAIN_DEVELOP_MODEL=true
