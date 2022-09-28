@@ -35,6 +35,6 @@ func AddTopicEventHandler(topic string,
 }
 
 func Start() error {
+	println("dapr start")
 	return server.Start()
 }
-
