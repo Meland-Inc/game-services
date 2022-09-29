@@ -5,19 +5,46 @@ import (
 	"game-message-core/proto"
 
 	"github.com/Meland-Inc/game-services/src/common/serviceLog"
-	"github.com/Meland-Inc/game-services/src/global/serviceCnf"
 	"github.com/Meland-Inc/game-services/src/global/userAgent"
 	"github.com/Meland-Inc/game-services/src/services/main/playerModel"
 )
 
-func ItemGetGroupingResponse(userId int64, pbItems []*proto.Item) {
-	serviceName := serviceCnf.GetInstance().ServerName
-	agentModel := userAgent.GetUserAgentModel()
-	agent, exist := agentModel.GetUserAgent(userId)
-	if !exist {
-		serviceLog.Warning("user [%d] agent data not found", userId)
+func ItemGetResponse(
+	input *methodData.PullClientMessageInput,
+	agent *userAgent.UserAgentData,
+	reqMsg *proto.Envelope,
+	errMsg string,
+	pbItems []*proto.Item,
+) {
+	if agent == nil {
+		serviceLog.Warning("ItemGetResponse user [%d] agent data not found", input.UserId)
 		return
 	}
+
+	respMsg := makeResponseMsg(reqMsg)
+	if respMsg.ErrorMessage != "" {
+		respMsg.ErrorCode = 20002 // TODO: USE PROTO ERROR CODE
+		serviceLog.Error(respMsg.ErrorMessage)
+	}
+	respMsg.Payload = &proto.Envelope_ItemGetResponse{
+		ItemGetResponse: &proto.ItemGetResponse{
+			Items: pbItems,
+		}}
+	ResponseClientMessage(agent, input, respMsg)
+}
+
+func ItemGetGroupingResponse(
+	input *methodData.PullClientMessageInput,
+	agent *userAgent.UserAgentData,
+	reqMsg *proto.Envelope,
+	pbItems []*proto.Item,
+) {
+	if agent == nil {
+		serviceLog.Warning("ItemGetGroupingResponse user [%d] agent data not found", input.UserId)
+		return
+	}
+
+	ItemGetResponse(input, agent, reqMsg, "", []*proto.Item{})
 
 	addRes := &proto.BroadCastItemAddResponse{}
 	msg := &proto.Envelope{
@@ -27,7 +54,7 @@ func ItemGetGroupingResponse(userId int64, pbItems []*proto.Item) {
 		},
 	}
 
-	n := 9
+	n := 8
 	itemLength := len(pbItems)
 	left := itemLength / n
 	for i := 0; i <= left; i++ {
@@ -37,38 +64,27 @@ func ItemGetGroupingResponse(userId int64, pbItems []*proto.Item) {
 			max = itemLength
 		}
 		addRes.Items = pbItems[begin:max]
-		agent.SendToPlayer(serviceName, msg)
+		ResponseClientMessage(agent, input, msg)
 	}
 }
 
 func ItemGetHandle(input *methodData.PullClientMessageInput, msg *proto.Envelope) {
-	agent := GetOrStoreUserAgent(input)
-	res := &proto.ItemGetResponse{}
-	respMsg := makeResponseMsg(msg)
-	defer func() {
-		if respMsg.ErrorMessage != "" {
-			respMsg.ErrorCode = 20002 // TODO: USE PROTO ERROR CODE
-		}
-		respMsg.Payload = &proto.Envelope_ItemGetResponse{ItemGetResponse: res}
-		ResponseClientMessage(agent, input, respMsg)
-	}()
-
 	serviceLog.Info("main service userId[%v] get items ", input.UserId)
-
+	agent := GetOrStoreUserAgent(input)
 	if input.UserId < 1 {
-		respMsg.ErrorMessage = "item Get Invalid User ID"
+		ItemGetResponse(input, agent, msg, "item Get Invalid User ID", nil)
 		return
 	}
 
 	dataModel, err := playerModel.GetPlayerDataModel()
 	if err != nil {
-		respMsg.ErrorMessage = err.Error()
+		ItemGetResponse(input, agent, msg, err.Error(), nil)
 		return
 	}
 
 	playerItems, err := dataModel.GetPlayerItems(input.UserId)
 	if err != nil {
-		respMsg.ErrorMessage = err.Error()
+		ItemGetResponse(input, agent, msg, err.Error(), nil)
 		return
 	}
 
@@ -78,10 +94,10 @@ func ItemGetHandle(input *methodData.PullClientMessageInput, msg *proto.Envelope
 	}
 	serviceLog.Info("main service userId[%v] itemLength[%v]", input.UserId, len(pbItems))
 
-	if len(pbItems) < 9 {
-		res.Items = pbItems
+	if len(pbItems) < 8 {
+		ItemGetResponse(input, agent, msg, "", pbItems)
 	} else {
-		ItemGetGroupingResponse(input.UserId, pbItems)
+		ItemGetGroupingResponse(input, agent, msg, pbItems)
 	}
 }
 
