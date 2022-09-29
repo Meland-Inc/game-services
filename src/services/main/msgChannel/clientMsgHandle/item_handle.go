@@ -57,13 +57,16 @@ func ItemGetGroupingResponse(
 	n := 8
 	itemLength := len(pbItems)
 	left := itemLength / n
-	for i := 0; i <= left; i++ {
-		begin := i * n
-		max := begin + n
-		if max > itemLength {
-			max = itemLength
+	if itemLength%n > 0 {
+		left++
+	}
+	for i := 0; i < left; i++ {
+		beginIdx := i * n
+		endIdx := beginIdx + n
+		if endIdx > itemLength {
+			endIdx = itemLength
 		}
-		addRes.Items = pbItems[begin:max]
+		addRes.Items = pbItems[beginIdx:endIdx]
 		ResponseClientMessage(agent, input, msg)
 	}
 }
