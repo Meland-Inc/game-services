@@ -14,6 +14,14 @@ import (
 	"github.com/dapr/go-sdk/service/common"
 )
 
+func ignoreMsgLog(msgType proto.EnvelopeType) bool {
+	switch msgType {
+	case proto.EnvelopeType_BroadCastEntityMove:
+		return true
+	}
+	return false
+}
+
 func BroadCastToClientHandler(ctx context.Context, in *common.InvocationEvent) (*common.Content, error) {
 	// serviceLog.Info("agent received BroadCastToClient data: %v", (in.Data))
 	input := &methodData.BroadCastToClientInput{}
@@ -23,7 +31,10 @@ func BroadCastToClientHandler(ctx context.Context, in *common.InvocationEvent) (
 	}
 
 	resMsg, err := protoTool.UnMarshalToEnvelope(input.MsgBody)
-	serviceLog.Info("BroadCastToClient msg[%+v], err:%+v", resMsg.Type, err)
+	if !ignoreMsgLog(resMsg.Type) {
+		serviceLog.Info("BroadCastToClient msg[%+v], err:%+v", resMsg.Type, err)
+	}
+
 	var userCh *userChannel.UserChannel
 	if input.SocketId != "" {
 		userCh = userChannel.GetInstance().UserChannelById(input.SocketId)
@@ -50,7 +61,9 @@ func MultipleBroadCastToClientHandler(ctx context.Context, in *common.Invocation
 	}
 
 	resMsg, err := protoTool.UnMarshalToEnvelope(input.MsgBody)
-	serviceLog.Info("MultipleBroadCastToClient msg[%+v], err:%+v", resMsg.Type, err)
+	if !ignoreMsgLog(resMsg.Type) {
+		serviceLog.Info("MultipleBroadCastToClient msg[%+v], err:%+v", resMsg.Type, err)
+	}
 	for _, userId := range input.UserList {
 		userCh := userChannel.GetInstance().UserChannelByOwner(userId)
 		if userCh != nil {
