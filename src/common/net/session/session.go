@@ -165,7 +165,7 @@ func (s *Session) Write(data []byte) error {
 		return fmt.Errorf("Session closed!! by sendChan")
 	}
 	if len(data) > msgParser.MSG_LIMIT {
-		return fmt.Errorf("write msg length exceeds msgParser.MSG_LIMIT[%v]", msgParser.MSG_LIMIT)
+		return fmt.Errorf("write msg length[%v] exceeds msgParser.MSG_LIMIT[%v]", len(data), msgParser.MSG_LIMIT)
 	}
 	s.sendChan <- data
 	return nil

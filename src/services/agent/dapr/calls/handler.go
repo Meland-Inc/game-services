@@ -15,13 +15,15 @@ import (
 )
 
 func BroadCastToClientHandler(ctx context.Context, in *common.InvocationEvent) (*common.Content, error) {
-	serviceLog.Info("agent received BroadCastToClient data: %v", (in.Data))
+	// serviceLog.Info("agent received BroadCastToClient data: %v", (in.Data))
 	input := &methodData.BroadCastToClientInput{}
 	err := grpcNetTool.UnmarshalGrpcData(in.Data, input)
 	if err != nil {
 		return nil, err
 	}
 
+	resMsg, err := protoTool.UnMarshalToEnvelope(input.MsgBody)
+	serviceLog.Info("BroadCastToClient msg[%+v], err:%+v", resMsg.Type, err)
 	var userCh *userChannel.UserChannel
 	if input.SocketId != "" {
 		userCh = userChannel.GetInstance().UserChannelById(input.SocketId)
@@ -35,12 +37,11 @@ func BroadCastToClientHandler(ctx context.Context, in *common.InvocationEvent) (
 
 	userCh.SendToUser(proto.EnvelopeType(input.MsgId), input.MsgBody)
 	output := &methodData.BroadCastToClientOutput{Success: true}
-	serviceLog.Info("register service res = %+v", output)
 	return daprInvoke.MakeOutputContent(in, output)
 }
 
 func MultipleBroadCastToClientHandler(ctx context.Context, in *common.InvocationEvent) (*common.Content, error) {
-	serviceLog.Info("agent received MultipleBroadCastToClient data: %v", string(in.Data))
+	// serviceLog.Info("agent received MultipleBroadCastToClient data: %v", string(in.Data))
 
 	input := &methodData.MultipleBroadCastToClientInput{}
 	err := grpcNetTool.UnmarshalGrpcData(in.Data, input)
@@ -48,8 +49,8 @@ func MultipleBroadCastToClientHandler(ctx context.Context, in *common.Invocation
 		return nil, err
 	}
 
-	msg, err := protoTool.UnMarshalToEnvelope(input.MsgBody)
-	serviceLog.Info("MultipleBroadCastToClient msg= %+v, err:%+v", msg, err)
+	resMsg, err := protoTool.UnMarshalToEnvelope(input.MsgBody)
+	serviceLog.Info("MultipleBroadCastToClient msg[%+v], err:%+v", resMsg.Type, err)
 	for _, userId := range input.UserList {
 		userCh := userChannel.GetInstance().UserChannelByOwner(userId)
 		if userCh != nil {
@@ -60,6 +61,5 @@ func MultipleBroadCastToClientHandler(ctx context.Context, in *common.Invocation
 	}
 
 	output := &methodData.BroadCastToClientOutput{Success: true}
-	serviceLog.Info(" MultipleBroadCastToClient res = %+v", output)
 	return daprInvoke.MakeOutputContent(in, output)
 }

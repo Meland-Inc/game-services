@@ -5,8 +5,41 @@ import (
 	"game-message-core/proto"
 
 	"github.com/Meland-Inc/game-services/src/common/serviceLog"
+	"github.com/Meland-Inc/game-services/src/global/serviceCnf"
+	"github.com/Meland-Inc/game-services/src/global/userAgent"
 	"github.com/Meland-Inc/game-services/src/services/main/playerModel"
 )
+
+func ItemGetGroupingResponse(userId int64, pbItems []*proto.Item) {
+	serviceName := serviceCnf.GetInstance().ServerName
+	agentModel := userAgent.GetUserAgentModel()
+	agent, exist := agentModel.GetUserAgent(userId)
+	if !exist {
+		serviceLog.Warning("user [%d] agent data not found", userId)
+		return
+	}
+
+	addRes := &proto.BroadCastItemAddResponse{}
+	msg := &proto.Envelope{
+		Type: proto.EnvelopeType_BroadCastItemAdd,
+		Payload: &proto.Envelope_BroadCastItemAddResponse{
+			BroadCastItemAddResponse: addRes,
+		},
+	}
+
+	n := 9
+	itemLength := len(pbItems)
+	left := itemLength / n
+	for i := 0; i <= left; i++ {
+		begin := i * n
+		max := begin + n
+		if max > itemLength {
+			max = itemLength
+		}
+		addRes.Items = pbItems[begin:max]
+		agent.SendToPlayer(serviceName, msg)
+	}
+}
 
 func ItemGetHandle(input *methodData.PullClientMessageInput, msg *proto.Envelope) {
 	agent := GetOrStoreUserAgent(input)
@@ -19,6 +52,8 @@ func ItemGetHandle(input *methodData.PullClientMessageInput, msg *proto.Envelope
 		respMsg.Payload = &proto.Envelope_ItemGetResponse{ItemGetResponse: res}
 		ResponseClientMessage(agent, input, respMsg)
 	}()
+
+	serviceLog.Info("main service userId[%v] get items ", input.UserId)
 
 	if input.UserId < 1 {
 		respMsg.ErrorMessage = "item Get Invalid User ID"
@@ -36,8 +71,17 @@ func ItemGetHandle(input *methodData.PullClientMessageInput, msg *proto.Envelope
 		respMsg.ErrorMessage = err.Error()
 		return
 	}
+
+	pbItems := []*proto.Item{}
 	for _, it := range playerItems.Items {
-		res.Items = append(res.Items, it.ToNetItem())
+		pbItems = append(pbItems, it.ToNetItem())
+	}
+	serviceLog.Info("main service userId[%v] itemLength[%v]", input.UserId, len(pbItems))
+
+	if len(pbItems) < 9 {
+		res.Items = pbItems
+	} else {
+		ItemGetGroupingResponse(input.UserId, pbItems)
 	}
 }
 

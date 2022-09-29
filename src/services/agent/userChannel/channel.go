@@ -122,7 +122,11 @@ func (uc *UserChannel) SendToUser(msgType proto.EnvelopeType, msgBody []byte) {
 		return
 	}
 
-	uc.tcpSession.Write(msgBody)
+	err := uc.tcpSession.Write(msgBody)
+	if err != nil {
+		serviceLog.Error("tcp send to user err : %+v", err)
+		return
+	}
 
 	// update channel owner and sceneServiceAppId by SingInMsg
 	switch msgType {

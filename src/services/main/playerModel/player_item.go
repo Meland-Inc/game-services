@@ -80,7 +80,7 @@ func (p *PlayerDataModel) loadNFTS(userId int64) ([]*Item, error) {
 	}
 
 	items, err := p.parseUserNft(userId, userNfts)
-	serviceLog.Info("user NFT list = %+v", userNfts)
+	// serviceLog.Info("user NFT list = %+v", userNfts)
 	serviceLog.Info("user NFT list len(items)=%+v, err: %+v", len(items), err)
 	return items, err
 }
