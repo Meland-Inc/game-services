@@ -3,7 +3,6 @@ package tcp
 import (
 	"log"
 	"net"
-	"syscall"
 	"time"
 
 	"github.com/Meland-Inc/game-services/src/common/net/session"
@@ -47,16 +46,16 @@ func (s *Server) SessionMgr() *session.SessionManager {
 	return s.sessionMgr
 }
 func (s *Server) setLimit() {
-	var rLimit syscall.Rlimit
-	if err := syscall.Getrlimit(syscall.RLIMIT_NOFILE, &rLimit); err != nil {
-		panic(err)
-	}
-	rLimit.Cur = rLimit.Max
-	if err := syscall.Setrlimit(syscall.RLIMIT_NOFILE, &rLimit); err != nil {
-		panic(err)
-	}
+	// var rLimit syscall.Rlimit
+	// if err := syscall.Getrlimit(syscall.RLIMIT_NOFILE, &rLimit); err != nil {
+	// 	panic(err)
+	// }
+	// rLimit.Cur = rLimit.Max
+	// if err := syscall.Setrlimit(syscall.RLIMIT_NOFILE, &rLimit); err != nil {
+	// 	panic(err)
+	// }
 
-	log.Printf("set cur limit: %d", rLimit.Cur)
+	// log.Printf("set cur limit: %d", rLimit.Cur)
 }
 
 func (s *Server) Stop() error {

@@ -53,6 +53,9 @@ func (uc *UserChannel) OnSessionReceivedData(s *session.Session, data []byte) {
 	if err != nil {
 		return
 	}
+
+	serviceLog.Debug("收到客户端消息 [%v]", msg.Type)
+
 	serviceId := protoTool.EnvelopeTypeToServiceType(msg.Type)
 	uc.channels[serviceId] <- data
 }
@@ -205,6 +208,6 @@ func (uc *UserChannel) onUserEnterMap(msgBody []byte) {
 	}
 
 	uc.enterSceneService = true
-
+	serviceLog.Info("RPCPubsubEventEnterGame ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ call: %+v")
 	grpcPubsubEvent.RPCPubsubEventEnterGame(env)
 }
