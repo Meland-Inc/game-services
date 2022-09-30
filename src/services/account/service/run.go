@@ -6,9 +6,10 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/Meland-Inc/game-services/src/common/daprInvoke"
 	"github.com/Meland-Inc/game-services/src/common/serviceLog"
 	"github.com/Meland-Inc/game-services/src/common/time_helper"
+	"github.com/Meland-Inc/game-services/src/global/serviceRegister"
+	accountDapr "github.com/Meland-Inc/game-services/src/services/account/dapr"
 )
 
 func (s *Service) onReceivedOsSignal(si os.Signal) {
@@ -25,10 +26,8 @@ func (s *Service) onReceivedOsSignal(si os.Signal) {
 
 func (s *Service) run() {
 	errChan := make(chan error)
-	go func() {
-		errChan <- daprInvoke.Start()
-	}()
-
+	accountDapr.Run(errChan)
+	s.registerService()
 	go func() {
 		t := time.NewTicker(1 * time.Second)
 
@@ -52,6 +51,14 @@ func (s *Service) run() {
 
 	err := <-errChan
 	serviceLog.Error(err.Error())
+}
+
+func (s *Service) registerService() {
+	err := serviceRegister.RegisterService(*s.serviceCnf, 0)
+	serviceLog.Info("registerService ------ end ----------data: %+v, err: %v", *s.serviceCnf, err)
+	if err != nil {
+		panic(err)
+	}
 }
 
 func (s *Service) onTick(curMs int64) {

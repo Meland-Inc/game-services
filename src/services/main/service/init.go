@@ -69,8 +69,7 @@ func (s *Service) initServiceCnf() error {
 
 func (s *Service) initOsSignal() {
 	signal.Notify(s.osSignal,
-		syscall.SIGHUP, syscall.SIGQUIT, syscall.SIGTERM, syscall.SIGINT,
-		syscall.SIGABRT, syscall.SIGUSR1, syscall.SIGUSR2,
+		syscall.SIGHUP, syscall.SIGQUIT, syscall.SIGTERM, syscall.SIGINT, syscall.SIGABRT,
 	)
 }
 

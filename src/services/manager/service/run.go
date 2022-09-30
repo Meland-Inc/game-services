@@ -6,9 +6,9 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/Meland-Inc/game-services/src/common/daprInvoke"
 	"github.com/Meland-Inc/game-services/src/common/serviceLog"
 	"github.com/Meland-Inc/game-services/src/common/time_helper"
+	managerDapr "github.com/Meland-Inc/game-services/src/services/manager/dapr"
 	"github.com/Meland-Inc/game-services/src/services/manager/httpSer"
 )
 
@@ -26,9 +26,7 @@ func (s *Service) onReceivedOsSignal(si os.Signal) {
 
 func (s *Service) run() {
 	errChan := make(chan error)
-	go func() {
-		errChan <- daprInvoke.Start()
-	}()
+	managerDapr.Run(errChan)
 
 	go func() {
 		errChan <- httpSer.Run()

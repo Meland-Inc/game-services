@@ -10,24 +10,7 @@ import (
 )
 
 func Init() (err error) {
-	if err = initDaprClient(); err != nil {
-		return err
-	}
-
-	if err = initDaprService(); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func initDaprClient() error {
-	grpcPort := os.Getenv("MELAND_SERVICE_DEMO_DAPR_GRPC_PORT")
-	if grpcPort == "" {
-		grpcPort = os.Getenv("DAPR_GRPC_PORT")
-	}
-	serviceLog.Info("dapr grpc port: [%s]", grpcPort)
-	return daprInvoke.InitClient(grpcPort)
+	return initDaprService()
 }
 
 func initDaprService() (err error) {
@@ -44,4 +27,24 @@ func initDaprService() (err error) {
 		return err
 	}
 	return err
+}
+
+func Run(errChan chan error) {
+	go func() {
+		errChan <- daprInvoke.Start()
+	}()
+
+	if err := initDaprClient(); err != nil {
+		serviceLog.Error("initDaprClient fail err:%v", err)
+		panic(err)
+	}
+}
+
+func initDaprClient() error {
+	grpcPort := os.Getenv("MELAND_SERVICE_DEMO_DAPR_GRPC_PORT")
+	if grpcPort == "" {
+		grpcPort = os.Getenv("DAPR_GRPC_PORT")
+	}
+	serviceLog.Info("dapr grpc port: [%s]", grpcPort)
+	return daprInvoke.InitClient(grpcPort)
 }
