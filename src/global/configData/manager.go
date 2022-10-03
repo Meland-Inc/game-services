@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	"game-message-core/proto"
 	xlsxTable "game-message-core/xlsxTableData"
 
 	"github.com/Meland-Inc/game-services/src/common/gormDB"
@@ -32,6 +33,7 @@ type ConfigDataManager struct {
 	rewardCnf   map[int32]xlsxTable.RewardTableRow
 	itemCnf     map[int32]xlsxTable.ItemTable
 	dropCnf     map[int32]xlsxTable.DropTableRow
+	chatCnf     map[proto.ChatChannelType]xlsxTable.ChatTableRow
 }
 
 func Init() error {
@@ -61,6 +63,7 @@ func (mgr *ConfigDataManager) registerLoadFunctions() {
 		LoadFunc{"reward", mgr.initReward},
 		LoadFunc{"item", mgr.initItem},
 		LoadFunc{"drop", mgr.initDrop},
+		LoadFunc{"chat", mgr.initChatCnf},
 	}
 }
 
