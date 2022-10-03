@@ -14,6 +14,7 @@ import (
 	gameDb "github.com/Meland-Inc/game-services/src/global/gameDB"
 	"github.com/Meland-Inc/game-services/src/global/serviceCnf"
 	"github.com/Meland-Inc/game-services/src/global/userAgent"
+	"github.com/Meland-Inc/game-services/src/services/chat/chatModel"
 	chatDaprService "github.com/Meland-Inc/game-services/src/services/chat/dapr"
 	chatHeart "github.com/Meland-Inc/game-services/src/services/chat/heart"
 )
@@ -86,6 +87,10 @@ func (s *Service) initServiceModels() error {
 		return err
 	}
 
+	if err := s.initChatModel(); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -103,6 +108,15 @@ func (s *Service) initUserAgentModel() error {
 	err := s.modelMgr.AddModel(m)
 	if err != nil {
 		serviceLog.Error("init user agent model fail, err: %v", err)
+	}
+	return err
+}
+
+func (s *Service) initChatModel() error {
+	m := chatModel.NewChatModel()
+	err := s.modelMgr.AddModel(m)
+	if err != nil {
+		serviceLog.Error("init chat model fail, err: %v", err)
 	}
 	return err
 }

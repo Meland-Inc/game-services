@@ -24,7 +24,7 @@
                 "MELAND_GAME_DB_PASS": "123456",
                 "MELAND_GAME_DB_PORT": "3306",
                 "MELAND_GAME_DB_DATABASE": "meland_game_data",
-                "JWT_SECRET": "xL6U7kZ3uLe.KggPUgXCN9!4223",
+                "JWT_SECRET": "token key",
                 //----------- service manager settings -----------------
                 "MELAND_SERVICE_MGR_NODE_ID": "101",
                 "MELAND_SERVICE_MGR_DAPR_APPID": "meland_service_manager",

@@ -16,4 +16,4 @@ export MELAND_GAME_DB_PORT=3306
 export MELAND_GAME_DB_DATABASE=meland_game_data
 
 ## -------------- meland TOKEN KEY ----------------
-export JWT_SECRET=xL6U7kZ3uLe.KggPUgXCN9!4223
+export token key
