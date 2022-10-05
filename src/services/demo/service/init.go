@@ -11,6 +11,7 @@ import (
 
 	"github.com/Meland-Inc/game-services/src/common/serviceLog"
 	"github.com/Meland-Inc/game-services/src/common/time_helper"
+	configData "github.com/Meland-Inc/game-services/src/global/configData"
 	gameDb "github.com/Meland-Inc/game-services/src/global/gameDB"
 	"github.com/Meland-Inc/game-services/src/global/serviceCnf"
 	"github.com/Meland-Inc/game-services/src/global/userAgent"
@@ -26,6 +27,10 @@ func (s *Service) init() error {
 	s.initOsSignal()
 
 	if err := gameDb.Init(); err != nil {
+		return err
+	}
+
+	if err := configData.Init(); err != nil {
 		return err
 	}
 
