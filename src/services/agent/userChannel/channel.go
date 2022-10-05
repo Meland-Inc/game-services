@@ -208,6 +208,6 @@ func (uc *UserChannel) onUserEnterMap(msgBody []byte) {
 	}
 
 	uc.enterSceneService = true
-	serviceLog.Info("RPCPubsubEventEnterGame ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ call: %+v")
+	serviceLog.Info("RPCPubsubEventEnterGame  call: %+v")
 	grpcPubsubEvent.RPCPubsubEventEnterGame(env)
 }
