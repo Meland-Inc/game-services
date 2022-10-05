@@ -84,6 +84,7 @@ func (mgr *SessionManager) checkTimeout() {
 				if (nowSec - session.GetActiveTime()) > mgr.timeoutSec {
 					serviceLog.Info("session remote addr[%v] timeout and close", session.RemoteAddr())
 					session.Stop()
+					mgr.RemoveSession(session)
 				}
 			}
 			return true

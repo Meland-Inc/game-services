@@ -14,7 +14,7 @@ type ServiceMsgData struct {
 }
 
 func (ch *MsgChannel) onServiceMessage(input *ServiceMsgData) {
-	serviceLog.Info("received service[%v] message: %v", input.MsgId, input.MsgBody)
+	serviceLog.Info("received service[%v] message: %+v", input.MsgId, input.MsgBody)
 
 	switch input.MsgId {
 	case string(grpc.SubscriptionEventUserEnterGame):
