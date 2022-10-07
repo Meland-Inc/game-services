@@ -23,21 +23,21 @@ func (p *PlayerDataModel) canUpgradeLevel(player *dbData.PlayerSceneData) error 
 		return fmt.Errorf("current Exp not upgreade to next level")
 	}
 
-	// playerItemSlot, err := p.getPlayerItemSlots(player.UserId)
-	// if err != nil {
-	// 	return err
-	// }
+	playerItemSlot, err := p.GetPlayerItemSlots(player.UserId)
+	if err != nil {
+		return err
+	}
 
 	// 角色升级要求是有4个或以上的插槽等级大于角色当前等级-5
-	// var count int32
-	// for _, s := range playerItemSlot.ItemSlots {
-	// 	if s.Level > player.Lv-5 {
-	// 		count++
-	// 	}
-	// }
-	// if count < 4 {
-	// 	return fmt.Errorf("can used item socket level < 4")
-	// }
+	var count int32
+	for _, s := range playerItemSlot.GetSlotList().SlotList {
+		if s.Level > int(player.Level)-5 {
+			count++
+		}
+	}
+	if count < 4 {
+		return fmt.Errorf("can used item socket level < 4")
+	}
 
 	return nil
 }
@@ -65,9 +65,8 @@ func (p *PlayerDataModel) UpgradePlayerLevel(userId int64) (lv int32, exp int32,
 		return curLv, curExp, err
 	}
 
-	// TODO: call scene service update player profile
-
-	return player.Level, player.Exp, err
+	p.RPCCallUpdateUserProfile(userId)
+	return player.Level, player.Exp, nil
 }
 
 func (p *PlayerDataModel) setLevelAndExp(userId int64, lv, exp int32) error {
