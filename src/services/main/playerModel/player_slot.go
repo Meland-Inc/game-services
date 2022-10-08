@@ -11,16 +11,17 @@ import (
 	dbData "github.com/Meland-Inc/game-services/src/global/gameDB/data"
 	"github.com/Meland-Inc/game-services/src/global/grpcAPI/grpcInvoke"
 	message "github.com/Meland-Inc/game-services/src/global/web3Message"
+	"gorm.io/gorm"
 )
 
-func (p *PlayerDataModel) initPlayerItemSlot(userId int64) *dbData.ItemSlot {
+func (p *PlayerDataModel) initPlayerItemSlot(userId int64) (*dbData.ItemSlot, error) {
 	slot := &dbData.ItemSlot{
 		UserId:    userId,
 		CreatedAt: time_helper.NowUTC(),
 		UpdateAt:  time_helper.NowUTC(),
 	}
-	slot.InitSlotList()
-	return slot
+	err := slot.InitSlotList()
+	return slot, err
 }
 
 func (p *PlayerDataModel) GetPlayerItemSlots(userId int64) (*dbData.ItemSlot, error) {
@@ -28,8 +29,12 @@ func (p *PlayerDataModel) GetPlayerItemSlots(userId int64) (*dbData.ItemSlot, er
 	iData, err := p.cache.GetOrStore(
 		cacheKey,
 		func() (interface{}, error) {
-			playerSlot := p.initPlayerItemSlot(userId)
-			err := gameDB.GetGameDB().Where("user_id = ?", userId).FirstOrCreate(playerSlot).Error
+			playerSlot := &dbData.ItemSlot{}
+			err := gameDB.GetGameDB().Where("user_id = ?", userId).First(playerSlot).Error
+			if err != nil && err == gorm.ErrRecordNotFound {
+				playerSlot, err = p.initPlayerItemSlot(userId)
+				err = nil
+			}
 			return playerSlot, err
 		},
 		p.cacheTTL,
@@ -48,7 +53,7 @@ func (p *PlayerDataModel) SlotByPosition(userId int64, pos proto.AvatarPosition)
 	}
 	for _, s := range userSlot.GetSlotList().SlotList {
 		if s.Position == int(pos) {
-			return &s, nil
+			return s, nil
 		}
 	}
 	return nil, fmt.Errorf("position [%v] slot not found", pos)
@@ -68,9 +73,9 @@ func (p *PlayerDataModel) setPlayerItemSlotLevel(
 	if err := gameDB.GetGameDB().Save(playerSlot).Error; err != nil {
 		return playerSlot, err
 	}
+	p.RPCCallUpdateUserProfile(userId)
 	if broadcast {
 		p.noticeUpdatePlayerItemSlot(playerSlot)
-		p.RPCCallUpdateUserProfile(userId)
 	}
 	return playerSlot, nil
 }
@@ -88,7 +93,7 @@ func (p *PlayerDataModel) UpgradeItemSlots(
 		return userSlot, err
 	}
 
-	var curSocket message.PlayerItemSlot
+	var curSocket *message.PlayerItemSlot
 	for _, s := range userSlot.GetSlotList().SlotList {
 		if proto.AvatarPosition(s.Position) == pos {
 			curSocket = s

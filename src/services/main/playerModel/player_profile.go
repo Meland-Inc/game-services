@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"game-message-core/proto"
 
+	"github.com/Meland-Inc/game-services/src/common/serviceLog"
 	"github.com/Meland-Inc/game-services/src/global/configData"
 	dbData "github.com/Meland-Inc/game-services/src/global/gameDB/data"
 	message "github.com/Meland-Inc/game-services/src/global/web3Message"
@@ -29,7 +30,7 @@ func (p *PlayerDataModel) GetPlayerProfile(userId int64) (*proto.EntityProfile, 
 func calculatePlayerProfile(
 	sceneData *dbData.PlayerSceneData,
 	avatars []*Item,
-	slotList []message.PlayerItemSlot,
+	slotList []*message.PlayerItemSlot,
 ) (*proto.EntityProfile, error) {
 	pro := &proto.EntityProfile{
 		Lv:        sceneData.Level,
@@ -101,11 +102,11 @@ func profileAddByAvatar(pro *proto.EntityProfile, avatars []*Item) {
 	}
 }
 
-func profileByItemSlotLv(pro *proto.EntityProfile, slotList []message.PlayerItemSlot) {
+func profileByItemSlotLv(pro *proto.EntityProfile, slotList []*message.PlayerItemSlot) {
 	for _, s := range slotList {
 		setting := configData.ConfigMgr().GetSlotCnf(int32(s.Position), int32(s.Level))
 		if setting == nil {
-			fmt.Errorf("slot position[%v]lv[%d] config not found", s.Position, s.Level)
+			serviceLog.Error("slot position[%v]lv[%d] config not found", s.Position, s.Level)
 			continue
 		}
 

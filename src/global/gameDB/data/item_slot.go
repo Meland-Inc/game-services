@@ -9,7 +9,7 @@ import (
 )
 
 type SlotList struct {
-	SlotList []message.PlayerItemSlot
+	SlotList []*message.PlayerItemSlot
 }
 
 type ItemSlot struct {
@@ -27,31 +27,30 @@ func (this *ItemSlot) GetSlotList() *SlotList {
 		slots := &SlotList{}
 		json.Unmarshal([]byte(this.SlotsJson), slots)
 		this.Slots = slots
-	} else {
-		this.InitSlotList()
 	}
 	return this.Slots
 }
 
-func (this *ItemSlot) InitSlotList() {
+func (this *ItemSlot) InitSlotList() error {
 	slotList := &SlotList{}
 	posBegin := int(proto.AvatarPosition_AvatarPositionHead)
 	posEnd := int(proto.AvatarPosition_AvatarPositionWeapon)
 	for i := posBegin; i <= posEnd; i++ {
 		slotList.SlotList = append(
 			slotList.SlotList,
-			message.PlayerItemSlot{Position: i, Level: 1})
+			&message.PlayerItemSlot{Position: i, Level: 1})
 	}
-	this.setSlots(slotList)
+	return this.setSlots(slotList)
 }
 
-func (this *ItemSlot) setSlots(sockets *SlotList) {
+func (this *ItemSlot) setSlots(sockets *SlotList) error {
 	bs, err := json.Marshal(sockets)
 	if err != nil {
-		return
+		return err
 	}
 	this.Slots = sockets
 	this.SlotsJson = string(bs)
+	return nil
 }
 
 func (this *ItemSlot) SetSlotLevel(pos proto.AvatarPosition, lv int32) {
