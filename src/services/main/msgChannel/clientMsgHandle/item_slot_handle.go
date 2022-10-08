@@ -73,14 +73,13 @@ func ItemSlotUpgradeHandle(input *methodData.PullClientMessageInput, msg *proto.
 		return
 	}
 
-	_, err = dataModel.UpgradeItemSlots(input.UserId, req.Position, false)
+	slotData, err := dataModel.UpgradeItemSlots(input.UserId, req.Position, false)
 	if err != nil {
 		respMsg.ErrorMessage = err.Error()
 		return
 	}
 
-	playerSlot, err := dataModel.GetPlayerItemSlots(input.UserId)
-	for _, s := range playerSlot.GetSlotList().SlotList {
+	for _, s := range slotData.GetSlotList().SlotList {
 		res.Slots = append(res.Slots, &proto.ItemSlot{
 			Level:    int32(s.Level),
 			Position: proto.AvatarPosition(s.Position),
