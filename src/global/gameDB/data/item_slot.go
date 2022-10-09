@@ -33,12 +33,13 @@ func (this *ItemSlot) GetSlotList() *SlotList {
 
 func (this *ItemSlot) InitSlotList() error {
 	slotList := &SlotList{}
-	posBegin := int(proto.AvatarPosition_AvatarPositionHead)
-	posEnd := int(proto.AvatarPosition_AvatarPositionWeapon)
-	for i := posBegin; i <= posEnd; i++ {
-		slotList.SlotList = append(
-			slotList.SlotList,
-			&message.PlayerItemSlot{Position: i, Level: 1})
+	slotList.SlotList = []*message.PlayerItemSlot{
+		&message.PlayerItemSlot{Position: int(proto.AvatarPosition_AvatarPositionHead), Level: 1},
+		&message.PlayerItemSlot{Position: int(proto.AvatarPosition_AvatarPositionCoat), Level: 1},
+		&message.PlayerItemSlot{Position: int(proto.AvatarPosition_AvatarPositionPant), Level: 1},
+		&message.PlayerItemSlot{Position: int(proto.AvatarPosition_AvatarPositionShoe), Level: 1},
+		&message.PlayerItemSlot{Position: int(proto.AvatarPosition_AvatarPositionHand), Level: 1},
+		&message.PlayerItemSlot{Position: int(proto.AvatarPosition_AvatarPositionWeapon), Level: 1},
 	}
 	return this.setSlots(slotList)
 }

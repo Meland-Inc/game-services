@@ -37,7 +37,7 @@ func LoadAvatarHandle(input *methodData.PullClientMessageInput, msg *proto.Envel
 		return
 	}
 
-	err = dataModel.LoadAvatar(input.UserId, req.ItemId, req.Position)
+	err = dataModel.LoadAvatar(input.UserId, req.ItemId)
 	if err != nil {
 		respMsg.ErrorMessage = err.Error()
 		return
