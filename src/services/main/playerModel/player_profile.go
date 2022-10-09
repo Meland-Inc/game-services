@@ -23,7 +23,12 @@ func (p *PlayerDataModel) GetPlayerProfile(userId int64) (*proto.EntityProfile, 
 	if err != nil {
 		return nil, err
 	}
-	return calculatePlayerProfile(sceneData, avatars, itemSlot.Slots.SlotList)
+
+	slotList := []*message.PlayerItemSlot{}
+	if list := itemSlot.GetSlotList(); list != nil {
+		slotList = list.SlotList
+	}
+	return calculatePlayerProfile(sceneData, avatars, slotList)
 }
 
 // 计算玩家属性(等级,装备...)<清空之前的数据全部从新计算>
