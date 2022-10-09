@@ -74,7 +74,7 @@ func (ch *MsgChannel) run() {
 	go func() {
 		defer func() {
 			if err := recover(); err != nil {
-				serviceLog.Error("msg channel recover panic err: %+v", err)
+				serviceLog.StackError("msg channel recover panic err: %+v", err)
 				ch.isClosed = false
 				ch.run()
 			}

@@ -10,43 +10,14 @@ import (
 
 // ----------------- 装备 --------------------------------------------------
 
-func (n *NFT) isEquipment(value string) (b bool) {
-	switch value {
-	case string(NFTTraitTypeHandsArmor): // "Hands Armor" 头部装备
-		b = true
-	case string(NFTTraitTypeChestArmor): // "Chest Armor" 胸部装备
-		b = true
-	case string(NFTTraitTypeHeadArmor): // "Head Armor" 手部装备
-		b = true
-	case string(NFTTraitTypeLegsArmor): // "Legs Armor" 腿部装备
-		b = true
-	case string(NFTTraitTypeFeetArmor): // "Feet Armor" 脚部装备
-		b = true
-	case string(NFTTraitTypeSword): // "Sword" 剑
-		b = true
-	case string(NFTTraitTypeBow): // "Bow"  弓
-		b = true
-	case string(NFTTraitTypeDagger): // "Dagger" 匕首
-		b = true
-	case string(NFTTraitTypeSpear): // "Spear"枪
-		b = true
-
-		// case string(NFTTraitTypeConsumable): // "Consumable" 消耗品
-		// case string(NFTTraitTypeMaterial): // "Material" 材料
-		// case string(NFTTraitTypeMysteryBox): // "MysteryBox" 神秘宝箱
-		// case string(NFTTraitTypePlaceable): // "Placeable" 可放置
-	}
-	return b
-}
-
 func (n *NFT) equipmentPosition(value string) (position proto.AvatarPosition) {
 	switch value {
-	case string(NFTTraitTypeHandsArmor): // "Hands Armor" 头部装备
-		position = proto.AvatarPosition_AvatarPositionHead
+	case string(NFTTraitTypeHandsArmor): // "Hands Armor" 手部装备
+		position = proto.AvatarPosition_AvatarPositionHand
 	case string(NFTTraitTypeChestArmor): // "Chest Armor" 胸部装备
 		position = proto.AvatarPosition_AvatarPositionCoat
-	case string(NFTTraitTypeHeadArmor): // "Head Armor" 手部装备
-		position = proto.AvatarPosition_AvatarPositionHand
+	case string(NFTTraitTypeHeadArmor): // "Head Armor" 头部装备
+		position = proto.AvatarPosition_AvatarPositionHead
 	case string(NFTTraitTypeLegsArmor): // "Legs Armor" 腿部装备
 		position = proto.AvatarPosition_AvatarPositionPant
 	case string(NFTTraitTypeFeetArmor): // "Feet Armor" 脚部装备
@@ -69,67 +40,61 @@ func (n *NFT) equipmentPosition(value string) (position proto.AvatarPosition) {
 }
 
 func (n *NFT) IsEquipment() bool {
+	isEquipment := false
 	if !n.IsMelandAI {
-		return false
+		return isEquipment
 	}
 
 	for _, na := range n.Metadata.Attributes {
 		if na.TraitType == string(NFTTraitTypesType) {
-			return n.isEquipment(na.Value)
+			position := n.equipmentPosition(na.Value)
+			if position >= proto.AvatarPosition_AvatarPositionHead &&
+				position <= proto.AvatarPosition_AvatarPositionWeapon {
+				isEquipment = true
+			}
+			break
 		}
 	}
-	return false
+
+	return isEquipment
 }
 
 func (n *NFT) EquipmentPosition() proto.AvatarPosition {
+	position := proto.AvatarPosition_AvatarPositionNone
 	if !n.IsMelandAI {
-		return proto.AvatarPosition_AvatarPositionNone
+		return position
 	}
 
 	for _, na := range n.Metadata.Attributes {
-		if na.TraitType == string(NFTTraitTypesWearingPosition) {
-			return n.equipmentPosition(na.Value)
+		if na.TraitType == string(NFTTraitTypesType) {
+			position = n.equipmentPosition(na.Value)
+			break
 		}
 	}
 
-	return proto.AvatarPosition_AvatarPositionNone
+	return position
 }
 
 func (n *NFT) GetEquipmentSkill() (skillId int32) {
 	if !n.IsMelandAI {
 		return 0
 	}
-
 	for _, na := range n.Metadata.Attributes {
-		switch na.TraitType {
-		case string(NFTTraitTypesType):
-			if !n.isEquipment(na.Value) {
-				return 0
-			}
-
-		case string(NFTTraitTypesCoreSkillId):
+		if na.TraitType == string(NFTTraitTypesCoreSkillId) {
 			skillId = cast.ToInt32(na.Value)
-			return
-
 		}
 	}
-
-	return
+	return skillId
 }
 
 func (n *NFT) GetEquipmentData() (isEquipment bool, position proto.AvatarPosition, attribute *proto.AvatarAttribute) {
-	if !n.IsMelandAI {
+	if !n.IsEquipment() {
 		return isEquipment, position, attribute
 	}
 
 	attribute = &proto.AvatarAttribute{Durability: 200}
 	for _, na := range n.Metadata.Attributes {
 		switch na.TraitType {
-		case string(NFTTraitTypesType):
-			if isEquipment = n.isEquipment(na.Value); !isEquipment {
-				return false, position, nil
-			}
-
 		case string(NFTTraitTypesQuality):
 			attribute.Rarity = na.Value
 		case string(NFTTraitTypesWearingPosition):

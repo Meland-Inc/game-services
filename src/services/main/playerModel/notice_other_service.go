@@ -18,6 +18,7 @@ func (p *PlayerDataModel) RPCEventUsedConsumable(userId int64, item *Item) error
 		UserId:     userId,
 		NftId:      item.Id,
 		NftType:    item.NFTType,
+		Cid:        item.Cid,
 		Num:        1,
 	}
 	input.ConsumableData = &base_data.GrpcNFTConsumableInfo{}

@@ -160,7 +160,7 @@ func (p *PlayerDataModel) removeUsingNftRecord(userId int64, nftId string) error
 	}
 
 	usingNft := dbData.UsingNft{}
-	err := gameDB.GetGameDB().Where("nftId = ? ", nftId).First(&usingNft).Error
+	err := gameDB.GetGameDB().Where("nft_id = ? ", nftId).First(&usingNft).Error
 	if err != nil {
 		return err
 	}
@@ -186,15 +186,17 @@ func (p *PlayerDataModel) canLoadAvatar(userId int64, item *Item, pos proto.Avat
 }
 
 // 穿装备
-func (p *PlayerDataModel) LoadAvatar(userId int64, itemId string, pos proto.AvatarPosition) error {
-	if pos < proto.AvatarPosition_AvatarPositionHead || pos > proto.AvatarPosition_AvatarPositionWeapon {
-		return fmt.Errorf("invalid avatar position [%v]", pos)
-	}
-
+func (p *PlayerDataModel) LoadAvatar(userId int64, itemId string) error {
 	item, err := p.ItemById(userId, itemId)
 	if err != nil {
 		return err
 	}
+
+	pos := item.NFTData.EquipmentPosition()
+	if pos < proto.AvatarPosition_AvatarPositionHead || pos > proto.AvatarPosition_AvatarPositionWeapon {
+		return fmt.Errorf("invalid avatar position [%v]", pos)
+	}
+
 	if err = p.canLoadAvatar(userId, item, pos); err != nil {
 		return err
 	}
@@ -251,7 +253,6 @@ func (p *PlayerDataModel) UseItem(userId int64, itemId string) error {
 		return err
 	}
 
-	it.Used = true
 	p.noticePlayerItemMsg(userId, proto.EnvelopeType_BroadCastItemUpdate, []*Item{it})
 	return nil
 }
