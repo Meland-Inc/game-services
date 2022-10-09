@@ -37,43 +37,4 @@ func KillMonsterHandler(iMsg interface{}) {
 			return
 		}
 	}
-
-	// //     ----------    test data --------------------
-	// if err := grpcInvoke.MintNFT(
-	// 	input.UserId, 1010001, 1, 1, int32(input.PosX), int32(input.PosZ),
-	// ); err != nil {
-	// 	serviceLog.Error("mint nft[%d] failed: %v", 1010001, err)
-	// 	return
-	// }
-	// if err := grpcInvoke.MintNFT(
-	// 	input.UserId, 1010002, 1, 1, int32(input.PosX), int32(input.PosZ),
-	// ); err != nil {
-	// 	serviceLog.Error("mint nft[%d] failed: %v", 1010002, err)
-	// 	return
-	// }
-	// if err := grpcInvoke.MintNFT(
-	// 	input.UserId, 1010003, 1, 1, int32(input.PosX), int32(input.PosZ),
-	// ); err != nil {
-	// 	serviceLog.Error("mint nft[%d] failed: %v", 1010003, err)
-	// 	return
-	// }
-	// if err := grpcInvoke.MintNFT(
-	// 	input.UserId, 1010004, 1, 1, int32(input.PosX), int32(input.PosZ),
-	// ); err != nil {
-	// 	serviceLog.Error("mint nft[%d] failed: %v", 1010004, err)
-	// 	return
-	// }
-	// if err := grpcInvoke.MintNFT(
-	// 	input.UserId, 1010005, 1, 1, int32(input.PosX), int32(input.PosZ),
-	// ); err != nil {
-	// 	serviceLog.Error("mint nft[%d] failed: %v", 1010005, err)
-	// 	return
-	// }
-	// if err := grpcInvoke.MintNFT(
-	// 	input.UserId, 1010006, 1, 1, int32(input.PosX), int32(input.PosZ),
-	// ); err != nil {
-	// 	serviceLog.Error("mint nft[%d] failed: %v", 1010006, err)
-	// 	return
-	// }
-
 }

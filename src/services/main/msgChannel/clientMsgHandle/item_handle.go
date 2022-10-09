@@ -95,6 +95,7 @@ func ItemGetHandle(input *methodData.PullClientMessageInput, msg *proto.Envelope
 	for _, it := range playerItems.Items {
 		pbItems = append(pbItems, it.ToNetItem())
 	}
+
 	serviceLog.Info("main service userId[%v] itemLength[%v]", input.UserId, len(pbItems))
 
 	if len(pbItems) < 8 {
@@ -134,4 +135,76 @@ func ItemUseHandle(input *methodData.PullClientMessageInput, msg *proto.Envelope
 	}
 
 	dataModel.UseItem(input.UserId, req.ItemId)
+}
+
+func LoadAvatarHandle(input *methodData.PullClientMessageInput, msg *proto.Envelope) {
+	agent := GetOrStoreUserAgent(input)
+	res := &proto.UpdateAvatarResponse{}
+	respMsg := makeResponseMsg(msg)
+	defer func() {
+		if respMsg.ErrorMessage != "" {
+			respMsg.ErrorCode = 20005 // TODO: USE PROTO ERROR CODE
+		}
+		respMsg.Payload = &proto.Envelope_UpdateAvatarResponse{UpdateAvatarResponse: res}
+		ResponseClientMessage(agent, input, respMsg)
+	}()
+
+	if input.UserId < 1 {
+		respMsg.ErrorMessage = "load avatar Invalid User ID"
+		return
+	}
+
+	req := msg.GetUpdateAvatarRequest()
+	if req == nil {
+		serviceLog.Error("main service load avatar request is nil")
+		return
+	}
+
+	dataModel, err := playerModel.GetPlayerDataModel()
+	if err != nil {
+		respMsg.ErrorMessage = err.Error()
+		return
+	}
+
+	err = dataModel.LoadAvatar(input.UserId, req.ItemId)
+	if err != nil {
+		respMsg.ErrorMessage = err.Error()
+		return
+	}
+}
+
+func UnloadAvatarHandle(input *methodData.PullClientMessageInput, msg *proto.Envelope) {
+	agent := GetOrStoreUserAgent(input)
+	res := &proto.UnloadAvatarResponse{}
+	respMsg := makeResponseMsg(msg)
+	defer func() {
+		if respMsg.ErrorMessage != "" {
+			respMsg.ErrorCode = 20005 // TODO: USE PROTO ERROR CODE
+		}
+		respMsg.Payload = &proto.Envelope_UnloadAvatarResponse{UnloadAvatarResponse: res}
+		ResponseClientMessage(agent, input, respMsg)
+	}()
+
+	if input.UserId < 1 {
+		respMsg.ErrorMessage = "unload avatar Invalid User ID"
+		return
+	}
+
+	req := msg.GetUnloadAvatarRequest()
+	if req == nil {
+		serviceLog.Error("main service unload avatar request is nil")
+		return
+	}
+
+	dataModel, err := playerModel.GetPlayerDataModel()
+	if err != nil {
+		respMsg.ErrorMessage = err.Error()
+		return
+	}
+
+	err = dataModel.UnloadAvatar(input.UserId, req.ItemId, true)
+	if err != nil {
+		respMsg.ErrorMessage = err.Error()
+		return
+	}
 }

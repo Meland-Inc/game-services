@@ -23,7 +23,7 @@ func Web3UpdateUserNftHandler(ctx context.Context, e *common.TopicEvent) (retry 
 		return false, err
 	}
 
-	if input.Etag < int(serviceCnf.GetInstance().StartMs) {
+	if input.Etag < int(serviceCnf.GetInstance().StartMs/1000) {
 		return
 	}
 

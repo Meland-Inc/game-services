@@ -25,7 +25,6 @@ func ResponseClientMessage(
 		serviceLog.Error("player[%d] agent not found", input.UserId)
 		return
 	}
-	serviceLog.Info("response player:[%d], msg:[%s]", input.UserId, respMsg.Type)
 	agent.SendToPlayer(serviceCnf.GetInstance().ServerName, respMsg)
 }
 

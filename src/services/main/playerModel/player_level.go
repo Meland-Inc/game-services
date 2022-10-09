@@ -81,14 +81,6 @@ func (p *PlayerDataModel) setLevelAndExp(userId int64, lv, exp int32) error {
 		return nil
 	}
 
-	exp = matrix.LimitInt32(exp, 0, configData.ConfigMgr().RoleCurrentExpLimit())
-	if err = p.UpPlayerSceneData(
-		userId, player.Hp, lv, exp, player.MapId, player.X,
-		player.Y, player.Z, player.DirX, player.DirY, player.DirZ,
-	); err != nil {
-		return err
-	}
-
 	upProfiles := []*proto.EntityProfileUpdate{}
 	if player.Level != lv {
 		player.Level = lv
@@ -104,8 +96,16 @@ func (p *PlayerDataModel) setLevelAndExp(userId int64, lv, exp int32) error {
 			CurValue: exp,
 		})
 	}
+
+	exp = matrix.LimitInt32(exp, 0, configData.ConfigMgr().RoleCurrentExpLimit())
+	if err = p.UpPlayerSceneData(
+		userId, player.Hp, lv, exp, player.MapId, player.X,
+		player.Y, player.Z, player.DirX, player.DirY, player.DirZ,
+	); err != nil {
+		return err
+	}
+
 	if len(upProfiles) > 0 {
-		p.RPCCallUpdateUserProfile(userId)
 		p.noticePlayerProfileUpdate(userId, upProfiles)
 	}
 	return nil
