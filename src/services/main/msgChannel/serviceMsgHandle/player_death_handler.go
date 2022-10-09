@@ -21,10 +21,9 @@ func PlayerDeathHandler(iMsg interface{}) {
 		return
 	}
 
-	pos := &proto.Vector3{X: input.PosX, Y: input.PosY, Z: input.PosZ}
 	if err = dataModel.OnPlayerDeath(
-		input.UserId, pos, input.KillerId,
-		proto.EntityType(input.KillerType), input.KillerName,
+		input.UserId, &proto.Vector3{X: input.PosX, Y: input.PosY, Z: input.PosZ},
+		input.KillerId, proto.EntityType(input.KillerType), input.KillerName,
 	); err != nil {
 		serviceLog.Error("PlayerDeathEventData OnPlayerDeath err: %v", err)
 		return

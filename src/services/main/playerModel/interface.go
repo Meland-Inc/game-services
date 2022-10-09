@@ -31,19 +31,20 @@ func (p *PlayerDataModel) OnPlayerDeath(
 	if lvSetting == nil {
 		return fmt.Errorf("role lv[%d] config not found", sceneData.Level)
 	}
+	if lvSetting.DeathExpLoss < 1 {
+		return nil
+	}
 
 	// drop player current exp
 	deathLossExp := lvSetting.DeathExpLoss
 	if sceneData.Exp > deathLossExp {
-		p.DeductExp(userId, deathLossExp)
-		return nil
+		return p.DeductExp(userId, deathLossExp)
 	}
 
 	//  player max level item socket  lv -1
 	maxLvSocket, err := p.playerMaxLevelItemSlot(userId)
 	if err == nil && maxLvSocket.Level > 1 {
-		p.setPlayerItemSlotLevel(userId, maxLvSocket.Position, maxLvSocket.Level-1, true)
+		_, err = p.setPlayerItemSlotLevel(userId, maxLvSocket.Position, maxLvSocket.Level-1, true)
 	}
-
 	return err
 }
