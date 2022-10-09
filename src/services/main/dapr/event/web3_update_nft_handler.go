@@ -51,7 +51,7 @@ func Web3MultiUpdateUserNftHandler(ctx context.Context, e *common.TopicEvent) (r
 		return false, err
 	}
 
-	if input.Etag < int(serviceCnf.GetInstance().StartMs) {
+	if input.Etag < int(serviceCnf.GetInstance().StartMs/1000) {
 		return
 	}
 
@@ -63,7 +63,7 @@ func Web3MultiUpdateUserNftHandler(ctx context.Context, e *common.TopicEvent) (r
 
 	msgChannel.GetInstance().CallServiceMsg(&msgChannel.ServiceMsgData{
 		MsgId:   string(message.SubscriptionEventMultiUpdateUserNFT),
-		MsgBody: input.Nfts,
+		MsgBody: input,
 	})
 
 	return false, nil
