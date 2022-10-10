@@ -52,5 +52,12 @@ func initServiceGrpcCallHandle() error {
 		return err
 	}
 
+	if err := daprInvoke.AddServiceInvocationHandler(
+		string(grpc.MainServiceActionTakeNFT),
+		TakeUserNftHandler,
+	); err != nil {
+		return err
+	}
+
 	return nil
 }

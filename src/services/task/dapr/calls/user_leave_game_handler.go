@@ -24,13 +24,14 @@ func UserLeaveGameHandler(ctx context.Context, in *common.InvocationEvent) (*com
 		return content, err
 	}
 
-	serviceLog.Info("task service user Leave data: %v", string(in.Data))
-
 	input := &methodData.UserLeaveGameInput{}
 	err := grpcNetTool.UnmarshalGrpcData(in.Data, input)
 	if err != nil {
+		serviceLog.Info("task service Unmarshal userLeaveGame failed err: %v", err)
 		return nil, err
 	}
+
+	serviceLog.Info("task service receive user[%d] agent[%s] Leave event", input.UserId, input.AgentAppId)
 
 	msgChannel.GetInstance().CallServiceMsg(&msgChannel.ServiceMsgData{
 		MsgId:   string(grpc.UserActionLeaveGame),

@@ -378,3 +378,62 @@ func (p *PlayerDataModel) deleteNft(userId int64, nftId string) *Item {
 	serviceLog.Info("delete NFT item = %+v", item)
 	return item
 }
+
+func (p *PlayerDataModel) TakeNftById(userId int64, nftId string, num int32) error {
+	item, err := p.ItemById(userId, nftId)
+	if err != nil {
+		return err
+	}
+	if item.Num < num {
+		return fmt.Errorf("take NFT item[%d][%s][%d] not found", userId, nftId, num)
+	}
+
+	go func() {
+		if err := grpcInvoke.BurnNFT(userId, nftId, num); err != nil {
+			serviceLog.Error("web3 burn nft [%d][%s][%d]fail, error: %v", userId, nftId, num, err)
+		}
+	}()
+	return nil
+}
+
+func (p *PlayerDataModel) TakeNftByItemCid(userId int64, itemCid, num int32) error {
+	if userId == 0 || itemCid == 0 || num == 0 {
+		return fmt.Errorf("TakeNftByCid userId[%d], itemCid[%d], num[%d] data invalid", userId, itemCid, num)
+	}
+	playerItem, err := p.GetPlayerItems(userId)
+	if err != nil {
+		return err
+	}
+
+	var count int32
+	takeNfts := []*Item{}
+	for _, item := range playerItem.Items {
+		if item.Cid == itemCid {
+			takeNfts = append(takeNfts, item)
+			count += item.Num
+			if count >= num {
+				break
+			}
+		}
+	}
+	if count < num {
+		return fmt.Errorf("TakeNftByCid not found[%d] nft ", num)
+	}
+
+	go func() {
+		for _, tn := range takeNfts {
+			takeNum := num
+			if takeNum > tn.Num {
+				takeNum = tn.Num
+			}
+			num -= takeNum
+			if err := grpcInvoke.BurnNFT(userId, tn.Id, takeNum); err != nil {
+				serviceLog.Error("web3 burn nft [%d][%s][%d]fail, error: %v", userId, tn.Id, num, err)
+			}
+			if num < 1 {
+				break
+			}
+		}
+	}()
+	return nil
+}

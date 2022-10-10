@@ -3,6 +3,7 @@ package daprCalls
 import (
 	"context"
 	"game-message-core/grpc/methodData"
+	"game-message-core/proto"
 
 	"github.com/Meland-Inc/game-services/src/common/daprInvoke"
 	"github.com/Meland-Inc/game-services/src/common/serviceLog"
@@ -22,14 +23,14 @@ func ClientMessageHandler(ctx context.Context, in *common.InvocationEvent) (*com
 		return content, err
 	}
 
-	serviceLog.Info("main service received clientPbMsg data: %v", string(in.Data))
-
 	input := &methodData.PullClientMessageInput{}
 	err := grpcNetTool.UnmarshalGrpcData(in.Data, input)
 	if err != nil {
+		serviceLog.Error("task service Unmarshal clientPbMsg failed: %v", err)
 		return nil, err
 	}
 
+	serviceLog.Info("task service received clientMsg [%v]", proto.EnvelopeType(input.MsgId))
 	msgChannel.GetInstance().CallClientMsg(input)
 	return resFunc(true, nil)
 }
