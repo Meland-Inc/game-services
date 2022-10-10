@@ -59,5 +59,12 @@ func initServiceGrpcPubsubEventHandle() error {
 		return err
 	}
 
+	if err := daprInvoke.AddTopicEventHandler(
+		string(grpc.SubscriptionEventUserTaskReward),
+		TaskRewardEventHandler,
+	); err != nil {
+		return err
+	}
+
 	return nil
 }

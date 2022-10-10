@@ -21,10 +21,12 @@ func (p *TaskModel) givePlayerReward(
 	exp, itemCid, itemNum, itemQuality int32,
 	fromTaskList bool,
 ) {
-	err := grpcInvoke.MintNFT(userId, itemCid, itemNum, itemQuality, 0, 0)
-	if err != nil {
-		serviceLog.Error("WEB3 mint NFT failed err: %v", err)
-		return
+	if itemCid > 0 && itemNum > 0 {
+		err := grpcInvoke.MintNFT(userId, itemCid, itemNum, itemQuality, 0, 0)
+		if err != nil {
+			serviceLog.Error("WEB3 mint NFT failed err: %v", err)
+			return
+		}
 	}
 
 	env := &pubsubEventData.UserTaskRewardEvent{

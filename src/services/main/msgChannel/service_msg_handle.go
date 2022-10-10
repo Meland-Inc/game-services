@@ -36,5 +36,11 @@ func (ch *MsgChannel) onServiceMessage(input *ServiceMsgData) {
 	case string(grpc.UserActionLeaveGame):
 		serviceMsgHandle.PlayerLeaveGameHandler(input.MsgBody)
 
+	case string(grpc.SubscriptionEventUserTaskReward):
+		serviceMsgHandle.TaskRewardHandler(input.MsgBody)
+
+	case string(grpc.MainServiceActionTakeNFT):
+		serviceMsgHandle.TakeUserNftHandler(input.MsgBody)
+
 	}
 }

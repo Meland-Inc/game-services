@@ -105,13 +105,9 @@ func (p *TaskModel) randomTaskList(userId int64, tlType proto.TaskListType) (*db
 		return nil, err
 	}
 
-	if proto.TaskListType_TaskListTypeRewarded == tlType && player.Level < TASK_REWARDED_LEVEL_MIN {
-		return nil, nil
-	}
-
 	cnf := configData.ConfigMgr().TaskListCnfByLevel(int32(tlType), player.Level)
 	if cnf == nil {
-		serviceLog.Error("task list lv[%dv] config not found", player.Level)
+		serviceLog.Warning("task list lv[%dv] config not found", player.Level)
 		return nil, nil
 	}
 
@@ -184,13 +180,6 @@ func (p *TaskModel) acceptRewardedTask(userId int64) (*dbData.TaskList, error) {
 	pt, err := p.GetPlayerTask(userId)
 	if err != nil {
 		return nil, err
-	}
-	player, err := p.getPlayerSceneData(userId)
-	if err != nil {
-		return nil, err
-	}
-	if player.Level < TASK_REWARDED_LEVEL_MIN {
-		return nil, fmt.Errorf("player level < 50, can't accept rewarded task")
 	}
 
 	rtl := pt.GetRewardTaskList()
@@ -333,6 +322,9 @@ func (p *TaskModel) UpGradeTaskProgress(
 	if tl.CurTask.IsFinish() {
 		return nil, fmt.Errorf("task list cur task is finish")
 	}
+	if err = p.takeUserNft(userId, items); err != nil {
+		return nil, err
+	}
 
 	upgrade := false
 
@@ -343,29 +335,7 @@ func (p *TaskModel) UpGradeTaskProgress(
 
 		switch t := proto.TaskType(opt.OptionCnf.TaskType); t {
 		case proto.TaskType_TaskTypeGetItem:
-			var giveCount = opt.Rate
-			nfts, err := p.getPlayerNFT(userId)
-			if err != nil {
-				return tl, err
-			}
 			for _, oit := range items {
-				for _, nft := range nfts {
-					if nft.Id != oit.NftId {
-						continue
-					}
-					if int32(nft.Amount) < oit.Num {
-						return tl, fmt.Errorf("not found [%v] item", oit.Num)
-					}
-
-					giveCount += oit.Num
-					if giveCount > opt.OptionCnf.Param2 {
-						return tl, fmt.Errorf("give too much item")
-					}
-				}
-			}
-
-			for _, oit := range items {
-				grpcInvoke.BurnNFT(userId, oit.NftId, oit.Num)
 				opt.Rate += oit.Num
 				upgrade = true
 			}

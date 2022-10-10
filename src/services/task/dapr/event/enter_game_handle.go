@@ -13,8 +13,6 @@ import (
 )
 
 func UserEnterGameEventHandler(ctx context.Context, e *common.TopicEvent) (retry bool, err error) {
-	serviceLog.Info("received enter game: %v, %s", e.Data, e.DataContentType)
-
 	input := &pubsubEventData.UserEnterGameEvent{}
 	err = grpcNetTool.UnmarshalGrpcTopicEvent(e, input)
 	if err != nil {
@@ -24,10 +22,12 @@ func UserEnterGameEventHandler(ctx context.Context, e *common.TopicEvent) (retry
 
 	// 抛弃过期事件
 	if input.MsgVersion < serviceCnf.GetInstance().StartMs {
+		serviceLog.Warning("task service receive timeout user enterGame event data: %+v", input)
 		return false, nil
 	}
 
-	serviceLog.Info("receive enterGameData: %+v ", input)
+	serviceLog.Info("task service receive enterGameEvent: [%+v], [%+v], [%+v],[%+v] ",
+		input.UserId, input.UserSocketId, input.AgentAppId, input.SceneServiceAppId)
 
 	msgChannel.GetInstance().CallServiceMsg(&msgChannel.ServiceMsgData{
 		MsgId:   string(grpc.SubscriptionEventUserEnterGame),

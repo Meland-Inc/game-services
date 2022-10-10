@@ -17,8 +17,8 @@ func BurnNFT(userId int64, nftId string, num int32) error {
 		serviceLog.Info("BurnNFT used time [%04d]Ms", time_helper.NowMill()-beginMs)
 	}()
 
-	if num < 1 {
-		return fmt.Errorf("BurnNFT invalid data id[%s], num[%d]", nftId, num)
+	if num < 1 || userId == 0 || nftId == "" {
+		return fmt.Errorf("BurnNFT invalid data userId[%d] id[%s], num[%d]", userId, nftId, num)
 	}
 
 	input := message.BurnNFTInput{
