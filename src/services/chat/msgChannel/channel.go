@@ -1,25 +1,21 @@
 package msgChannel
 
 import (
-	"encoding/json"
-	"game-message-core/grpc"
 	"game-message-core/grpc/methodData"
 	"game-message-core/proto"
 	"game-message-core/protoTool"
 
-	"github.com/Meland-Inc/game-services/src/common/daprInvoke"
 	"github.com/Meland-Inc/game-services/src/common/serviceLog"
-	"github.com/Meland-Inc/game-services/src/common/time_helper"
-	"github.com/Meland-Inc/game-services/src/global/serviceCnf"
 )
 
 var chanInstance *MsgChannel
 
 type MsgChannel struct {
-	isClosed      bool
-	msgHandler    map[proto.EnvelopeType]HandleFunc
-	clientMsgChan chan *methodData.PullClientMessageInput
-	stopChan      chan chan struct{}
+	isClosed         bool
+	clientMsgHandler map[proto.EnvelopeType]HandleFunc
+	clientMsgChan    chan *methodData.PullClientMessageInput
+	serviceMsgChan   chan *ServiceMsgData
+	stopChan         chan chan struct{}
 }
 
 func GetInstance() *MsgChannel {
@@ -36,15 +32,23 @@ func InitAndRun() {
 
 func NewMsgChannel() *MsgChannel {
 	channel := &MsgChannel{
-		clientMsgChan: make(chan *methodData.PullClientMessageInput, 2048),
-		stopChan:      make(chan chan struct{}),
-		isClosed:      false,
-		msgHandler:    make(map[proto.EnvelopeType]HandleFunc),
+		stopChan:         make(chan chan struct{}),
+		isClosed:         false,
+		clientMsgChan:    make(chan *methodData.PullClientMessageInput, 2048),
+		clientMsgHandler: make(map[proto.EnvelopeType]HandleFunc),
+		serviceMsgChan:   make(chan *ServiceMsgData, 2048),
 	}
-	channel.registerHandler()
+
+	channel.registerClientMsgHandler()
 	return channel
 }
 
+func (ch *MsgChannel) CallServiceMsg(in *ServiceMsgData) {
+	if ch.isClosed {
+		return
+	}
+	ch.serviceMsgChan <- in
+}
 func (ch *MsgChannel) CallClientMsg(in *methodData.PullClientMessageInput) {
 	if ch.isClosed {
 		return
@@ -56,6 +60,7 @@ func (ch *MsgChannel) stop() {
 	ch.isClosed = true
 	close(ch.stopChan)
 	close(ch.clientMsgChan)
+	close(ch.serviceMsgChan)
 }
 
 func (ch *MsgChannel) Stop() {
@@ -69,7 +74,7 @@ func (ch *MsgChannel) run() {
 	go func() {
 		defer func() {
 			if err := recover(); err != nil {
-				serviceLog.Error("msg channel recover panic err: %+v", err)
+				serviceLog.StackError("msg channel recover panic err: %+v", err)
 				ch.isClosed = false
 				ch.run()
 			}
@@ -79,6 +84,8 @@ func (ch *MsgChannel) run() {
 			select {
 			case input := <-ch.clientMsgChan:
 				ch.onClientMessage(input)
+			case serviceMsg := <-ch.serviceMsgChan:
+				ch.onServiceMessage(serviceMsg)
 			case stopFinished := <-ch.stopChan:
 				ch.stop()
 				stopFinished <- struct{}{}
@@ -91,46 +98,11 @@ func (ch *MsgChannel) run() {
 func (ch *MsgChannel) onClientMessage(input *methodData.PullClientMessageInput) {
 	msg, err := protoTool.UnMarshalToEnvelope(input.MsgBody)
 	if err != nil {
-		serviceLog.Error("account Unmarshal Envelope fail err: %+v", err)
+		serviceLog.Error("Unmarshal Envelope fail err: %+v", err)
 		return
 	}
-
-	if handler, exist := ch.msgHandler[msg.Type]; exist {
+	serviceLog.Info("client msg: %+v", msg)
+	if handler, exist := ch.clientMsgHandler[msg.Type]; exist {
 		handler(input, msg)
 	}
-}
-
-func (ch *MsgChannel) SendToPlayer(
-	agentAppId, socketId string,
-	userId int64,
-	msg *proto.Envelope,
-) error {
-	msgBody, err := protoTool.MarshalProto(msg)
-	if err != nil {
-		return err
-	}
-
-	input := methodData.BroadCastToClientInput{
-		MsgVersion:   time_helper.NowUTCMill(),
-		ServiceAppId: serviceCnf.GetInstance().ServerName,
-		UserId:       userId,
-		SocketId:     socketId,
-		MsgId:        int32(msg.Type),
-		MsgBody:      msgBody,
-	}
-
-	inputBytes, err := json.Marshal(input)
-	if err != nil {
-		serviceLog.Error("SendToPlayer Marshal BroadCastInput failed err: %+v", err)
-		return err
-	}
-	_, err = daprInvoke.InvokeMethod(
-		agentAppId,
-		string(grpc.ProtoMessageActionBroadCastToClient),
-		inputBytes,
-	)
-	if err != nil {
-		serviceLog.Error("SendToPlayer InvokeMethod  failed err:%+v", err)
-	}
-	return err
 }

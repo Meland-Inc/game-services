@@ -12,4 +12,7 @@ const (
 
 	// user task model
 	MODEL_NAME_TASK = "MainServiceTaskDataModel"
+
+	// chat  model
+	MODEL_NAME_CHAT = "MainServiceChatModel"
 )

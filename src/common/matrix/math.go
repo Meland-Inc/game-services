@@ -200,6 +200,11 @@ func Floor(v float64) int32 {
 	return int32(math.Floor(v))
 }
 
-func Round(v float64) int32 {
+func RoundInt32(v float64) int32 {
 	return int32(math.Floor(v + 0.5))
+}
+
+func Round(f float64, n int) float64 {
+	pow10_n := math.Pow10(n)
+	return math.Trunc((f+0.5/pow10_n)*pow10_n) / pow10_n
 }
