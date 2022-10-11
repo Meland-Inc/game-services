@@ -32,8 +32,15 @@ func initClientMsgCallHandle() error {
 
 func initServiceGrpcCallHandle() error {
 	if err := daprInvoke.AddServiceInvocationHandler(
-		string(message.GameServiceActionDeductUserExp),
+		string(message.GameDataServiceActionDeductUserExp),
 		Web3DeductUserExpHandler,
+	); err != nil {
+		return err
+	}
+
+	if err := daprInvoke.AddServiceInvocationHandler(
+		string(message.GameDataServiceActionGetPlayerInfoByUserId),
+		Web3GetPlayerDataHandler,
 	); err != nil {
 		return err
 	}

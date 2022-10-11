@@ -19,7 +19,7 @@ func (ch *MsgChannel) onServiceMessage(input *ServiceMsgData) {
 	switch input.MsgId {
 	case string(grpc.SubscriptionEventUserEnterGame):
 		serviceMsgHandle.UserEnterGameHandle(input.MsgBody)
-	case string(message.GameServiceActionDeductUserExp):
+	case string(message.GameDataServiceActionDeductUserExp):
 		serviceMsgHandle.Web3DeductUserExpHandler(input.MsgBody)
 	case string(message.SubscriptionEventUpdateUserNFT):
 		serviceMsgHandle.Web3UpdateUserNftHandler(input.MsgBody)

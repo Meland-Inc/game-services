@@ -122,13 +122,18 @@ func (p *PlayerDataModel) AddExp(userId int64, exp int32) error {
 	return p.setLevelAndExp(userId, player.Level, player.Exp+exp)
 }
 
-func (p *PlayerDataModel) DeductExp(userId int64, exp int32) error {
-	if exp < 1 {
-		return fmt.Errorf("invalid Deduct exp [%d]", exp)
+func (p *PlayerDataModel) DeductExp(userId int64, deductExp int32) error {
+	if deductExp < 1 {
+		return fmt.Errorf("invalid Deduct exp [%d]", deductExp)
 	}
-	player, err := p.GetPlayerSceneData(userId)
+	sceneData, err := p.GetPlayerSceneData(userId)
 	if err != nil {
 		return err
 	}
-	return p.setLevelAndExp(userId, player.Level, player.Exp-exp)
+
+	if sceneData.Exp < deductExp {
+		return fmt.Errorf("curExp[%d] cannot deductExp[%d]", sceneData.Exp, deductExp)
+	}
+
+	return p.setLevelAndExp(userId, sceneData.Level, sceneData.Exp-deductExp)
 }
