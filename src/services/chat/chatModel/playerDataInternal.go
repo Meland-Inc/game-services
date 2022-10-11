@@ -70,39 +70,52 @@ func (p *ChatModel) AddPlayerRecord(player *PlayerChatData) error {
 	return nil
 }
 
+func (p *ChatModel) UpdatePlayerRecord(newChatData *PlayerChatData) error {
+	if newChatData == nil {
+		return errors.New("newChatData must not be nil")
+	}
+
+	// // 新进入聊天
+	data, exist := p.Players[newChatData.UserId]
+	if !exist {
+		return errors.New("newChatData not found")
+	}
+
+	// 切换地图
+	if data.MapId != newChatData.MapId {
+		preMapGrid, err := p.GetMapGrid(data.MapId)
+		if err != nil {
+			return err
+		}
+		nextMapGrid, err := p.GetMapGrid(newChatData.MapId)
+		if err != nil {
+			return err
+		}
+		preMapGrid.RemovePlayerGrid(newChatData.UserId)
+		nextMapGrid.addPlayerGrid(newChatData)
+		return nil
+	}
+
+	// 更新坐标 && 切换viewGrid
+	mapGrid, err := p.GetMapGrid(newChatData.MapId)
+	if err != nil {
+		return err
+	}
+	mapGrid.UpdateAndAddPlayerGrid(newChatData)
+	return nil
+}
+
 func (p *ChatModel) UpdateAndAddPlayerRecord(player *PlayerChatData) error {
 	if player == nil {
 		return errors.New("PlayerGridData must not be nil")
 	}
 
 	// 新进入聊天
-	data, exist := p.Players[player.UserId]
+	_, exist := p.Players[player.UserId]
 	if !exist {
 		return p.AddPlayerRecord(player)
 	}
-
-	// 切换地图
-	if data.MapId != player.MapId {
-		preMapGrid, err := p.GetMapGrid(data.MapId)
-		if err != nil {
-			return err
-		}
-		nextMapGrid, err := p.GetMapGrid(player.MapId)
-		if err != nil {
-			return err
-		}
-		preMapGrid.RemovePlayerGrid(player.UserId)
-		nextMapGrid.addPlayerGrid(player)
-		return nil
-	}
-
-	// 更新做不 && 切换viewGrid
-	mapGrid, err := p.GetMapGrid(player.MapId)
-	if err != nil {
-		return err
-	}
-	mapGrid.UpdateAndAddPlayerGrid(player)
-	return nil
+	return p.UpdatePlayerRecord(player)
 }
 
 func (p *ChatModel) OnPlayerEnterGame(env *pubsubEventData.UserEnterGameEvent) error {
@@ -116,6 +129,22 @@ func (p *ChatModel) OnPlayerEnterGame(env *pubsubEventData.UserEnterGameEvent) e
 		env.SceneServiceAppId, env.AgentAppId, env.UserSocketId,
 	)
 	return p.UpdateAndAddPlayerRecord(playerChatData)
+}
+
+func (p *ChatModel) OnUpdatePlayerData(env *pubsubEventData.SavePlayerEventData) {
+	playerChatData, exist := p.Players[env.UserId]
+	if !exist {
+		return
+	}
+
+	newData := NewPlayerChatData(
+		playerChatData.UserId, playerChatData.Name, playerChatData.RoleIcon,
+		env.MapId, env.PosX, env.PosY, env.PosZ,
+		playerChatData.SceneServiceAppId,
+		playerChatData.AgentAppId,
+		playerChatData.UserSocketId,
+	)
+	p.UpdatePlayerRecord(newData)
 }
 
 func (p *ChatModel) OnPlayerLeaveGame(userId int64) error {

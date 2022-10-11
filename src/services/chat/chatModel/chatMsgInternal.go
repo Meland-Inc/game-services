@@ -108,6 +108,10 @@ func (p *ChatModel) worldChat(sender *PlayerChatData, chatData *proto.ChatMessag
 	msg := p.makeChatBroadCastPbMsg([]*proto.ChatMessage{chatData})
 	agentList := make(map[string][]int64)
 	for _, player := range p.Players {
+		if player.UserId == sender.UserId {
+			continue
+		}
+
 		agentId := player.AgentAppId
 		if _, exist := agentList[agentId]; exist {
 			agentList[agentId] = append(agentList[agentId], player.UserId)

@@ -6,8 +6,6 @@ import (
 	"github.com/Meland-Inc/game-services/src/common/serviceLog"
 )
 
-// "github.com/Meland-Inc/game-services/src/global/grpcAPI/grpcInvoke"
-
 type UserAgentData struct {
 	AgentAppId          string `json:"agentAppId"`
 	InSceneServiceAppId string `json:"inSceneServiceAppId"`

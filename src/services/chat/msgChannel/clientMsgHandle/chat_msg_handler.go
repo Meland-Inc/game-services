@@ -36,7 +36,7 @@ func chatMsgResponse(
 }
 
 func ChatMsgHandle(input *methodData.PullClientMessageInput, msg *proto.Envelope) {
-	serviceLog.Info("chat service userId[%v] get items ", input.UserId)
+	serviceLog.Info("chat service send chat msg:%+v ", input)
 	agent := GetOrStoreUserAgent(input)
 	if input.UserId < 1 {
 		chatMsgResponse(input, agent, msg, "Invalid User ID", 0)

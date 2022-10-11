@@ -22,8 +22,13 @@ func PlayerLeaveGameHandler(iMsg interface{}) {
 
 	agentModel := userAgent.GetUserAgentModel()
 	agentModel.RemoveUserAgentRecord(input.UserId)
+
 	model, _ := chatModel.GetChatModel()
+	if model == nil {
+		serviceLog.Error("chat model not found")
+		return
+	}
 	if model != nil {
-		model.RemovePlayerRecord(input.UserId)
+		model.OnPlayerLeaveGame(input.UserId)
 	}
 }

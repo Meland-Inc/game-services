@@ -8,13 +8,11 @@ import (
 	"github.com/Meland-Inc/game-services/src/common/serviceLog"
 	"github.com/Meland-Inc/game-services/src/global/grpcAPI/grpcNetTool"
 	"github.com/Meland-Inc/game-services/src/global/serviceCnf"
-	"github.com/Meland-Inc/game-services/src/services/main/msgChannel"
+	"github.com/Meland-Inc/game-services/src/services/chat/msgChannel"
 	"github.com/dapr/go-sdk/service/common"
 )
 
 func UserEnterGameEventHandler(ctx context.Context, e *common.TopicEvent) (retry bool, err error) {
-	serviceLog.Info("received enter game: %v, %s", e.Data, e.DataContentType)
-
 	input := &pubsubEventData.UserEnterGameEvent{}
 	err = grpcNetTool.UnmarshalGrpcTopicEvent(e, input)
 	if err != nil {
@@ -27,7 +25,7 @@ func UserEnterGameEventHandler(ctx context.Context, e *common.TopicEvent) (retry
 		return false, nil
 	}
 
-	serviceLog.Info("receive enterGameData: %+v ", input)
+	serviceLog.Info("chat service receive enterGame: %+v", input)
 
 	msgChannel.GetInstance().CallServiceMsg(&msgChannel.ServiceMsgData{
 		MsgId:   string(grpc.SubscriptionEventUserEnterGame),

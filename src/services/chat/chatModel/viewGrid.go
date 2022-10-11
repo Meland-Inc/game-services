@@ -88,9 +88,10 @@ func (g *ViewGrid) Broadcast(msg *proto.Envelope, exceptEntity int64) {
 
 	agentList := make(map[string][]int64)
 	g.RangeNearPlayers(func(player *PlayerChatData) bool {
-		if player == nil {
+		if player == nil || player.UserId == exceptEntity {
 			return true
 		}
+
 		agentId := player.AgentAppId
 		if _, exist := agentList[agentId]; exist {
 			agentList[agentId] = append(agentList[agentId], player.UserId)

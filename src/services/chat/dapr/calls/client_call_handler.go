@@ -2,8 +2,8 @@ package daprCalls
 
 import (
 	"context"
-	"game-message-core/grpc"
 	"game-message-core/grpc/methodData"
+	"game-message-core/proto"
 
 	"github.com/Meland-Inc/game-services/src/common/daprInvoke"
 	"github.com/Meland-Inc/game-services/src/common/serviceLog"
@@ -12,29 +12,25 @@ import (
 	"github.com/dapr/go-sdk/service/common"
 )
 
-func UserLeaveGameHandler(ctx context.Context, in *common.InvocationEvent) (*common.Content, error) {
+func ClientMessageHandler(ctx context.Context, in *common.InvocationEvent) (*common.Content, error) {
 	resFunc := func(success bool, err error) (*common.Content, error) {
-		out := &methodData.UserLeaveGameOutput{}
+		out := &methodData.PullClientMessageOutput{}
 		out.Success = success
 		if err != nil {
 			out.ErrMsg = err.Error()
-			serviceLog.Error("chat service user leave event err: %v", err)
 		}
 		content, _ := daprInvoke.MakeOutputContent(in, out)
 		return content, err
 	}
 
-	serviceLog.Info("chat service user Leave data: %v", string(in.Data))
-
-	input := &methodData.UserLeaveGameInput{}
+	input := &methodData.PullClientMessageInput{}
 	err := grpcNetTool.UnmarshalGrpcData(in.Data, input)
 	if err != nil {
+		serviceLog.Error("chat service Unmarshal clientPbMsg failed: %v", err)
 		return nil, err
 	}
 
-	msgChannel.GetInstance().CallServiceMsg(&msgChannel.ServiceMsgData{
-		MsgId:   string(grpc.UserActionLeaveGame),
-		MsgBody: input,
-	})
+	serviceLog.Info("chat service received clientMsg [%v]", proto.EnvelopeType(input.MsgId))
+	msgChannel.GetInstance().CallClientMsg(input)
 	return resFunc(true, nil)
 }

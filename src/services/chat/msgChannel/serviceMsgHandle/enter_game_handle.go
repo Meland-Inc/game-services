@@ -28,9 +28,12 @@ func UserEnterGameHandle(iMsg interface{}) {
 	}
 
 	model, _ := chatModel.GetChatModel()
-	if model != nil {
-		if err := model.OnPlayerEnterGame(input); err != nil {
-			serviceLog.Error(err.Error())
-		}
+	if model == nil {
+		serviceLog.Error("chat model not found")
+		return
+	}
+
+	if err := model.OnPlayerEnterGame(input); err != nil {
+		serviceLog.Error(err.Error())
 	}
 }
