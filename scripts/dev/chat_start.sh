@@ -11,7 +11,7 @@ export MELAND_SERVICE_CHAT_DAPR_APPID=meland-service-chat
 export MELAND_SERVICE_CHAT_DAPR_APP_PORT=5500
 export MELAND_SERVICE_CHAT_DAPR_GRPC_PORT=5550   
  
-echo "---------------------------start DAPR and MAIN service --------------------------------"
+echo "---------------------------start DAPR and chat service --------------------------------"
 dapr run --app-id ${MELAND_SERVICE_CHAT_DAPR_APPID} --app-protocol grpc \
 --app-port ${MELAND_SERVICE_CHAT_DAPR_APP_PORT} \
 --dapr-grpc-port ${MELAND_SERVICE_CHAT_DAPR_GRPC_PORT} \
