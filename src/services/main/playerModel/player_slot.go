@@ -129,7 +129,10 @@ func (p *PlayerDataModel) canUpgradeItemSlots(player *dbData.PlayerSceneData, po
 	}
 
 	// burn upgrade item socket need used meld
-	return grpcInvoke.BurnUserMELD(player.UserId, int(setting.UpMeld))
+	if setting.UpMeld > 0 {
+		return grpcInvoke.BurnUserMELD(player.UserId, int(setting.UpMeld))
+	}
+	return nil
 }
 
 func (p *PlayerDataModel) allUsingItemSlotAttributes(userId int64) (allSettings []*xlsxTable.SlotLvTableRow) {
