@@ -34,11 +34,10 @@ func (p *TaskModel) broadCastUpdateTaskListInfo(userId int64, tlType proto.TaskL
 }
 
 func (p *TaskModel) broadCastReceiveRewardInfo(
-	userId int64, tl *dbData.TaskList,
-	rewardExp int32, rewardItemCid, rewardItemNum, rewardItemQuality int32,
-	isTaskListReward bool,
+	userId int64, tl *dbData.TaskList, isTaskListReward bool,
+	rewardExp int32, rewardItems []*proto.ItemBaseInfo,
 ) {
-	if tl == nil {
+	if tl == nil || userId == 0 {
 		return
 	}
 
@@ -49,11 +48,7 @@ func (p *TaskModel) broadCastReceiveRewardInfo(
 				IsTaskListReward: isTaskListReward,
 				TaskListKind:     proto.TaskListType(tl.TaskListType),
 				RewardExp:        rewardExp,
-				RewardItem: []*proto.ItemBaseInfo{&proto.ItemBaseInfo{
-					Cid:     rewardItemCid,
-					Num:     rewardItemNum,
-					Quality: rewardItemQuality,
-				}},
+				RewardItem:       rewardItems,
 			},
 		},
 	}

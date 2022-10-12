@@ -4,9 +4,7 @@ import (
 	"fmt"
 	"game-message-core/grpc/pubsubEventData"
 	"game-message-core/proto"
-	xlsxTable "game-message-core/xlsxTableData"
 
-	"github.com/Meland-Inc/game-services/src/common/matrix"
 	"github.com/Meland-Inc/game-services/src/common/serviceLog"
 	"github.com/Meland-Inc/game-services/src/common/time_helper"
 	"github.com/Meland-Inc/game-services/src/global/configData"
@@ -17,16 +15,25 @@ import (
 )
 
 func (p *TaskModel) givePlayerReward(
-	userId int64, tl *dbData.TaskList,
-	exp, itemCid, itemNum, itemQuality int32,
-	fromTaskList bool,
+	userId int64, tl *dbData.TaskList, fromTaskList bool,
+	exp, itemRewardId int32,
 ) {
-	if itemCid > 0 && itemNum > 0 {
-		err := grpcInvoke.MintNFT(userId, itemCid, itemNum, itemQuality, 0, 0)
-		if err != nil {
-			serviceLog.Error("WEB3 mint NFT failed err: %v", err)
-			return
-		}
+
+	rewardItems, err := configData.RandomRewardItems(itemRewardId)
+	if err != nil {
+		serviceLog.Error(err.Error())
+	}
+	if len(rewardItems) > 0 {
+		go func() {
+			for _, item := range rewardItems {
+				if item.Cid > 0 && item.Num > 0 {
+					err := grpcInvoke.MintNFT(userId, item.Cid, item.Num, item.Quality, 0, 0)
+					if err != nil {
+						serviceLog.Error("WEB3 mint NFT failed err: %v", err)
+					}
+				}
+			}
+		}()
 	}
 
 	env := &pubsubEventData.UserTaskRewardEvent{
@@ -36,29 +43,10 @@ func (p *TaskModel) givePlayerReward(
 		TaskListReward: fromTaskList,
 	}
 	grpcPubsubEvent.RPCPubsubEventTaskReward(env)
-	p.broadCastReceiveRewardInfo(userId, tl, exp, itemCid, itemNum, itemQuality, fromTaskList)
-}
-
-func (p *TaskModel) randomRewardItem(obj *xlsxTable.TaskObjectList) (cid, num, quality int32) {
-	if obj == nil {
-		return
-	}
-	rn := matrix.Random32(0, obj.ChanceSum)
-	for _, t := range obj.ParamList {
-		if rn <= t.Param2 {
-			cid = t.Param1
-			num = t.Param3
-			quality = 1
-			break
-		} else {
-			rn -= t.Param2
-		}
-	}
-	return
+	p.broadCastReceiveRewardInfo(userId, tl, fromTaskList, exp, rewardItems)
 }
 
 func (p *TaskModel) TaskReward(userId int64, taskListKind proto.TaskListType) (*dbData.TaskList, error) {
-
 	pt, err := p.GetPlayerTask(userId)
 	if err != nil {
 		return nil, err
@@ -81,9 +69,7 @@ func (p *TaskModel) TaskReward(userId int64, taskListKind proto.TaskListType) (*
 	if taskCnf == nil {
 		return tl, fmt.Errorf("task config data not found")
 	}
-
-	itemCid, num, quality := p.randomRewardItem(taskCnf.GetRewardItems())
-	p.givePlayerReward(userId, tl, taskCnf.RewardExp, itemCid, num, quality, false)
+	p.givePlayerReward(userId, tl, false, taskCnf.RewardExp, taskCnf.RewardId)
 
 	tl.Rate++
 	tl.CurTask = nil
@@ -143,10 +129,7 @@ func (p *TaskModel) TaskListReward(userId int64, taskListKind proto.TaskListType
 	if tlCnf == nil {
 		return tl, fmt.Errorf("task list cur task not finish")
 	}
-
-	itemRewardList := tlCnf.GetRewardItems()
-	itemCid, num, quality := p.randomRewardItem(itemRewardList)
-	p.givePlayerReward(userId, tl, tlCnf.RewardExp, itemCid, num, quality, true)
+	p.givePlayerReward(userId, tl, true, tlCnf.RewardExp, tl.TaskListId)
 
 	// 阶段奖励记录++
 	tl.ReceiveReward++
