@@ -175,7 +175,7 @@ func (n *NFT) GetEquipmentData() (isEquipment bool, position proto.AvatarPositio
 
 func (n *NFT) UseLevel() (level int32) {
 	for _, na := range n.Metadata.Attributes {
-		if na.TraitType == string(NFTTraitTypesLevel) {
+		if na.TraitType == string(NFTTraitTypesRequiresLevel) {
 			lv, err := strconv.ParseInt(na.Value, 10, 64)
 			if err == nil {
 				level = int32(lv)

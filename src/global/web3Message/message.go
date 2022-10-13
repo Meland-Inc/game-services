@@ -4745,12 +4745,12 @@ const NFTTraitTypesGetBuff NFTTraitTypes = "Get Buff"
 const NFTTraitTypesHPRecovery NFTTraitTypes = "HP Recovery"
 const NFTTraitTypesHitPoints NFTTraitTypes = "Hit Points"
 const NFTTraitTypesLearnRecipe NFTTraitTypes = "Learn Recipe"
-const NFTTraitTypesLevel NFTTraitTypes = "Level"
 const NFTTraitTypesMaxHP NFTTraitTypes = "MaxHP"
 const NFTTraitTypesMoveSpeed NFTTraitTypes = "Move Speed"
 const NFTTraitTypesPlaceableLands NFTTraitTypes = "Placeable Lands"
 const NFTTraitTypesQuality NFTTraitTypes = "Quality"
 const NFTTraitTypesRarity NFTTraitTypes = "Rarity"
+const NFTTraitTypesRequiresLevel NFTTraitTypes = "Requires level"
 const NFTTraitTypesRestoreHP NFTTraitTypes = "Restore HP"
 const NFTTraitTypesSeries NFTTraitTypes = "Series"
 const NFTTraitTypesSkillLevel NFTTraitTypes = "SkillLevel"
@@ -5719,12 +5719,12 @@ var enumValues_NFTTraitTypes = []interface{}{
 	"HP Recovery",
 	"Hit Points",
 	"Learn Recipe",
-	"Level",
 	"MaxHP",
 	"Move Speed",
 	"Placeable Lands",
 	"Quality",
 	"Rarity",
+	"Requires level",
 	"Restore HP",
 	"Series",
 	"SkillLevel",
