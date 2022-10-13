@@ -42,6 +42,15 @@ func AgentServiceHandler(w http.ResponseWriter, r *http.Request) {
 func AllServicesHandler(w http.ResponseWriter, r *http.Request) {
 	services := controller.GetInstance().AllServices()
 	serviceLog.Info("received get serviceList remote addr: %v, resp: %+v", r.RemoteAddr, services)
+
+	for i := 0; i < len(services)-1; i++ {
+		for j := i + 1; j < len(services); j++ {
+			if services[i].Id > services[j].Id {
+				services[i], services[j] = services[j], services[i]
+			}
+		}
+	}
+
 	byteArr, err := json.Marshal(services)
 	if err != nil {
 		serviceLog.Error("get all service marshal err: %v", err)

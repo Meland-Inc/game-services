@@ -40,12 +40,10 @@ func (this *ServiceController) serviceRecordByType(sType proto.ServiceType) (*Se
 }
 
 func (this *ServiceController) RegisterService(service ServiceData) {
-	if service.UpdateAt == 0 {
-		service.UpdateAt = time_helper.NowUTCMill()
-	}
 	if service.CreateAt == 0 {
 		service.CreateAt = time_helper.NowUTCMill()
 	}
+	service.UpdateAt = time_helper.NowUTCMill()
 
 	record, ok := this.serviceRecordByType(service.ServiceType)
 	if !ok {
@@ -81,4 +79,16 @@ func (this *ServiceController) AllServices() (services []ServiceData) {
 		return true
 	})
 	return services
+}
+
+func (this *ServiceController) PrintAllServices() {
+	this.controller.Range(func(key, value interface{}) bool {
+		if record, ok := value.(*ServiceRecord); ok {
+			for serviceId, s := range record.Services {
+				serviceLog.Info("serviceType[%v], serviceId[%d], data:%+v", key.(proto.ServiceType), serviceId, s)
+			}
+		}
+		return true
+	})
+	serviceLog.Info("----------------------------------------------------------------")
 }

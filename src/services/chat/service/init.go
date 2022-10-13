@@ -51,7 +51,7 @@ func (s *Service) initServiceCnf() error {
 	s.serviceCnf = sc
 
 	sc.ServerId = cast.ToInt64(os.Getenv("MELAND_SERVICE_CHAT_NODE_ID"))
-	sc.ServiceType = proto.ServiceType_ServiceTypeAgent
+	sc.ServiceType = proto.ServiceType_ServiceTypeChat
 	sc.StartMs = time_helper.NowUTCMill()
 	sc.ServerName = os.Getenv("MELAND_SERVICE_CHAT_DAPR_APPID")
 	if sc.MaxOnline == 0 {

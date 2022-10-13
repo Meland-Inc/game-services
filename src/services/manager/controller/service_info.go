@@ -3,10 +3,11 @@ package controller
 import (
 	"game-message-core/proto"
 
+	"github.com/Meland-Inc/game-services/src/common/serviceLog"
 	"github.com/Meland-Inc/game-services/src/common/time_helper"
 )
 
-const ServiceTimeoutMs int64 = 1000 * 10 // 10 seconds is services timeout
+const ServiceTimeoutMs int64 = 1000 * 5 // 10 seconds is services timeout
 
 type ServiceData struct {
 	Id          int64             `json:"id"`
@@ -74,11 +75,11 @@ func (sr *ServiceRecord) GetAliveService(mapId int32) (s *ServiceData, exist boo
 			if service.ServiceType == proto.ServiceType_ServiceTypeScene && service.MapId != mapId {
 				continue
 			}
-			// if !sr.checkAlive(service) {
-			// serviceLog.Info("remove time service [%v][%v]", service.AppId, service.ServiceType)
-			// sr.RemoveServiceRecord(sId)
-			// continue
-			// }
+			if !sr.checkAlive(service) {
+				serviceLog.Info("remove time service [%v][%v]", service.AppId, service.ServiceType)
+				sr.RemoveServiceRecord(sId)
+				continue
+			}
 			return &service, true
 		}
 		return nil, false
