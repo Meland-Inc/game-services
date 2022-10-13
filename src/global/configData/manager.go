@@ -25,15 +25,15 @@ type ConfigDataManager struct {
 	configDb  *gorm.DB
 	loadFuncs []LoadFunc
 
-	taskCnf     map[int32]xlsxTable.TaskTableRow
-	taskListCnf map[int32]xlsxTable.TaskListTableRow
-	roleLvMax   int32
-	roleLvCnf   map[int32]xlsxTable.RoleLvTableRow
-	slotLvCnf   map[int32][]xlsxTable.SlotLvTableRow
-	rewardCnf   map[int32]xlsxTable.RewardTableRow
-	itemCnf     map[int32]xlsxTable.ItemTable
-	dropCnf     map[int32]xlsxTable.DropTableRow
-	chatCnf     map[proto.ChatChannelType]xlsxTable.ChatTableRow
+	taskCnf      map[int32]xlsxTable.TaskTableRow
+	taskListCnf  map[int32]xlsxTable.TaskListTableRow
+	roleLvCnf    map[int32]xlsxTable.RoleLvTableRow
+	slotLvCnf    map[int32][]xlsxTable.SlotLvTableRow
+	rewardCnf    map[int32]xlsxTable.RewardTableRow
+	itemCnf      map[int32]xlsxTable.ItemTable
+	dropCnf      map[int32]xlsxTable.DropTableRow
+	chatCnf      map[proto.ChatChannelType]xlsxTable.ChatTableRow
+	gameValueCnf map[int32]xlsxTable.GameValueTable
 }
 
 func Init() error {
@@ -64,6 +64,7 @@ func (mgr *ConfigDataManager) registerLoadFunctions() {
 		LoadFunc{"item", mgr.initItem},
 		LoadFunc{"drop", mgr.initDrop},
 		LoadFunc{"chat", mgr.initChatCnf},
+		LoadFunc{"gameValue", mgr.initGameValue},
 	}
 }
 

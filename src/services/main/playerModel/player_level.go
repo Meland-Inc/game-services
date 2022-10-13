@@ -10,8 +10,11 @@ import (
 )
 
 func (p *PlayerDataModel) canUpgradeLevel(player *dbData.PlayerSceneData) error {
-	maxLv := configData.ConfigMgr().RoleMaxLevel()
-	if player.Level == maxLv {
+	maxLvSetting, err := configData.GameValueById(1000001)
+	if err != nil {
+		return err
+	}
+	if player.Level >= maxLvSetting.Value {
 		return fmt.Errorf("player is max level")
 	}
 	curLvCnf := configData.ConfigMgr().RoleLevelCnf(player.Level)
@@ -29,13 +32,23 @@ func (p *PlayerDataModel) canUpgradeLevel(player *dbData.PlayerSceneData) error 
 	}
 
 	// 角色升级要求是有4个或以上的插槽等级大于角色当前等级-5
-	var count int32
+	slotLvOffsetSetting, err := configData.GameValueById(1000004)
+	if err != nil {
+		return err
+	}
+	slotLvOffsetCountSetting, err := configData.GameValueById(1000005)
+	if err != nil {
+		return err
+	}
+
+	var slotLvOffsetCount int32
 	for _, s := range playerItemSlot.GetSlotList().SlotList {
-		if s.Level > int(player.Level)-5 {
-			count++
+		if int32(s.Level) > player.Level-slotLvOffsetSetting.Value {
+			slotLvOffsetCount++
 		}
 	}
-	if count < 4 {
+
+	if slotLvOffsetCount < slotLvOffsetCountSetting.Value {
 		return fmt.Errorf("can used item socket level < 4")
 	}
 
@@ -97,7 +110,7 @@ func (p *PlayerDataModel) setLevelAndExp(userId int64, lv, exp int32) error {
 		})
 	}
 
-	exp = matrix.LimitInt32(exp, 0, configData.ConfigMgr().RoleCurrentExpLimit())
+	exp = matrix.LimitInt32(exp, 0, configData.RoleCurrentExpLimit())
 	if err = p.UpPlayerSceneData(
 		userId, player.Hp, lv, exp, player.MapId, player.X,
 		player.Y, player.Z, player.DirX, player.DirY, player.DirZ,
