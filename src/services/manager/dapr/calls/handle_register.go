@@ -28,7 +28,6 @@ func toLocalServiceData(input *methodData.ServiceDataInput) controller.ServiceDa
 }
 
 func RegisterServiceHandler(ctx context.Context, in *common.InvocationEvent) (*common.Content, error) {
-	serviceLog.Info("received register service  data: %v", string(in.Data))
 	input := &methodData.ServiceDataInput{}
 	err := grpcNetTool.UnmarshalGrpcData(in.Data, input)
 	if err != nil {
@@ -36,6 +35,7 @@ func RegisterServiceHandler(ctx context.Context, in *common.InvocationEvent) (*c
 	}
 
 	service := toLocalServiceData(input)
+	serviceLog.Info("received register service: %v", service)
 	controller.GetInstance().RegisterService(service)
 
 	output := &methodData.ServiceDataOutput{
