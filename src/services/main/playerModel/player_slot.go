@@ -123,11 +123,11 @@ func (p *PlayerDataModel) canUpgradeItemSlots(player *dbData.PlayerSceneData, po
 		return fmt.Errorf("slot is max level")
 	}
 
-	playerLvOffsetSetting, err := configData.GameValueById(1000004)
+	slotLvOffsetSetting, err := configData.GameValueById(1000004)
 	if err != nil {
 		return err
 	}
-	if int32(curLv) >= player.Level+playerLvOffsetSetting.Value {
+	if int32(curLv) >= player.Level+slotLvOffsetSetting.Value {
 		return fmt.Errorf("item slot position [%v] is current max level", pos)
 	}
 

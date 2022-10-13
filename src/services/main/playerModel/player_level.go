@@ -32,13 +32,23 @@ func (p *PlayerDataModel) canUpgradeLevel(player *dbData.PlayerSceneData) error 
 	}
 
 	// 角色升级要求是有4个或以上的插槽等级大于角色当前等级-5
-	var count int32
+	slotLvOffsetSetting, err := configData.GameValueById(1000004)
+	if err != nil {
+		return err
+	}
+	slotLvOffsetCountSetting, err := configData.GameValueById(1000005)
+	if err != nil {
+		return err
+	}
+
+	var slotLvOffsetCount int32
 	for _, s := range playerItemSlot.GetSlotList().SlotList {
-		if s.Level > int(player.Level)-5 {
-			count++
+		if int32(s.Level) > player.Level-slotLvOffsetSetting.Value {
+			slotLvOffsetCount++
 		}
 	}
-	if count < 4 {
+
+	if slotLvOffsetCount < slotLvOffsetCountSetting.Value {
 		return fmt.Errorf("can used item socket level < 4")
 	}
 
