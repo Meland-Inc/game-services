@@ -115,13 +115,25 @@ func (p *PlayerDataModel) UpgradeItemSlots(
 }
 
 func (p *PlayerDataModel) canUpgradeItemSlots(player *dbData.PlayerSceneData, pos proto.AvatarPosition, curLv int) error {
+	slotMaxLvSetting, err := configData.GameValueById(1000002)
+	if err != nil {
+		return err
+	}
+	if int32(curLv) >= slotMaxLvSetting.Value {
+		return fmt.Errorf("slot is max level")
+	}
+
+	playerLvOffsetSetting, err := configData.GameValueById(1000004)
+	if err != nil {
+		return err
+	}
+	if int32(curLv) >= player.Level+playerLvOffsetSetting.Value {
+		return fmt.Errorf("item slot position [%v] is current max level", pos)
+	}
+
 	setting := configData.ConfigMgr().GetSlotCnf(int32(pos), int32(curLv))
 	if setting == nil {
 		return fmt.Errorf("item slot position:[%v] Lv:[%d] config not found", pos, curLv)
-	}
-
-	if curLv >= int(player.Level)+5 {
-		return fmt.Errorf("item slot position [%v] is current max level", pos)
 	}
 
 	if player.Exp < setting.UpExp {
