@@ -10,8 +10,11 @@ import (
 )
 
 func (p *PlayerDataModel) canUpgradeLevel(player *dbData.PlayerSceneData) error {
-	maxLv := configData.ConfigMgr().RoleMaxLevel()
-	if player.Level == maxLv {
+	maxLvSetting, err := configData.GameValueById(1000001)
+	if err != nil {
+		return err
+	}
+	if player.Level >= maxLvSetting.Value {
 		return fmt.Errorf("player is max level")
 	}
 	curLvCnf := configData.ConfigMgr().RoleLevelCnf(player.Level)
@@ -97,7 +100,7 @@ func (p *PlayerDataModel) setLevelAndExp(userId int64, lv, exp int32) error {
 		})
 	}
 
-	exp = matrix.LimitInt32(exp, 0, configData.ConfigMgr().RoleCurrentExpLimit())
+	exp = matrix.LimitInt32(exp, 0, configData.RoleCurrentExpLimit())
 	if err = p.UpPlayerSceneData(
 		userId, player.Hp, lv, exp, player.MapId, player.X,
 		player.Y, player.Z, player.DirX, player.DirY, player.DirZ,
