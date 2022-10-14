@@ -39,7 +39,7 @@ func (uc *UserChannel) makePullClientMessageInputBytes(data []byte) ([]byte, err
 		MsgId:      int32(msg.Type),
 		MsgBody:    data,
 	}
-	serviceLog.Info("pull client msg input: %+v", input)
+	serviceLog.Info("pull client msg[%+v] to other service", msg.Type)
 
 	inputBytes, err := json.Marshal(input)
 	if err != nil {

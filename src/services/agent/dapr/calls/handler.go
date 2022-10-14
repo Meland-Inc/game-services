@@ -2,7 +2,6 @@ package daprCalls
 
 import (
 	"context"
-	"fmt"
 	"game-message-core/grpc/methodData"
 	"game-message-core/proto"
 	"game-message-core/protoTool"
@@ -16,14 +15,16 @@ import (
 
 func ignoreMsgLog(msgType proto.EnvelopeType) bool {
 	switch msgType {
-	case proto.EnvelopeType_BroadCastEntityMove:
+	case proto.EnvelopeType_BroadCastItemAdd,
+		proto.EnvelopeType_BroadCastEntityMove,
+		proto.EnvelopeType_BroadCastMapEntityUpdate:
 		return true
 	}
 	return false
 }
 
 func BroadCastToClientHandler(ctx context.Context, in *common.InvocationEvent) (*common.Content, error) {
-	// serviceLog.Info("agent received BroadCastToClient data: %v", (in.Data))
+	// serviceLog.Info("agent received BroadCastToClient data: %v", string(in.Data))
 	input := &methodData.BroadCastToClientInput{}
 	err := grpcNetTool.UnmarshalGrpcData(in.Data, input)
 	if err != nil {
@@ -32,7 +33,7 @@ func BroadCastToClientHandler(ctx context.Context, in *common.InvocationEvent) (
 
 	resMsg, err := protoTool.UnMarshalToEnvelope(input.MsgBody)
 	if !ignoreMsgLog(resMsg.Type) {
-		serviceLog.Info("BroadCastToClient msg[%+v], err:%+v", resMsg.Type, err)
+		serviceLog.Info("BroadCastToClient user[%d] msg[%+v], err:%+v", input.UserId, resMsg.Type, err)
 	}
 
 	var userCh *userChannel.UserChannel
@@ -43,7 +44,7 @@ func BroadCastToClientHandler(ctx context.Context, in *common.InvocationEvent) (
 	}
 	if userCh == nil {
 		serviceLog.Error("BroadCastToClient userCh not found  userId[%d], socketId[%v]", input.UserId, input.SocketId)
-		return nil, fmt.Errorf(" user channel is not found")
+		return nil, nil
 	}
 
 	userCh.SendToUser(proto.EnvelopeType(input.MsgId), input.MsgBody)
@@ -62,7 +63,7 @@ func MultipleBroadCastToClientHandler(ctx context.Context, in *common.Invocation
 
 	resMsg, err := protoTool.UnMarshalToEnvelope(input.MsgBody)
 	if !ignoreMsgLog(resMsg.Type) {
-		serviceLog.Info("MultipleBroadCastToClient msg[%+v], err:%+v", resMsg.Type, err)
+		serviceLog.Info("MultipleBroadCastToClient Users:%v, msg[%+v], err:%+v", input.UserList, resMsg.Type, err)
 	}
 	for _, userId := range input.UserList {
 		userCh := userChannel.GetInstance().UserChannelByOwner(userId)

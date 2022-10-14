@@ -12,14 +12,23 @@ import (
 	"github.com/Meland-Inc/game-services/src/global/serviceCnf"
 )
 
+// type HandleFunc func(proto.EnvelopeType, msgBody []byte)
+
+type ResMsgData struct {
+	MsgType proto.EnvelopeType
+	MsgBody []byte
+}
+
 type UserChannel struct {
 	id                string
 	owner             int64
 	sceneServiceAppId string
 	enterSceneService bool
 	tcpSession        *session.Session
-	channels          []chan []byte
+	reqMsgChannels    []chan []byte
 	stopChans         []chan chan struct{}
+	resMsgChannel     chan *ResMsgData
+	resMsgStopChannel chan chan struct{}
 	isClosed          bool
 }
 
@@ -28,12 +37,14 @@ func NewUserChannel(se *session.Session) *UserChannel {
 	uc.tcpSession = se
 	uc.id = se.SessionId()
 	uc.isClosed = false
+	uc.resMsgChannel = make(chan *ResMsgData, 256)
+	uc.resMsgStopChannel = make(chan chan struct{})
 
 	count := int(proto.ServiceType_ServiceTypeLimit)
-	uc.channels = make([]chan []byte, count, count)
+	uc.reqMsgChannels = make([]chan []byte, count, count)
 	uc.stopChans = make([]chan chan struct{}, count, count)
-	for i := 0; i < len(uc.channels); i++ {
-		uc.channels[i] = make(chan []byte, 256)
+	for i := 0; i < len(uc.reqMsgChannels); i++ {
+		uc.reqMsgChannels[i] = make(chan []byte, 256)
 		uc.stopChans[i] = make(chan chan struct{})
 	}
 	return uc
@@ -53,11 +64,13 @@ func (uc *UserChannel) OnSessionReceivedData(s *session.Session, data []byte) {
 	if err != nil {
 		return
 	}
-
-	serviceLog.Debug("收到客户端消息 [%v]", msg.Type)
+	
+	if msg.Type != proto.EnvelopeType_Ping {
+		serviceLog.Debug("user[%d] channel收到客户端消息 [%v]", uc.owner, msg.Type)
+	}
 
 	serviceId := protoTool.EnvelopeTypeToServiceType(msg.Type)
-	uc.channels[serviceId] <- data
+	uc.reqMsgChannels[serviceId] <- data
 }
 
 func (uc *UserChannel) OnSessionClose(s *session.Session) {
@@ -73,6 +86,12 @@ func (uc *UserChannel) Stop() {
 		sh <- stopDone
 		<-stopDone
 	}
+
+	stopDone := make(chan struct{}, 1)
+	uc.resMsgStopChannel <- stopDone
+	<-stopDone
+
+	uc.tcpSession.Stop()
 	uc.tcpSession = nil
 	uc.isClosed = true
 	uc.sceneServiceAppId = ""
@@ -80,17 +99,41 @@ func (uc *UserChannel) Stop() {
 }
 
 func (uc *UserChannel) Run() {
-	for idx, ch := range uc.channels {
-		uc.runChannel(idx, ch, uc.stopChans[idx])
+	for idx, ch := range uc.reqMsgChannels {
+		uc.runReqMsgChannel(idx, ch, uc.stopChans[idx])
 	}
+	uc.runResMsgChannel()
 }
 
-func (uc *UserChannel) runChannel(channelId int, ch chan []byte, stopCh chan chan struct{}) {
+func (uc *UserChannel) runResMsgChannel() {
 	go func() {
 		defer func() {
 			if err := recover(); err != nil {
-				serviceLog.Error("user channel [%d] panic err: %v", channelId, err)
-				uc.runChannel(channelId, ch, stopCh)
+				serviceLog.StackError("user resp channel panic err: %v", err)
+				uc.runResMsgChannel()
+			}
+		}()
+
+		for {
+			select {
+			case data := <-uc.resMsgChannel:
+				uc.writeResMsg(data)
+			case stopDone := <-uc.resMsgStopChannel:
+				stopDone <- struct{}{}
+				close(uc.resMsgChannel)
+				close(uc.resMsgStopChannel)
+				return
+			}
+		}
+	}()
+}
+
+func (uc *UserChannel) runReqMsgChannel(channelId int, ch chan []byte, stopCh chan chan struct{}) {
+	go func() {
+		defer func() {
+			if err := recover(); err != nil {
+				serviceLog.StackError("user req msg channel [%d] panic err: %v", channelId, err)
+				uc.runReqMsgChannel(channelId, ch, stopCh)
 			}
 		}()
 
@@ -100,6 +143,8 @@ func (uc *UserChannel) runChannel(channelId int, ch chan []byte, stopCh chan cha
 				uc.onProtoMessage(data)
 			case stopDone := <-stopCh:
 				stopDone <- struct{}{}
+				close(ch)
+				close(stopCh)
 				return
 			}
 		}
@@ -120,25 +165,33 @@ func (uc *UserChannel) onProtoMessage(data []byte) {
 	}
 }
 
-func (uc *UserChannel) SendToUser(msgType proto.EnvelopeType, msgBody []byte) {
-	if uc.isClosed || uc.tcpSession == nil {
+func (uc *UserChannel) writeResMsg(data *ResMsgData) {
+	if uc.isClosed || uc.tcpSession == nil || data == nil {
 		return
 	}
 
-	err := uc.tcpSession.Write(msgBody)
+	err := uc.tcpSession.Write(data.MsgBody)
 	if err != nil {
 		serviceLog.Error("tcp send to user err : %+v", err)
 		return
 	}
 
 	// update channel owner and sceneServiceAppId by SingInMsg
-	switch msgType {
+	switch data.MsgType {
 	case proto.EnvelopeType_SigninPlayer:
-		uc.onUserSingInGame(msgType, msgBody)
+		uc.onUserSingInGame(data.MsgType, data.MsgBody)
 	case proto.EnvelopeType_EnterMap:
-		uc.onUserEnterMap(msgBody)
+		uc.onUserEnterMap(data.MsgBody)
 	}
 
+}
+
+func (uc *UserChannel) SendToUser(msgType proto.EnvelopeType, msgBody []byte) {
+	if uc.isClosed || uc.tcpSession == nil {
+		return
+	}
+
+	uc.resMsgChannel <- &ResMsgData{MsgType: msgType, MsgBody: msgBody}
 }
 
 func (uc *UserChannel) onUserSingInGame(msgType proto.EnvelopeType, msgBody []byte) {
@@ -208,6 +261,5 @@ func (uc *UserChannel) onUserEnterMap(msgBody []byte) {
 	}
 
 	uc.enterSceneService = true
-	serviceLog.Info("RPCPubsubEventEnterGame  call: %+v")
 	grpcPubsubEvent.RPCPubsubEventEnterGame(env)
 }

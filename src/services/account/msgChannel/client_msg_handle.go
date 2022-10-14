@@ -41,6 +41,10 @@ func (ch *MsgChannel) QueryPlayerHandler(input *methodData.PullClientMessageInpu
 		}
 		ch.SendToPlayer(input.AgentAppId, input.SocketId, 0, respMsg)
 	}()
+	serviceLog.Info(
+		"QueryPlayer------agent[%s], socketId[%s], token: %s",
+		input.AgentAppId, input.SocketId, req.Token,
+	)
 
 	userIdStr, err := auth.CheckDefaultAuth(req.Token)
 	if err != nil {
@@ -48,8 +52,13 @@ func (ch *MsgChannel) QueryPlayerHandler(input *methodData.PullClientMessageInpu
 		respMsg.ErrorMessage = err.Error()
 		return
 	}
-	userId := cast.ToInt64(userIdStr)
 
+	serviceLog.Info(
+		"QueryPlayer------agent[%s],userId[%s],socketId[%s]",
+		input.AgentAppId, userIdStr, input.SocketId,
+	)
+
+	userId := cast.ToInt64(userIdStr)
 	player := &dbData.PlayerBaseData{}
 	err = gameDb.GetGameDB().Where("user_id = ?", userId).First(player).Error
 	if err != nil && err != gorm.ErrRecordNotFound {
@@ -83,14 +92,24 @@ func (ch *MsgChannel) CreatePlayerHandler(input *methodData.PullClientMessageInp
 		ch.SendToPlayer(input.AgentAppId, input.SocketId, 0, respMsg)
 	}()
 
+	serviceLog.Info(
+		"CreatePlayer--agent[%s], socketId[%s], token: %s",
+		input.AgentAppId, input.SocketId, req.Token,
+	)
+
 	userIdStr, err := auth.CheckDefaultAuth(req.Token)
 	if err != nil {
 		respMsg.ErrorCode = 20001 // TODO: USE PROTO ERROR CODE
 		respMsg.ErrorMessage = err.Error()
 		return
 	}
-	userId := cast.ToInt64(userIdStr)
 
+	serviceLog.Info(
+		"CreatePlayer--agent[%s],userId[%s],socketId[%s]",
+		input.AgentAppId, userIdStr, input.SocketId,
+	)
+
+	userId := cast.ToInt64(userIdStr)
 	player := &dbData.PlayerBaseData{}
 	err = gameDb.GetGameDB().Where("user_id = ?", userId).First(player).Error
 	if err == nil {
