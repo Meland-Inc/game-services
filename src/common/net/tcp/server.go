@@ -97,9 +97,11 @@ func (s *Server) listen() {
 
 func (s *Server) onConnect(connect net.Conn) {
 	count := s.sessionMgr.Count()
+	serviceLog.Debug("%s: connected to agent, current count: %d", connect.RemoteAddr(), count)
+
 	if count >= s.maxConNum {
 		connect.Close()
-		log.Println("too many connections, connCount(", count, ") >= maxConnNum()", count, s.maxConNum, ")")
+		serviceLog.Warning("too many connections, connCount(%d) >= maxConnNum(%d)", count, s.maxConNum)
 		return
 	}
 
