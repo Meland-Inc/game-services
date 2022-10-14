@@ -5,7 +5,6 @@ import (
 	"game-message-core/grpc/methodData"
 
 	"github.com/Meland-Inc/game-services/src/common/daprInvoke"
-	"github.com/Meland-Inc/game-services/src/common/serviceLog"
 	"github.com/Meland-Inc/game-services/src/global/grpcAPI/grpcNetTool"
 	"github.com/Meland-Inc/game-services/src/services/account/msgChannel"
 	"github.com/dapr/go-sdk/service/common"
@@ -22,7 +21,6 @@ func ClientMessageHandler(ctx context.Context, in *common.InvocationEvent) (*com
 		return content, err
 	}
 
-	serviceLog.Info("account received clientPbMsg data: %s", string(in.Data))
 	input := &methodData.PullClientMessageInput{}
 	err := grpcNetTool.UnmarshalGrpcData(in.Data, input)
 	if err != nil {

@@ -95,7 +95,7 @@ func (ch *MsgChannel) onClientMessage(input *methodData.PullClientMessageInput) 
 		serviceLog.Error("Unmarshal Envelope fail err: %+v", err)
 		return
 	}
-	serviceLog.Info("client msg: %+v", msg)
+	// serviceLog.Info("client msg: %+v", msg)
 	if handler, exist := ch.msgHandler[msg.Type]; exist {
 		handler(input, msg)
 	}
