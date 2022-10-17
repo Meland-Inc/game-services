@@ -64,7 +64,13 @@ func (uc *UserChannel) OnSessionReceivedData(s *session.Session, data []byte) {
 	if err != nil {
 		return
 	}
-	
+
+	defer func() {
+		if err := recover(); err != nil {
+			serviceLog.StackError("session on receive data err: ", err)
+		}
+	}()
+
 	if msg.Type != proto.EnvelopeType_Ping {
 		serviceLog.Debug("user[%d] channel收到客户端消息 [%v]", uc.owner, msg.Type)
 	}
@@ -81,6 +87,10 @@ func (uc *UserChannel) OnSessionClose(s *session.Session) {
 }
 
 func (uc *UserChannel) Stop() {
+	if uc.isClosed {
+		return
+	}
+
 	for _, sh := range uc.stopChans {
 		stopDone := make(chan struct{}, 1)
 		sh <- stopDone
@@ -203,7 +213,6 @@ func (uc *UserChannel) onUserSingInGame(msgType proto.EnvelopeType, msgBody []by
 
 	if respMsg.ErrorCode > 0 {
 		serviceLog.Error("SigninPlayer fail err: %s", respMsg.ErrorMessage)
-		uc.Stop()
 		return
 	}
 
@@ -221,7 +230,6 @@ func (uc *UserChannel) onUserEnterMap(msgBody []byte) {
 	}
 	if respMsg.ErrorCode > 0 {
 		serviceLog.Error("enterMap fail err: %s", respMsg.ErrorMessage)
-		uc.Stop()
 		return
 	}
 
