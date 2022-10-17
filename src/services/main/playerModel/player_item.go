@@ -175,12 +175,12 @@ func (p *PlayerDataModel) canLoadAvatar(userId int64, item *Item, pos proto.Avat
 	if item.Attribute.Durability < 1 {
 		return fmt.Errorf("item [%s] Durability is zero", item.Id)
 	}
-	slot, err := p.SlotByPosition(userId, pos)
+	player, err := p.GetPlayerSceneData(userId)
 	if err != nil {
 		return err
 	}
-	if slot.Level < int(item.NFTData.UseLevel()) {
-		return fmt.Errorf("item socket level < item need level")
+	if player.Level < item.NFTData.UseLevel() {
+		return fmt.Errorf("player level < item need level")
 	}
 	return nil
 }
