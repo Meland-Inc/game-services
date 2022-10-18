@@ -37,6 +37,9 @@ ingress:
       path: /
   tls: []
 
+tcpIngress:
+  enabled: false
+
 resources: 
   limits:
     cpu: 1

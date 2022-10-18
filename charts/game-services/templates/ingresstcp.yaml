@@ -1,0 +1,20 @@
+{{- if .Values.tcpIngress.enabled -}}
+{{- $fullName := include "game-services.fullname" . -}}
+{{- $svcPort := .Values.service.port -}}
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRouteTCP
+metadata:
+  name: {{ $fullName }}-tcp
+spec:
+  entryPoints:
+    - gameagent
+  routes:
+  # Match is the rule corresponding to an underlying router.
+  - match: HostSNI(`*`)
+    priority: 10
+    services:
+    - name: {{ $fullName }}
+      port: {{ $svcPort }}
+      terminationDelay: 400
+      weight: 10
+{{- end }}
