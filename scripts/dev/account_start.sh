@@ -1,18 +1,20 @@
 #!/bin/bash
 set -o errexit
 
-# ------ export meland config DB settings --------
+# ------ export game DB settings --------
 . scripts/dev/global.sh 
 
-## ---------------meland agent service settings ----------------
-export MELAND_SERVICE_ACCOUNT_NODE_ID=201
-export MELAND_SERVICE_ACCOUNT_DAPR_APPID=meland-service-account
-export MELAND_SERVICE_ACCOUNT_DAPR_APP_PORT=5200
-export MELAND_SERVICE_ACCOUNT_DAPR_GRPC_PORT=5250  
+## ---------------game account service settings ---------------- 
+## appPort:(5200~5249)  grpc:(5250~5299)
+export APP_ID=game-service-account
+export APP_PORT=5200
+export DAPR_GRPC_PORT=5250   
+# export DAPR_HTTP_PORT=5225 
+# export APP_API_TOKEN= 
  
 echo "---------------------------start DAPR and ACCOUNT service --------------------------------"
-dapr run --app-id ${MELAND_SERVICE_ACCOUNT_DAPR_APPID} --app-protocol grpc \
---app-port ${MELAND_SERVICE_ACCOUNT_DAPR_APP_PORT} \
---dapr-grpc-port ${MELAND_SERVICE_ACCOUNT_DAPR_GRPC_PORT} \
+dapr run --app-id ${APP_ID} --app-protocol grpc \
+--app-port ${APP_PORT} \
+--dapr-grpc-port ${DAPR_GRPC_PORT} \
 --log-level debug -- \
 go run src/services/account/main.go

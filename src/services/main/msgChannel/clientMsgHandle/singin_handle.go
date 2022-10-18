@@ -25,7 +25,7 @@ func responseSingInMessage(agentAppId, UserSocketId string, msg *proto.Envelope)
 	}
 	input := methodData.BroadCastToClientInput{
 		MsgVersion:   time_helper.NowUTCMill(),
-		ServiceAppId: serviceCnf.GetInstance().ServerName,
+		ServiceAppId: serviceCnf.GetInstance().AppId,
 		SocketId:     UserSocketId,
 		MsgId:        int32(msg.Type),
 		MsgBody:      msgBody,

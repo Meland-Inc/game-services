@@ -26,11 +26,11 @@ func getDbTableModels() []interface{} {
 }
 
 func Init() (err error) {
-	host := os.Getenv("MELAND_GAME_DB_HOST")
-	port := os.Getenv("MELAND_GAME_DB_PORT")
-	user := os.Getenv("MELAND_GAME_DB_USER")
-	pass := os.Getenv("MELAND_GAME_DB_PASS")
-	dbName := os.Getenv("MELAND_GAME_DB_DATABASE")
+	host := os.Getenv("GAME_DB_HOST")
+	port := os.Getenv("GAME_DB_PORT")
+	user := os.Getenv("GAME_DB_USER")
+	pass := os.Getenv("GAME_DB_PASS")
+	dbName := os.Getenv("GAME_DB_DATABASE")
 	db, err = gormDB.InitGormDB(host, port, user, pass, dbName, getDbTableModels())
 	return err
 }

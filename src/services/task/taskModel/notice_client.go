@@ -30,7 +30,7 @@ func (p *TaskModel) broadCastUpdateTaskListInfo(userId int64, tlType proto.TaskL
 		serviceLog.Warning("user [%d] agent data not found", userId)
 		return
 	}
-	agent.SendToPlayer(serviceCnf.GetInstance().ServerName, msg)
+	agent.SendToPlayer(serviceCnf.GetInstance().AppId, msg)
 }
 
 func (p *TaskModel) broadCastReceiveRewardInfo(
@@ -59,5 +59,5 @@ func (p *TaskModel) broadCastReceiveRewardInfo(
 		serviceLog.Warning("user [%d] agent data not found", userId)
 		return
 	}
-	agent.SendToPlayer(serviceCnf.GetInstance().ServerName, msg)
+	agent.SendToPlayer(serviceCnf.GetInstance().AppId, msg)
 }

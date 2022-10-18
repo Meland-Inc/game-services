@@ -2,6 +2,7 @@ package daprService
 
 import (
 	"os"
+	"time"
 
 	"github.com/Meland-Inc/game-services/src/common/daprInvoke"
 	"github.com/Meland-Inc/game-services/src/common/serviceLog"
@@ -14,7 +15,7 @@ func Init() (err error) {
 }
 
 func initDaprService() (err error) {
-	appPort := os.Getenv("MELAND_SERVICE_DEMO_DAPR_APP_PORT")
+	appPort := os.Getenv("APP_PORT")
 	serviceLog.Info("dapr app port: [%s]", appPort)
 	if err = daprInvoke.InitServer(appPort); err != nil {
 		return err
@@ -41,10 +42,9 @@ func Run(errChan chan error) {
 }
 
 func initDaprClient() error {
-	grpcPort := os.Getenv("MELAND_SERVICE_DEMO_DAPR_GRPC_PORT")
-	if grpcPort == "" {
-		grpcPort = os.Getenv("DAPR_GRPC_PORT")
-	}
+	time.Sleep(time.Millisecond * 300) //300Ms wait dapr link over
+
+	grpcPort := os.Getenv("DAPR_GRPC_PORT")
 	serviceLog.Info("dapr grpc port: [%s]", grpcPort)
 	return daprInvoke.InitClient(grpcPort)
 }

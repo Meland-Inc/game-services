@@ -19,8 +19,7 @@ func NewServiceConfig() *ServiceConfig {
 }
 
 type ServiceConfig struct {
-	ServerId    int64
-	ServerName  string
+	AppId       string
 	ServiceType proto.ServiceType
 	MapId       int32
 	Host        string

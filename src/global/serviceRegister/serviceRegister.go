@@ -16,9 +16,7 @@ func serviceRealInfo(
 ) methodData.ServiceDataInput {
 	return methodData.ServiceDataInput{
 		MsgVersion:  time_helper.NowUTCMill(),
-		Id:          cnf.ServerId,
-		Name:        cnf.ServerName,
-		AppId:       cnf.ServerName,
+		AppId:       cnf.AppId,
 		ServiceType: cnf.ServiceType,
 		Host:        cnf.Host,
 		Port:        cnf.Port,
@@ -38,7 +36,7 @@ func RegisterService(cnf serviceCnf.ServiceConfig, online int32) error {
 	}
 
 	bs, err := daprInvoke.InvokeMethod(
-		string(grpc.AppIdMelandServiceManager),
+		string(grpc.GAME_SERVICE_APPID_MANAGER),
 		string(grpc.ManagerServiceActionRegister),
 		inputBytes,
 	)
@@ -64,7 +62,7 @@ func UnRegisterService(cnf serviceCnf.ServiceConfig, online int32) error {
 	}
 
 	_, err = daprInvoke.InvokeMethod(
-		string(grpc.AppIdMelandServiceManager),
+		string(grpc.GAME_SERVICE_APPID_MANAGER),
 		string(grpc.ManagerServiceActionDestroy),
 		inBytes,
 	)

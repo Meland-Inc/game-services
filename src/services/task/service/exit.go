@@ -11,13 +11,13 @@ import (
 func (s *Service) onStop() error {
 	if err := s.unRegisterService(); err != nil {
 		serviceLog.Error(
-			"service [%s] unRegisterService err: %v", s.serviceCnf.ServerName, err,
+			"service [%s] unRegisterService err: %v", s.serviceCnf.AppId, err,
 		)
 	}
 
 	if err := s.modelMgr.StopModel(); err != nil {
 		serviceLog.Error(
-			"service [%s] StopModel err: %v", s.serviceCnf.ServerName, err,
+			"service [%s] StopModel err: %v", s.serviceCnf.AppId, err,
 		)
 	}
 

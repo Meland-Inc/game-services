@@ -33,7 +33,7 @@ func (uc *UserChannel) makePullClientMessageInputBytes(data []byte) ([]byte, err
 	msg, _ := protoTool.UnMarshalToEnvelope(data)
 	input := &methodData.PullClientMessageInput{
 		MsgVersion: time_helper.NowUTCMill(),
-		AgentAppId: serviceCnf.GetInstance().ServerName,
+		AgentAppId: serviceCnf.GetInstance().AppId,
 		UserId:     uc.owner,
 		SocketId:   uc.id,
 		MsgId:      int32(msg.Type),
@@ -60,15 +60,15 @@ func (uc *UserChannel) parsePullClientMessageOutput(data []byte) (*methodData.Pu
 func (uc *UserChannel) getServiceAppId(serviceType proto.ServiceType) (appId string) {
 	switch proto.ServiceType(serviceType) {
 	case proto.ServiceType_ServiceTypeMain:
-		appId = string(grpc.AppIdMelandServiceMain)
+		appId = string(grpc.GAME_SERVICE_APPID_MAIN)
 	case proto.ServiceType_ServiceTypeAccount:
-		appId = string(grpc.AppIdMelandServiceAccount)
+		appId = string(grpc.GAME_SERVICE_APPID_ACCOUNT)
 	case proto.ServiceType_ServiceTypeScene:
 		appId = uc.sceneServiceAppId
 	case proto.ServiceType_ServiceTypeTask:
-		appId = string(grpc.AppIdMelandServiceTask)
+		appId = string(grpc.GAME_SERVICE_APPID_TASK)
 	case proto.ServiceType_ServiceTypeChat:
-		appId = string(grpc.AppIdMelandServiceChat)
+		appId = string(grpc.GAME_SERVICE_APPID_CHAT)
 	default:
 	}
 	return
@@ -135,7 +135,7 @@ func (uc *UserChannel) callOtherServiceClientMsg(data []byte, msg *proto.Envelop
 func (uc *UserChannel) callPlayerLeaveGame() {
 	input := &methodData.UserLeaveGameInput{
 		MsgVersion: time_helper.NowUTCMill(),
-		AgentAppId: serviceCnf.GetInstance().ServerName,
+		AgentAppId: serviceCnf.GetInstance().AppId,
 		UserId:     uc.owner,
 	}
 	inputBytes, err := json.Marshal(input)
@@ -146,16 +146,16 @@ func (uc *UserChannel) callPlayerLeaveGame() {
 
 	serviceLog.Info("call player leave game: %+v", input)
 
-	leaveEventTarSerArr := map[string]string{
-		"chat service":  string(grpc.AppIdMelandServiceChat),
-		"scene service": uc.sceneServiceAppId,
-		"task service":  string(grpc.AppIdMelandServiceTask),
-		"main service":  string(grpc.AppIdMelandServiceMain),
+	leaveEventTarSerArr := []string{
+		string(grpc.GAME_SERVICE_APPID_CHAT),
+		uc.sceneServiceAppId,
+		string(grpc.GAME_SERVICE_APPID_TASK),
+		string(grpc.GAME_SERVICE_APPID_MAIN),
 	}
-	for name, serAppId := range leaveEventTarSerArr {
+	for _, serAppId := range leaveEventTarSerArr {
 		_, err = daprInvoke.InvokeMethod(serAppId, string(grpc.UserActionLeaveGame), inputBytes)
 		if err != nil {
-			serviceLog.Error("call [%s] UserActionLeaveGame failed err: %+v", name, err)
+			serviceLog.Error("call [%s] UserActionLeaveGame failed err: %+v", serAppId, err)
 		}
 	}
 }

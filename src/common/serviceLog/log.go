@@ -10,8 +10,8 @@ import (
 
 var beeLogger = logs.NewLogger()
 
-func Init(nodeId int64, isConsole bool) {
-	fpath := fmt.Sprintf("logs/%d", nodeId)
+func Init(nodeId string, isConsole bool) {
+	fpath := fmt.Sprintf("logs/%s", nodeId)
 	filename := fpath + "/" + time.Now().Add(time.Second).Local().String()[0:10] + ".log"
 	SetWriteFile(filename, isConsole)
 	Info("services log init success, filePath: %s", filename)

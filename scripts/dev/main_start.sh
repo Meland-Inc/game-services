@@ -1,20 +1,21 @@
 #!/bin/bash
 set -o errexit
 
-# ------ export meland config DB settings --------
+# ------ export game DB settings --------
 . scripts/dev/global.sh 
 
-## ---------------meland agent service settings ----------------
-## mainService         appPort:(5300~5349)  grpc:(5350~5399) 
-export MELAND_SERVICE_MAIN_NODE_ID=301
-export MELAND_SERVICE_MAIN_DAPR_APPID=meland-service-main
-export MELAND_SERVICE_MAIN_DAPR_APP_PORT=5300
-export MELAND_SERVICE_MAIN_DAPR_GRPC_PORT=5350
-export MELAND_SERVICE_MAIN_DEVELOP_MODEL=true
+## ---------------meland main service settings ----------------
+## mainService         appPort:(5300~5349)  grpc:(5350~5399)  
+export APP_ID=game-service-main
+export APP_PORT=5300
+export DAPR_GRPC_PORT=5350   
+# export DAPR_HTTP_PORT=5325 
+# export APP_API_TOKEN= 
+export DEVELOP_MODEL=true
  
 echo "---------------------------start DAPR and MAIN service --------------------------------"
-dapr run --app-id ${MELAND_SERVICE_MAIN_DAPR_APPID} --app-protocol grpc \
---app-port ${MELAND_SERVICE_MAIN_DAPR_APP_PORT} \
---dapr-grpc-port ${MELAND_SERVICE_MAIN_DAPR_GRPC_PORT} \
+dapr run --app-id ${APP_ID} --app-protocol grpc \
+--app-port ${APP_PORT} \
+--dapr-grpc-port ${DAPR_GRPC_PORT} \
 --log-level debug -- \
 go run src/services/main/main.go

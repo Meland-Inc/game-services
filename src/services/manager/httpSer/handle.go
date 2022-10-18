@@ -45,7 +45,7 @@ func AllServicesHandler(w http.ResponseWriter, r *http.Request) {
 
 	for i := 0; i < len(services)-1; i++ {
 		for j := i + 1; j < len(services); j++ {
-			if services[i].Id > services[j].Id {
+			if services[i].CreateAt > services[j].CreateAt {
 				services[i], services[j] = services[j], services[i]
 			}
 		}

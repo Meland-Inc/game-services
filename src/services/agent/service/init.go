@@ -20,7 +20,7 @@ func (s *Service) init() error {
 	if err := s.initServiceCnf(); err != nil {
 		return err
 	}
-	serviceLog.Init(s.serviceCnf.ServerId, true)
+	serviceLog.Init(s.serviceCnf.AppId, true)
 	s.initOsSignal()
 
 	if err := s.initServiceModels(); err != nil {
@@ -34,23 +34,19 @@ func (s *Service) initServiceCnf() error {
 	sc := serviceCnf.GetInstance()
 	s.serviceCnf = sc
 
-	sc.ServerId = cast.ToInt64(os.Getenv("MELAND_SERVICE_AGENT_NODE_ID"))
 	sc.ServiceType = proto.ServiceType_ServiceTypeAgent
 	sc.StartMs = time_helper.NowUTCMill()
-	sc.ServerName = os.Getenv("MELAND_SERVICE_AGENT_DAPR_APPID")
-	sc.Host = os.Getenv("MELAND_SERVICE_AGENT_SOCKET_HOST")
-	sc.Port = cast.ToInt32(os.Getenv("MELAND_SERVICE_AGENT_SOCKET_PORT"))
-	sc.MaxOnline = cast.ToInt32(os.Getenv("MELAND_SERVICE_AGENT_ONLINE_LIMIT"))
+	sc.AppId = os.Getenv("APP_ID")
+	sc.Host = os.Getenv("SOCKET_HOST")
+	sc.Port = cast.ToInt32(os.Getenv("SOCKET_PORT"))
+	sc.MaxOnline = cast.ToInt32(os.Getenv("ONLINE_LIMIT"))
 	if sc.MaxOnline == 0 {
 		sc.MaxOnline = 5000
 	}
 
 	fmt.Println(fmt.Sprintf("serviceCnf: [%+v]", sc))
 
-	if sc.ServerId == 0 {
-		return fmt.Errorf("invalid serviceId [%v]", sc.ServerId)
-	}
-	if sc.ServerName == "" {
+	if sc.AppId == "" {
 		return fmt.Errorf("server app id is empty")
 	}
 	if sc.Port == 0 || sc.Host == "" {

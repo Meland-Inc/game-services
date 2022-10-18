@@ -7,8 +7,6 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/spf13/cast"
-
 	"github.com/Meland-Inc/game-services/src/common/serviceLog"
 	"github.com/Meland-Inc/game-services/src/common/time_helper"
 	configData "github.com/Meland-Inc/game-services/src/global/configData"
@@ -24,7 +22,7 @@ func (s *Service) init() error {
 	if err := s.initServiceCnf(); err != nil {
 		return err
 	}
-	serviceLog.Init(s.serviceCnf.ServerId, true)
+	serviceLog.Init(s.serviceCnf.AppId, true)
 	s.initOsSignal()
 
 	if err := gameDb.Init(); err != nil {
@@ -50,20 +48,13 @@ func (s *Service) initServiceCnf() error {
 	sc := serviceCnf.GetInstance()
 	s.serviceCnf = sc
 
-	sc.ServerId = cast.ToInt64(os.Getenv("MELAND_SERVICE_CHAT_NODE_ID"))
 	sc.ServiceType = proto.ServiceType_ServiceTypeChat
 	sc.StartMs = time_helper.NowUTCMill()
-	sc.ServerName = os.Getenv("MELAND_SERVICE_CHAT_DAPR_APPID")
-	if sc.MaxOnline == 0 {
-		sc.MaxOnline = 5000
-	}
+	sc.AppId = os.Getenv("APP_ID")
 
 	fmt.Println(fmt.Sprintf("serviceCnf: [%+v]", sc))
 
-	if sc.ServerId == 0 {
-		return fmt.Errorf("invalid serviceId [%v]", sc.ServerId)
-	}
-	if sc.ServerName == "" {
+	if sc.AppId == "" {
 		return fmt.Errorf("server app id is empty")
 	}
 	return nil

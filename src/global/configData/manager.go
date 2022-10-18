@@ -69,11 +69,11 @@ func (mgr *ConfigDataManager) registerLoadFunctions() {
 }
 
 func initDB(mgr *ConfigDataManager) (err error) {
-	host := os.Getenv("MELAND_CONFIG_DB_HOST")
-	port := os.Getenv("MELAND_CONFIG_DB_PORT")
-	user := os.Getenv("MELAND_CONFIG_DB_USER")
-	password := os.Getenv("MELAND_CONFIG_DB_PASS")
-	dbName := os.Getenv("MELAND_CONFIG_DB_DATABASE")
+	host := os.Getenv("GAME_CONFIG_DB_HOST")
+	port := os.Getenv("GAME_CONFIG_DB_PORT")
+	user := os.Getenv("GAME_CONFIG_DB_USER")
+	password := os.Getenv("GAME_CONFIG_DB_PASS")
+	dbName := os.Getenv("GAME_CONFIG_DB_DATABASE")
 
 	mgr.configDb, err = gormDB.InitGormDB(host, port, user, password, dbName, xlsxTable.TableModels())
 	return err

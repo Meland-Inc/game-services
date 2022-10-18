@@ -25,7 +25,7 @@ func RPCMainServiceTakeNFT(userId int64, nfts []methodData.TakeNftData) error {
 	}
 
 	outBytes, err := daprInvoke.InvokeMethod(
-		string(grpc.AppIdMelandServiceMain),
+		string(grpc.GAME_SERVICE_APPID_MAIN),
 		string(grpc.MainServiceActionTakeNFT),
 		inputBytes,
 	)

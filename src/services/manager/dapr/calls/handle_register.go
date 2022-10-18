@@ -13,8 +13,6 @@ import (
 
 func toLocalServiceData(input *methodData.ServiceDataInput) controller.ServiceData {
 	return controller.ServiceData{
-		Id:          input.Id,
-		Name:        input.Name,
 		AppId:       input.AppId,
 		ServiceType: input.ServiceType,
 		Host:        input.Host,
