@@ -16,7 +16,7 @@ func (p *PlayerDataModel) SendToPlayer(userId int64, msg *proto.Envelope) {
 		serviceLog.Warning("user [%d] agent data not found", userId)
 		return
 	}
-	agent.SendToPlayer(serviceCnf.GetInstance().ServerName, msg)
+	agent.SendToPlayer(serviceCnf.GetInstance().AppId, msg)
 }
 
 func (p *PlayerDataModel) noticePlayerProfileUpdate(userId int64, profiles []*proto.EntityProfileUpdate) {

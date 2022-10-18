@@ -1,19 +1,21 @@
 #!/bin/bash
 set -o errexit
 
-## ---------------meland agent service settings ----------------
-export MELAND_SERVICE_AGENT_NODE_ID=601
-export MELAND_SERVICE_AGENT_DAPR_APPID=meland-service-agent-${MELAND_SERVICE_AGENT_NODE_ID}
-export MELAND_SERVICE_AGENT_DAPR_APP_PORT=5600
-export MELAND_SERVICE_AGENT_DAPR_GRPC_PORT=5650 
-export MELAND_SERVICE_AGENT_SOCKET_HOST=192.168.50.171 
-export MELAND_SERVICE_AGENT_SOCKET_PORT=5700 
-export MELAND_SERVICE_AGENT_ONLINE_LIMIT=5000
+## ---------------game agent service settings ---------------- 
+##  appPort:(5600~5649)  grpc:(5650~5699) serviceSocket(5700~5799)
+export APP_ID=game-service-agent-600
+export APP_PORT=5600
+export DAPR_GRPC_PORT=5650   
+# export DAPR_HTTP_PORT=5625 
+# export APP_API_TOKEN= 
+export SOCKET_HOST=127.0.0.1 
+export SOCKET_PORT=5700 
+export ONLINE_LIMIT=5000
 
 
-echo "---------------------------start DAPR and agent service --------------------------------"
-dapr run --app-id ${MELAND_SERVICE_AGENT_DAPR_APPID} --app-protocol grpc \
---app-port ${MELAND_SERVICE_AGENT_DAPR_APP_PORT} \
---dapr-grpc-port ${MELAND_SERVICE_AGENT_DAPR_GRPC_PORT} \
+echo "---------------------------start DAPR and agent service --------------------------------" 
+dapr run --app-id ${APP_ID} --app-protocol grpc \
+--app-port ${APP_PORT} \
+--dapr-grpc-port ${DAPR_GRPC_PORT} \
 --log-level debug -- \
 go run src/services/agent/main.go

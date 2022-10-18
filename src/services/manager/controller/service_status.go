@@ -9,14 +9,14 @@ const (
 )
 
 type ServiceStatusRecord struct {
-	recordByService map[int64]ServiceStatus
-	recordByStatus  map[ServiceStatus][]int64
+	recordByService map[string]ServiceStatus
+	recordByStatus  map[ServiceStatus][]string
 }
 
 func NewServiceStatusRecord() *ServiceStatusRecord {
 	return &ServiceStatusRecord{
-		recordByService: make(map[int64]ServiceStatus),
-		recordByStatus:  make(map[ServiceStatus][]int64),
+		recordByService: make(map[string]ServiceStatus),
+		recordByStatus:  make(map[ServiceStatus][]string),
 	}
 }
 
@@ -35,40 +35,40 @@ func (s *ServiceStatusRecord) calculateServiceStatus(online, maxOnline int32) Se
 	return status
 }
 
-func (s *ServiceStatusRecord) GetServicesByStatus(status ServiceStatus) []int64 {
+func (s *ServiceStatusRecord) GetServicesByStatus(status ServiceStatus) []string {
 	return s.recordByStatus[status]
 }
 
-func (s *ServiceStatusRecord) AddServiceStatusRecord(serviceId int64, online, maxOnline int32) {
+func (s *ServiceStatusRecord) AddServiceStatusRecord(appId string, online, maxOnline int32) {
 	status := s.calculateServiceStatus(online, maxOnline)
-	curStatus, exist := s.recordByService[serviceId]
+	curStatus, exist := s.recordByService[appId]
 	if exist && curStatus == status {
 		return
 	}
 
 	if exist {
-		s.RemoveServiceStatusRecord(serviceId)
+		s.RemoveServiceStatusRecord(appId)
 	}
-	s.recordByService[serviceId] = status
+	s.recordByService[appId] = status
 	if _, exist := s.recordByStatus[status]; !exist {
-		s.recordByStatus[status] = []int64{serviceId}
+		s.recordByStatus[status] = []string{appId}
 	} else {
-		s.recordByStatus[status] = append(s.recordByStatus[status], serviceId)
+		s.recordByStatus[status] = append(s.recordByStatus[status], appId)
 	}
 }
 
-func (s *ServiceStatusRecord) RemoveServiceStatusRecord(serviceId int64) {
-	status, exist := s.recordByService[serviceId]
+func (s *ServiceStatusRecord) RemoveServiceStatusRecord(appId string) {
+	status, exist := s.recordByService[appId]
 	if !exist {
 		return
 	}
 
 	idList := s.recordByStatus[status]
 	for idx, id := range idList {
-		if id == serviceId {
+		if id == appId {
 			idList = append(idList[:idx], idList[idx+1:]...)
 		}
 	}
 	s.recordByStatus[status] = idList
-	delete(s.recordByService, serviceId)
+	delete(s.recordByService, appId)
 }

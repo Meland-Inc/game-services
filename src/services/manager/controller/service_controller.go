@@ -58,7 +58,7 @@ func (this *ServiceController) DestroyService(service ServiceData) {
 	if !ok {
 		return
 	}
-	record.RemoveServiceRecord(service.Id)
+	record.RemoveServiceRecord(service.AppId)
 }
 
 func (this *ServiceController) GetAliveServiceByType(sType proto.ServiceType, mapId int32) (*ServiceData, bool) {
@@ -84,8 +84,8 @@ func (this *ServiceController) AllServices() (services []ServiceData) {
 func (this *ServiceController) PrintAllServices() {
 	this.controller.Range(func(key, value interface{}) bool {
 		if record, ok := value.(*ServiceRecord); ok {
-			for serviceId, s := range record.Services {
-				serviceLog.Info("serviceType[%v], serviceId[%d], data:%+v", key.(proto.ServiceType), serviceId, s)
+			for appId, s := range record.Services {
+				serviceLog.Info("serviceType[%v], appId[%d], data:%+v", key.(proto.ServiceType), appId, s)
 			}
 		}
 		return true

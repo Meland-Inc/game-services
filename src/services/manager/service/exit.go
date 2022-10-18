@@ -10,7 +10,7 @@ import (
 func (s *Service) onStop() error {
 	if err := s.modelMgr.StopModel(); err != nil {
 		serviceLog.Error(
-			"agent service [%s] StopModel err: %v", s.serviceCnf.ServerName, err,
+			"agent service [%s] StopModel err: %v", s.serviceCnf.AppId, err,
 		)
 	}
 

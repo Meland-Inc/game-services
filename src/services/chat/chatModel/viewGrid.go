@@ -101,7 +101,7 @@ func (g *ViewGrid) Broadcast(msg *proto.Envelope, exceptEntity int64) {
 		return true
 	})
 
-	serviceAppId := serviceCnf.GetInstance().ServerName
+	serviceAppId := serviceCnf.GetInstance().AppId
 	for agentId, userIds := range agentList {
 		err := userAgent.MultipleBroadCastToClient(agentId, serviceAppId, userIds, msg)
 		if err != nil {

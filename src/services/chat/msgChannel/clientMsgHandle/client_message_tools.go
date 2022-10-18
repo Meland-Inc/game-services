@@ -26,7 +26,7 @@ func ResponseClientMessage(
 		return
 	}
 	serviceLog.Info("response player:[%d], msg:[%s]", input.UserId, respMsg.Type)
-	agent.SendToPlayer(serviceCnf.GetInstance().ServerName, respMsg)
+	agent.SendToPlayer(serviceCnf.GetInstance().AppId, respMsg)
 }
 
 func makeResponseMsg(msg *proto.Envelope) *proto.Envelope {

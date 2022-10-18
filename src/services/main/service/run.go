@@ -14,14 +14,14 @@ import (
 )
 
 func (s *Service) onReceivedOsSignal(si os.Signal) {
-	serviceLog.Info("service[%s], received   signal [%v]", s.serviceCnf.ServerName, si)
+	serviceLog.Info("service[%s], received   signal [%v]", s.serviceCnf.AppId, si)
 	switch si {
 	case syscall.SIGQUIT, syscall.SIGTERM, syscall.SIGINT:
-		serviceLog.Info("service[%s], received signal [%v]", s.serviceCnf.ServerName, si)
+		serviceLog.Info("service[%s], received signal [%v]", s.serviceCnf.AppId, si)
 		s.OnExit()
 	default:
 		serviceLog.Info("close gameServer si[%v]", si)
-		serviceLog.Info("service[%s], received signal [%v]", s.serviceCnf.ServerName, si)
+		serviceLog.Info("service[%s], received signal [%v]", s.serviceCnf.AppId, si)
 	}
 }
 

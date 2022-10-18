@@ -28,7 +28,7 @@ func RPCSelectService(
 	}
 
 	outBytes, err := daprInvoke.InvokeMethod(
-		string(grpc.AppIdMelandServiceManager),
+		string(grpc.GAME_SERVICE_APPID_MANAGER),
 		string(grpc.ManagerServiceActionSelectService),
 		inputBytes,
 	)

@@ -12,14 +12,13 @@ import (
 	"github.com/Meland-Inc/game-services/src/global/serviceCnf"
 	mgrDaprService "github.com/Meland-Inc/game-services/src/services/manager/dapr"
 	"github.com/Meland-Inc/game-services/src/services/manager/httpSer"
-	"github.com/spf13/cast"
 )
 
 func (s *Service) init() error {
 	if err := s.initServiceCnf(); err != nil {
 		return err
 	}
-	serviceLog.Init(s.serviceCnf.ServerId, true)
+	serviceLog.Init(s.serviceCnf.AppId, true)
 
 	s.initOsSignal()
 
@@ -30,17 +29,13 @@ func (s *Service) initServiceCnf() error {
 	sc := serviceCnf.GetInstance()
 	s.serviceCnf = sc
 
-	sc.ServerId = cast.ToInt64(os.Getenv("MELAND_SERVICE_MGR_NODE_ID"))
 	sc.ServiceType = proto.ServiceType_ServiceTypeManager
 	sc.StartMs = time_helper.NowUTCMill()
-	sc.ServerName = os.Getenv("MELAND_SERVICE_MGR_DAPR_APPID")
+	sc.AppId = os.Getenv("APP_ID")
 
 	fmt.Println(fmt.Sprintf("serviceCnf: [%+v]", *sc))
 
-	if sc.ServerId == 0 {
-		return fmt.Errorf("invalid serviceId [%v]", sc.ServerId)
-	}
-	if sc.ServerName == "" {
+	if sc.AppId == "" {
 		return fmt.Errorf("server app id is empty")
 	}
 	return nil

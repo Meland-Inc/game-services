@@ -15,7 +15,7 @@ func Init() (err error) {
 }
 
 func initDaprService() (err error) {
-	appPort := os.Getenv("MELAND_SERVICE_CHAT_DAPR_APP_PORT")
+	appPort := os.Getenv("APP_PORT")
 	serviceLog.Info("dapr app port: [%s]", appPort)
 	if err = daprInvoke.InitServer(appPort); err != nil {
 		return err
@@ -44,10 +44,7 @@ func Run(errChan chan error) {
 func initDaprClient() error {
 	time.Sleep(time.Millisecond * 300) //300Ms wait dapr link over
 
-	grpcPort := os.Getenv("MELAND_SERVICE_CHAT_DAPR_GRPC_PORT")
-	if grpcPort == "" {
-		grpcPort = os.Getenv("DAPR_GRPC_PORT")
-	}
+	grpcPort := os.Getenv("DAPR_GRPC_PORT")
 	serviceLog.Info("dapr grpc port: [%s]", grpcPort)
 	return daprInvoke.InitClient(grpcPort)
 }

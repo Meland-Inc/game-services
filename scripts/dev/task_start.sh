@@ -5,15 +5,16 @@ set -o errexit
 . scripts/dev/global.sh 
 
 ## ---------------meland task service settings ----------------
-# taskService         appPort:(5400~5449)  grpc:(5450~5499)  
-export MELAND_SERVICE_TASK_NODE_ID=401
-export MELAND_SERVICE_TASK_DAPR_APPID=meland-service-task
-export MELAND_SERVICE_TASK_DAPR_APP_PORT=5400
-export MELAND_SERVICE_TASK_DAPR_GRPC_PORT=5450 
+# taskService         appPort:(5400~5449)  grpc:(5450~5499)   
+export APP_ID=game-service-task
+export APP_PORT=5400
+export DAPR_GRPC_PORT=5450
+# export DAPR_HTTP_PORT=5425 
+# export APP_API_TOKEN=    
  
 echo "---------------------------start DAPR and MAIN service --------------------------------"
-dapr run --app-id ${MELAND_SERVICE_TASK_DAPR_APPID} --app-protocol grpc \
---app-port ${MELAND_SERVICE_TASK_DAPR_APP_PORT} \
---dapr-grpc-port ${MELAND_SERVICE_TASK_DAPR_GRPC_PORT} \
+dapr run --app-id ${APP_ID} --app-protocol grpc \
+--app-port ${APP_PORT} \
+--dapr-grpc-port ${DAPR_GRPC_PORT} \
 --log-level debug -- \
 go run src/services/task/main.go

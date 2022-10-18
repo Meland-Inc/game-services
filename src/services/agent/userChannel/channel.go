@@ -243,7 +243,7 @@ func (uc *UserChannel) onUserEnterMap(msgBody []byte) {
 	env := &pubsubEventData.UserEnterGameEvent{
 		MsgVersion:        time_helper.NowUTCMill(),
 		SceneServiceAppId: uc.GetSceneService(),
-		AgentAppId:        serviceCnf.GetInstance().ServerName,
+		AgentAppId:        serviceCnf.GetInstance().AppId,
 		UserSocketId:      uc.GetSession().SessionId(),
 		UserId:            payload.Me.BaseData.UserId,
 		Name:              payload.Me.BaseData.Name,

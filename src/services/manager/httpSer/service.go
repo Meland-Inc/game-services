@@ -10,7 +10,7 @@ import (
 )
 
 func Init() error {
-	httpPort := os.Getenv("MELAND_SERVICE_MGR_HTTP_PORT")
+	httpPort := os.Getenv("HTTP_PORT")
 	if httpPort == "" {
 		err := fmt.Errorf("invalid http port: %v", httpPort)
 		serviceLog.Error(err.Error())
@@ -22,7 +22,7 @@ func Init() error {
 }
 
 func Run() error {
-	addr := fmt.Sprintf(":%s", os.Getenv("MELAND_SERVICE_MGR_HTTP_PORT"))
+	addr := fmt.Sprintf(":%s", os.Getenv("HTTP_PORT"))
 	serviceLog.Info("start http service address [%s]", addr)
 	return http.ListenAndServe(addr, nil)
 }
