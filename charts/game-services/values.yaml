@@ -48,6 +48,7 @@ resources:
 ### 默认情况下，不需要开启，大世界服才需要开启
 dapr:
   enabled: false
+  protocol: grpc
   containerPort: 9103
 
 ### 扩展环境变量.

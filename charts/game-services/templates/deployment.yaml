@@ -18,6 +18,7 @@ spec:
         dapr.io/enabled: "true"
         dapr.io/app-id: {{ .Values.dapr.appId | default .Chart.Name | quote }}
         dapr.io/app-port: {{ .Values.dapr.containerPort | quote }}
+        dapr.io/app-protocol: {{ .Values.dapr.protocol | quote }}
         {{- end }}
     spec:
       imagePullSecrets:
