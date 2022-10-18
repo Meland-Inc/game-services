@@ -4,10 +4,11 @@ on:
   push:
     branches:
       - main
+      - feat/ci
 
 jobs:
   push-trigger-build-image:
-    uses: Meland-Inc/game-services/.github/workflows/buildx.yaml@main
+    uses: Meland-Inc/game-services/.github/workflows/buildx.yaml@feat/ci
     with:
       build_env: dev
     secrets:
