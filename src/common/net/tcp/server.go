@@ -28,7 +28,7 @@ func NewTcpServer(
 	s := &Server{
 		addr:              addr,
 		maxConNum:         maxConnNum,
-		sessionMgr:        session.NewSessionMgr(timeoutSec),
+		sessionMgr:        session.NewSessionMgr(maxConnNum,timeoutSec),
 		onConnectCallback: connectCallback,
 	}
 
@@ -107,10 +107,10 @@ func (s *Server) onConnect(connect net.Conn) {
 
 	session := session.NewSession(connect)
 	if session != nil {
-		serviceLog.Info("tcp socket connected remoteAddr[%v], localAddress[%v], socketId[%s]",
-			connect.RemoteAddr(), connect.LocalAddr(), session.SessionId())
 		s.sessionMgr.AddSession(session)
 		s.onConnectCallback(session)
+		serviceLog.Info("tcp socket connected remoteAddr[%v], localAddress[%v], socketId[%s], connectCount[%v]",
+			connect.RemoteAddr(), connect.LocalAddr(), session.SessionId(), s.sessionMgr.Count())
 		go func() {
 			session.Run()
 			session.Stop()
