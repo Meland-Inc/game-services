@@ -4,28 +4,6 @@ import (
 	"game-message-core/proto"
 )
 
-func ParseBigWorldLandState(state LandStatus) (landStatus proto.BigWorldLandState) {
-	switch state {
-	case LandStatusOccupied:
-		landStatus = proto.BigWorldLandState_BigWorldLandStateOccupied
-	case LandStatusTicket:
-		landStatus = proto.BigWorldLandState_BigWorldLandStateTicket
-	case LandStatusUnoccupied:
-		landStatus = proto.BigWorldLandState_BigWorldLandStateUnoccupied
-	case LandStatusVIP:
-		landStatus = proto.BigWorldLandState_BigWorldLandStateVip
-	}
-	return
-}
-
-func ParseBigWorldLandStateList(statesList []string) (landStatus []proto.BigWorldLandState) {
-	for _, stateStr := range statesList {
-		state := LandStatus(stateStr)
-		landStatus = append(landStatus, ParseBigWorldLandState(state))
-	}
-	return
-}
-
 func ParsePlaceableRarity(daprRarity string) (rarity proto.NFTRarity) {
 	switch daprRarity {
 	case string(NFTTraitRarityEpic):
@@ -40,20 +18,6 @@ func ParsePlaceableRarity(daprRarity string) (rarity proto.NFTRarity) {
 		rarity = proto.NFTRarity_NFTRarityCommon
 	}
 	return rarity
-}
-
-func ParseToBigWorldLandState(land string) (landStatus proto.BigWorldLandState) {
-	switch land {
-	case string(NFTTraitPlaceableLandsVIP):
-		landStatus = proto.BigWorldLandState_BigWorldLandStateVip
-	case string(NFTTraitPlaceableLandsTicket):
-		landStatus = proto.BigWorldLandState_BigWorldLandStateTicket
-	case string(NFTTraitPlaceableLandsOccupied):
-		landStatus = proto.BigWorldLandState_BigWorldLandStateOccupied
-	default:
-		landStatus = proto.BigWorldLandState_BigWorldLandStateUnoccupied
-	}
-	return
 }
 
 func NFTPbType(nft NFT) proto.NFTType {

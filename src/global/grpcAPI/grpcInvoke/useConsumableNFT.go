@@ -14,7 +14,7 @@ func RPCCallUseConsumableToWeb3(userId int64, nftId string, x, y int32) error {
 		UserId: fmt.Sprint(userId),
 		NftId:  nftId,
 		Amount: 1,
-		LandId: int(message.XyToLandId(x, y)),
+		LandId: int(message.XyToTileId(x, y)),
 	}
 	inputBytes, err := json.Marshal(input)
 	if err != nil {
