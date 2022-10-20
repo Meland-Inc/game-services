@@ -106,25 +106,18 @@ func (p *ChatModel) privateChat(sender *PlayerChatData, chatData *proto.ChatMess
 func (p *ChatModel) worldChat(sender *PlayerChatData, chatData *proto.ChatMessage, curMs int64) error {
 	sender.UpChatCD(chatData.ChatType)
 	msg := p.makeChatBroadCastPbMsg([]*proto.ChatMessage{chatData})
-	agentList := make(map[string][]int64)
+	userIds := []int64{}
 	for _, player := range p.Players {
 		if player.UserId == sender.UserId {
 			continue
 		}
+		userIds = append(userIds, player.UserId)
+	}
 
-		agentId := player.AgentAppId
-		if _, exist := agentList[agentId]; exist {
-			agentList[agentId] = append(agentList[agentId], player.UserId)
-		} else {
-			agentList[agentId] = []int64{player.UserId}
-		}
-	}
 	serviceAppId := serviceCnf.GetInstance().AppId
-	for agentId, userIds := range agentList {
-		err := userAgent.MultipleBroadCastToClient(agentId, serviceAppId, userIds, msg)
-		if err != nil {
-			serviceLog.Error(err.Error())
-		}
+	err := userAgent.MultipleBroadCastToClient(serviceAppId, userIds, msg)
+	if err != nil {
+		serviceLog.Error(err.Error())
 	}
-	return nil
+	return err
 }

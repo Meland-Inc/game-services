@@ -85,28 +85,18 @@ func (g *ViewGrid) AddPlayer(playerData *PlayerChatData) {
 /// 对在grid中的玩家广播消息
 /// </summary>
 func (g *ViewGrid) Broadcast(msg *proto.Envelope, exceptEntity int64) {
-
-	agentList := make(map[string][]int64)
+	userIds := []int64{}
 	g.RangeNearPlayers(func(player *PlayerChatData) bool {
 		if player == nil || player.UserId == exceptEntity {
 			return true
 		}
-
-		agentId := player.AgentAppId
-		if _, exist := agentList[agentId]; exist {
-			agentList[agentId] = append(agentList[agentId], player.UserId)
-		} else {
-			agentList[agentId] = []int64{player.UserId}
-		}
+		userIds = append(userIds, player.UserId)
 		return true
 	})
 
-	serviceAppId := serviceCnf.GetInstance().AppId
-	for agentId, userIds := range agentList {
-		err := userAgent.MultipleBroadCastToClient(agentId, serviceAppId, userIds, msg)
-		if err != nil {
-			serviceLog.Error(err.Error())
-		}
+	err := userAgent.MultipleBroadCastToClient(serviceCnf.GetInstance().AppId, userIds, msg)
+	if err != nil {
+		serviceLog.Error(err.Error())
 	}
 }
 
