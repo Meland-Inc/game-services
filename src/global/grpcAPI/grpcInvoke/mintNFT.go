@@ -27,7 +27,7 @@ func MintNFT(userId int64, itemCid, num, quality, x, y int32) error {
 		ItemId:     fmt.Sprint(itemCid),
 		QualityVal: &qualityStr,
 		Amount:     int(num),
-		LandId:     int(message.XyToLandId(x, y)),
+		LandId:     int(message.XyToTileId(x, y)),
 	}
 
 	serviceLog.Info("meland dapr MintNFTWithItemIdInput info = %+v", input)
