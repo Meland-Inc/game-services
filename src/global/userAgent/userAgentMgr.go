@@ -70,6 +70,24 @@ func (p *UserAgentModel) GetUserAgent(userId int64) (*UserAgentData, bool) {
 	return iAgent.(*UserAgentData), exist
 }
 
+func (p *UserAgentModel) AllUserAgent() []*UserAgentData {
+	agents := make([]*UserAgentData, 0)
+	p.record.Range(func(key, value interface{}) bool {
+		agents = append(agents, value.(*UserAgentData))
+		return true
+	})
+	return agents
+}
+
+func (p *UserAgentModel) AllOnlineUserIds() []int64 {
+	userIds := make([]int64, 0)
+	p.record.Range(func(key, value interface{}) bool {
+		userIds = append(userIds, value.(*UserAgentData).UserId)
+		return true
+	})
+	return userIds
+}
+
 func (p *UserAgentModel) AddUserAgentRecord(userId int64, agentAppId, socketId string) (*UserAgentData, error) {
 	if userId == 0 || agentAppId == "" || socketId == "" {
 		return nil, fmt.Errorf("user agent data is invalid")
