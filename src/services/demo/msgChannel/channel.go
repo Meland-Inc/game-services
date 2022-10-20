@@ -112,7 +112,7 @@ func (ch *MsgChannel) SendToPlayer(
 
 	input := methodData.BroadCastToClientInput{
 		MsgVersion:   time_helper.NowUTCMill(),
-		ServiceAppId: serviceCnf.GetInstance().ServerName,
+		ServiceAppId: serviceCnf.GetInstance().AppId,
 		UserId:       userId,
 		SocketId:     socketId,
 		MsgId:        int32(msg.Type),
