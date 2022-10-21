@@ -15,6 +15,7 @@ import (
 	"github.com/Meland-Inc/game-services/src/global/userAgent"
 	mainDaprService "github.com/Meland-Inc/game-services/src/services/main/dapr"
 	mainHeart "github.com/Meland-Inc/game-services/src/services/main/heart"
+	land_model "github.com/Meland-Inc/game-services/src/services/main/landModel"
 	"github.com/Meland-Inc/game-services/src/services/main/playerModel"
 )
 
@@ -88,6 +89,10 @@ func (s *Service) initServiceModels() error {
 		return err
 	}
 
+	if err := s.initLandModel(); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -114,6 +119,15 @@ func (s *Service) initPlayerDataModel() error {
 	err := s.modelMgr.AddModel(m)
 	if err != nil {
 		serviceLog.Error("init player data model fail, err: %v", err)
+	}
+	return err
+}
+
+func (s *Service) initLandModel() error {
+	m := land_model.NewLandModel()
+	err := s.modelMgr.AddModel(m)
+	if err != nil {
+		serviceLog.Error("init land  model fail, err: %v", err)
 	}
 	return err
 }

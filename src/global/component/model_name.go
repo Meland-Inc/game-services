@@ -15,4 +15,7 @@ const (
 
 	// chat  model
 	MODEL_NAME_CHAT = "MainServiceChatModel"
+
+	// land  model
+	MODEL_NAME_LAND = "MainServiceLandModel"
 )
