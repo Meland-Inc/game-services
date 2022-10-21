@@ -8,7 +8,7 @@ func ToProtoLandData(l LandData) *proto.LandData {
 	return &proto.LandData{
 		Id:        int32(l.Id),
 		OccupyAt:  int32(l.OccupyAt),
-		Owner:     int32(l.Owner),
+		Owner:     int64(l.Owner),
 		TimeoutAt: int32(l.TimeoutAt),
 		X:         int32(l.X),
 		Z:         int32(l.Z),

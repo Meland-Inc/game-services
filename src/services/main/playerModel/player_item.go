@@ -185,6 +185,25 @@ func (p *PlayerDataModel) canLoadAvatar(userId int64, item *Item, pos proto.Avat
 	return nil
 }
 
+func (p *PlayerDataModel) UpdateItemUseState(userId int64, itemId string, using bool, pos int32) (err error) {
+	item, err := p.ItemById(userId, itemId)
+	if err != nil {
+		return err
+	}
+	item.Used = using
+	item.AvatarPos = pos
+	if using {
+		err = p.addUsingNftRecord(item)
+	} else {
+		err = p.removeUsingNftRecord(userId, item.Id)
+	}
+	if err != nil {
+		return err
+	}
+	p.noticePlayerItemMsg(userId, proto.EnvelopeType_BroadCastItemUpdate, []*Item{item})
+	return nil
+}
+
 // 穿装备
 func (p *PlayerDataModel) LoadAvatar(userId int64, itemId string) error {
 	item, err := p.ItemById(userId, itemId)
@@ -208,35 +227,27 @@ func (p *PlayerDataModel) LoadAvatar(userId int64, itemId string) error {
 			break
 		}
 	}
+
 	// 使用装备
-	item.Used = true
-	item.AvatarPos = int32(pos)
-	if err = p.addUsingNftRecord(item); err != nil {
+	err = p.UpdateItemUseState(userId, itemId, true, int32(pos))
+	if err != nil {
 		return err
 	}
 
 	p.RPCCallUpdateUserUsingAvatar(userId)
-	p.noticePlayerItemMsg(userId, proto.EnvelopeType_BroadCastItemUpdate, []*Item{item})
 	return nil
 }
 
 // 卸装备
 func (p *PlayerDataModel) UnloadAvatar(userId int64, itemId string, callProfileUp bool) error {
-	item, err := p.ItemById(userId, itemId)
+	err := p.UpdateItemUseState(userId, itemId, true, int32(proto.AvatarPosition_AvatarPositionNone))
 	if err != nil {
-		return err
-	}
-
-	item.Used = false
-	item.AvatarPos = int32(proto.AvatarPosition_AvatarPositionNone)
-	if err := p.removeUsingNftRecord(userId, item.Id); err != nil {
 		return err
 	}
 
 	if callProfileUp {
 		p.RPCCallUpdateUserUsingAvatar(userId)
 	}
-	p.noticePlayerItemMsg(userId, proto.EnvelopeType_BroadCastItemUpdate, []*Item{item})
 	return nil
 }
 
