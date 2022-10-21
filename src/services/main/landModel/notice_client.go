@@ -39,3 +39,19 @@ func (p *MapLandDataRecord) BroadcastLandDataUpdate(upLands []*proto.LandData) {
 	}
 	userAgent.MultipleBroadCastToClient(serviceCnf.GetInstance().AppId, onlinePlayers, msg)
 }
+
+func (p *MapLandDataRecord) BroadcastBuildUpdate(build *NftBuildData) {
+	if build == nil {
+		return
+	}
+
+	msg := &proto.Envelope{
+		Type: proto.EnvelopeType_BroadCastSelfBuildUpdate,
+		Payload: &proto.Envelope_BroadCastSelfBuildUpdateResponse{
+			BroadCastSelfBuildUpdateResponse: &proto.BroadCastSelfBuildUpdateResponse{
+				Build: build.ToProtoData(),
+			},
+		},
+	}
+	p.SendToPlayer(build.GetOwner(), msg)
+}

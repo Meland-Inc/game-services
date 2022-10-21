@@ -28,6 +28,11 @@ func initDaprService() (err error) {
 		return err
 	}
 
+	if err = initDaprClient(); err != nil {
+		serviceLog.Error("initDaprClient fail err:%v", err)
+		panic(err)
+	}
+
 	return err
 }
 
@@ -35,11 +40,6 @@ func Run(errChan chan error) {
 	go func() {
 		errChan <- daprInvoke.Start()
 	}()
-
-	if err := initDaprClient(); err != nil {
-		serviceLog.Error("initDaprClient fail err:%v", err)
-		panic(err)
-	}
 }
 
 func initDaprClient() error {

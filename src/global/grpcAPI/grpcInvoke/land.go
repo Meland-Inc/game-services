@@ -45,3 +45,43 @@ func RPCLoadLandData(mapId int32) ([]message.LandData, error) {
 
 	return output.AllLandData, nil
 }
+
+func RPCOccupyLand(userId int64, mapId, landId int32) error {
+	beginMs := time_helper.NowMill()
+	defer func() {
+		serviceLog.Info("RPCOccupyLand used time [%04d]Ms", time_helper.NowMill()-beginMs)
+	}()
+
+	input := message.OccupyLandInput{
+		UserId: int(userId),
+		LandId: int(landId),
+		MapId:  int(mapId),
+	}
+	inputBytes, err := json.Marshal(input)
+	if err != nil {
+		return err
+	}
+
+	outBytes, err := daprInvoke.InvokeMethod(
+		string(message.AppIdLandService),
+		string(message.LandServiceActionOccupyLand),
+		inputBytes,
+	)
+	if err != nil {
+		serviceLog.Error("RPCOccupyLand failed err:%+v", err)
+		return err
+	}
+
+	output := &message.OccupyLandOutput{}
+	err = output.UnmarshalJSON(outBytes)
+	if err != nil {
+		serviceLog.Error("RPCOccupyLand Unmarshal : err : %+v", err)
+		return err
+	}
+
+	if !output.Success {
+		return fmt.Errorf(output.FailedReason)
+	}
+
+	return nil
+}

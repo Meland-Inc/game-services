@@ -829,6 +829,9 @@ type CollectionInput struct {
 
 	// nftId
 	NftId string `json:"nftId"`
+
+	// 玩家id
+	UserId int `json:"userId"`
 }
 
 // UnmarshalJSON implements json.Unmarshaler.
@@ -842,6 +845,9 @@ func (j *CollectionInput) UnmarshalJSON(b []byte) error {
 	}
 	if v, ok := raw["nftId"]; !ok || v == nil {
 		return fmt.Errorf("field nftId: required")
+	}
+	if v, ok := raw["userId"]; !ok || v == nil {
+		return fmt.Errorf("field userId: required")
 	}
 	type Plain CollectionInput
 	var plain Plain

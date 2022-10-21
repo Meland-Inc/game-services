@@ -4,16 +4,11 @@ import (
 	"fmt"
 	"game-message-core/proto"
 
-	"github.com/Meland-Inc/game-services/src/common/serviceLog"
 	"github.com/Meland-Inc/game-services/src/global/grpcAPI/grpcInvoke"
 	message "github.com/Meland-Inc/game-services/src/global/web3Message"
 )
 
-func (p *MapLandDataRecord) tryInitLandData() error {
-	if p.landRecord != nil {
-		return nil
-	}
-
+func (p *MapLandDataRecord) InitLandData() error {
 	// load all land data for land-service
 	lands, err := grpcInvoke.RPCLoadLandData(p.MapId)
 	if err != nil {
@@ -31,9 +26,6 @@ func (p *MapLandDataRecord) tryInitLandData() error {
 func (p *MapLandDataRecord) AllLandData() (lands []*proto.LandData, err error) {
 	p.RLock()
 	defer p.RUnlock()
-	if err := p.tryInitLandData(); err != nil {
-		return nil, err
-	}
 
 	for _, land := range p.landRecord {
 		lands = append(lands, land)
@@ -45,9 +37,6 @@ func (p *MapLandDataRecord) AllLandData() (lands []*proto.LandData, err error) {
 func (p *MapLandDataRecord) LandById(id int32) (*proto.LandData, error) {
 	p.RLock()
 	defer p.RUnlock()
-	if err := p.tryInitLandData(); err != nil {
-		return nil, err
-	}
 
 	land, exist := p.landRecord[id]
 	if !exist {
@@ -63,10 +52,6 @@ func (p *MapLandDataRecord) MultiUpdateLandData(upLands []*proto.LandData) {
 
 	p.RLock()
 	defer p.RUnlock()
-	if err := p.tryInitLandData(); err != nil {
-		serviceLog.Error(err.Error())
-		return
-	}
 
 	for _, land := range upLands {
 		p.landRecord[land.Id] = land
