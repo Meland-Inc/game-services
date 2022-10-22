@@ -19,7 +19,7 @@ type LandModel struct {
 func GetLandModel() (*LandModel, error) {
 	iLandModel, exist := component.GetInstance().GetModel(component.MODEL_NAME_LAND)
 	if !exist {
-		return nil, fmt.Errorf("player data model not found")
+		return nil, fmt.Errorf("land  model not found")
 	}
 	landModel, _ := iLandModel.(*LandModel)
 	return landModel, nil
@@ -84,7 +84,7 @@ func (p *LandModel) tick() error {
 func (p *LandModel) GetMapLandRecord(mapId int32) (*MapLandDataRecord, error) {
 	mapRecord, exist := p.mapLandRecordMgr.Load(mapId)
 	if !exist {
-		return nil, fmt.Errorf("map[%d] record not found", mapId)
+		return nil, fmt.Errorf("map[%d] land record not found", mapId)
 	}
 	return mapRecord.(*MapLandDataRecord), nil
 }
