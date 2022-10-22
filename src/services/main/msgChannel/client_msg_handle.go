@@ -18,4 +18,14 @@ func (ch *MsgChannel) registerClientMsgHandler() {
 	ch.clientMsgHandler[proto.EnvelopeType_GetItemSlot] = clientMsgHandle.ItemSlotGetHandle
 	ch.clientMsgHandler[proto.EnvelopeType_UpgradeItemSlot] = clientMsgHandle.ItemSlotUpgradeHandle
 	ch.clientMsgHandler[proto.EnvelopeType_UpgradePlayerLevel] = clientMsgHandle.UpgradePlayerLevelHandle
+
+	// land and build client msg handles
+	ch.clientMsgHandler[proto.EnvelopeType_QueryLands] = clientMsgHandle.QueryLandsHandler
+	ch.clientMsgHandler[proto.EnvelopeType_OccupyLand] = clientMsgHandle.OccupyLandHandler
+	ch.clientMsgHandler[proto.EnvelopeType_Build] = clientMsgHandle.BuildHandler
+	ch.clientMsgHandler[proto.EnvelopeType_Recycling] = clientMsgHandle.RecyclingHandler
+	ch.clientMsgHandler[proto.EnvelopeType_Charged] = clientMsgHandle.ChargedHandler
+	ch.clientMsgHandler[proto.EnvelopeType_Harvest] = clientMsgHandle.HarvestHandler
+	ch.clientMsgHandler[proto.EnvelopeType_Collection] = clientMsgHandle.CollectionHandler
+	ch.clientMsgHandler[proto.EnvelopeType_SelfNftBuilds] = clientMsgHandle.SelfNftBuildsHandler
 }

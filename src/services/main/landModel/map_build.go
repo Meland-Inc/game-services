@@ -232,6 +232,11 @@ func (p *MapLandDataRecord) Recycling(userId int64, nftId string, buildId int64)
 func (p *MapLandDataRecord) BuildCharged(userId int64, nftId string, buildId int64, num int32) error {
 	p.RLock()
 	defer p.RUnlock()
+
+	if num < 1 {
+		return fmt.Errorf("invalid charged num [%d]", num)
+	}
+
 	build := p.getBuildByNftId(nftId)
 	if build == nil {
 		return fmt.Errorf("nft[%s] build not found", nftId)
