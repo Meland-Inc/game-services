@@ -429,6 +429,9 @@ type BuildUpdateEvent struct {
 
 	// 消息版本号
 	Etag int `json:"etag"`
+
+	// 地图id 为多地图准备
+	MapId int `json:"mapId"`
 }
 
 // UnmarshalJSON implements json.Unmarshaler.
@@ -442,6 +445,9 @@ func (j *BuildUpdateEvent) UnmarshalJSON(b []byte) error {
 	}
 	if v, ok := raw["etag"]; !ok || v == nil {
 		return fmt.Errorf("field etag: required")
+	}
+	if v, ok := raw["mapId"]; !ok || v == nil {
+		return fmt.Errorf("field mapId: required")
 	}
 	type Plain BuildUpdateEvent
 	var plain Plain
@@ -4616,6 +4622,9 @@ func (j *MultiLandDataUpdateEvent) UnmarshalJSON(b []byte) error {
 	if v, ok := raw["lands"]; !ok || v == nil {
 		return fmt.Errorf("field lands: required")
 	}
+	if v, ok := raw["mapId"]; !ok || v == nil {
+		return fmt.Errorf("field mapId: required")
+	}
 	type Plain MultiLandDataUpdateEvent
 	var plain Plain
 	if err := json.Unmarshal(b, &plain); err != nil {
@@ -4978,6 +4987,9 @@ type MultiLandDataUpdateEvent struct {
 
 	// Lands corresponds to the JSON schema field "lands".
 	Lands []LandData `json:"lands"`
+
+	// 地图id 为多地图准备
+	MapId int `json:"mapId"`
 }
 
 type MultiUpdateUserNFT struct {

@@ -19,6 +19,19 @@ func (ch *MsgChannel) onServiceMessage(input *ServiceMsgData) {
 	switch input.MsgId {
 	case string(grpc.SubscriptionEventUserEnterGame):
 		serviceMsgHandle.UserEnterGameHandle(input.MsgBody)
+	case string(grpc.UserActionLeaveGame):
+		serviceMsgHandle.PlayerLeaveGameHandler(input.MsgBody)
+	case string(grpc.SubscriptionEventSavePlayerData):
+		serviceMsgHandle.SavePlayerDataHandler(input.MsgBody)
+	case string(grpc.SubscriptionEventKillMonster):
+		serviceMsgHandle.KillMonsterHandler(input.MsgBody)
+	case string(grpc.SubscriptionEventPlayerDeath):
+		serviceMsgHandle.PlayerDeathHandler(input.MsgBody)
+	case string(grpc.SubscriptionEventUserTaskReward):
+		serviceMsgHandle.TaskRewardHandler(input.MsgBody)
+	case string(grpc.MainServiceActionTakeNFT):
+		serviceMsgHandle.TakeUserNftHandler(input.MsgBody)
+
 	case string(message.GameDataServiceActionDeductUserExp):
 		serviceMsgHandle.Web3DeductUserExpHandler(input.MsgBody)
 	case string(message.SubscriptionEventUpdateUserNFT):
@@ -26,21 +39,12 @@ func (ch *MsgChannel) onServiceMessage(input *ServiceMsgData) {
 	case string(message.SubscriptionEventMultiUpdateUserNFT):
 		serviceMsgHandle.Web3MultiUpdateUserNftHandler(input.MsgBody)
 
-	case string(grpc.SubscriptionEventSavePlayerData):
-		serviceMsgHandle.SavePlayerDataHandler(input.MsgBody)
-	case string(grpc.SubscriptionEventKillMonster):
-		serviceMsgHandle.KillMonsterHandler(input.MsgBody)
-	case string(grpc.SubscriptionEventPlayerDeath):
-		serviceMsgHandle.PlayerDeathHandler(input.MsgBody)
-
-	case string(grpc.UserActionLeaveGame):
-		serviceMsgHandle.PlayerLeaveGameHandler(input.MsgBody)
-
-	case string(grpc.SubscriptionEventUserTaskReward):
-		serviceMsgHandle.TaskRewardHandler(input.MsgBody)
-
-	case string(grpc.MainServiceActionTakeNFT):
-		serviceMsgHandle.TakeUserNftHandler(input.MsgBody)
+	case string(message.SubscriptionEventMultiLandDataUpdateEvent):
+		serviceMsgHandle.Web3MultiLandDataUpdateEventHandler(input.MsgBody)
+	case string(message.SubscriptionEventRecyclingEvent):
+		serviceMsgHandle.Web3RecyclingHandler(input.MsgBody)
+	case string(message.SubscriptionEventBuildUpdateEvent):
+		serviceMsgHandle.Web3BuildUpdateHandler(input.MsgBody)
 
 	}
 }

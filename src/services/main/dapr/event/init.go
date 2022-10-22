@@ -9,6 +9,10 @@ import (
 )
 
 func InitDaprPubsubEvent() (err error) {
+	if err := initWeb3ServicesPubsubEventHandler(); err != nil {
+		return err
+	}
+
 	if err := initServiceGrpcPubsubEventHandle(); err != nil {
 		return err
 	}
@@ -16,14 +20,7 @@ func InitDaprPubsubEvent() (err error) {
 	return nil
 }
 
-func initServiceGrpcPubsubEventHandle() error {
-	if err := daprInvoke.AddTopicEventHandler(
-		string(grpc.SubscriptionEventUserEnterGame),
-		UserEnterGameEventHandler,
-	); err != nil {
-		return err
-	}
-
+func initWeb3ServicesPubsubEventHandler() error {
 	if err := daprInvoke.AddTopicEventHandler(
 		string(message.SubscriptionEventUpdateUserNFT),
 		Web3UpdateUserNftHandler,
@@ -34,6 +31,45 @@ func initServiceGrpcPubsubEventHandle() error {
 	if err := daprInvoke.AddTopicEventHandler(
 		string(message.SubscriptionEventMultiUpdateUserNFT),
 		Web3MultiUpdateUserNftHandler,
+	); err != nil {
+		return err
+	}
+
+	if err := daprInvoke.AddTopicEventHandler(
+		string(message.SubscriptionEventMultiUpdateUserNFT),
+		Web3MultiUpdateUserNftHandler,
+	); err != nil {
+		return err
+	}
+
+	if err := daprInvoke.AddTopicEventHandler(
+		string(message.SubscriptionEventMultiLandDataUpdateEvent),
+		Web3MultiLandDataUpdateEventHandler,
+	); err != nil {
+		return err
+	}
+
+	if err := daprInvoke.AddTopicEventHandler(
+		string(message.SubscriptionEventRecyclingEvent),
+		Web3RecyclingEventHandler,
+	); err != nil {
+		return err
+	}
+
+	if err := daprInvoke.AddTopicEventHandler(
+		string(message.SubscriptionEventBuildUpdateEvent),
+		Web3BuildUpdateEventHandler,
+	); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func initServiceGrpcPubsubEventHandle() error {
+	if err := daprInvoke.AddTopicEventHandler(
+		string(grpc.SubscriptionEventUserEnterGame),
+		UserEnterGameEventHandler,
 	); err != nil {
 		return err
 	}

@@ -207,7 +207,7 @@ func (p *MapLandDataRecord) Build(
 }
 
 // 拆除建筑物
-func (p *MapLandDataRecord) Recycling(userId int64, nftId string, buildId int64) error {
+func (p *MapLandDataRecord) Recycling(userId int64, nftId string) error {
 	p.RLock()
 	defer p.RUnlock()
 	build := p.getBuildByNftId(nftId)
