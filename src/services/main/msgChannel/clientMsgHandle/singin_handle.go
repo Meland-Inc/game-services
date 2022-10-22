@@ -73,7 +73,7 @@ func SingInHandler(input *methodData.PullClientMessageInput, msg *proto.Envelope
 	}
 
 	input.UserId = cast.ToInt64(userIdStr)
-	GetOrStoreUserAgent(input)
+	agent := GetOrStoreUserAgent(input)
 
 	dataModel, err := playerModel.GetPlayerDataModel()
 	if err != nil {
@@ -110,6 +110,7 @@ func SingInHandler(input *methodData.PullClientMessageInput, msg *proto.Envelope
 		return
 	}
 	res.SceneServiceAppId = sceneAppId
+	agent.InMapId = sceneData.MapId
 }
 
 func getSceneAppId(clientPushSceneAppId string, mapId int32) (string, error) {

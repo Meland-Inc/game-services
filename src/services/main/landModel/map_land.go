@@ -60,7 +60,7 @@ func (p *MapLandDataRecord) MultiUpdateLandData(upLands []*proto.LandData) {
 }
 
 // 占领地格
-func (p *MapLandDataRecord) OccupyLandInput(userId int64, landId, landPosX, landPosZ int32) error {
+func (p *MapLandDataRecord) OccupyLand(userId int64, landId, landPosX, landPosZ int32) error {
 	p.RLock()
 	defer p.RUnlock()
 

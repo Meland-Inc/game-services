@@ -5,6 +5,7 @@ import (
 	"sync"
 
 	"github.com/Meland-Inc/game-services/src/global/component"
+	"github.com/Meland-Inc/game-services/src/services/main/playerModel"
 )
 
 type LandModel struct {
@@ -12,6 +13,7 @@ type LandModel struct {
 	modelName        string
 	mapList          []int32
 	mapLandRecordMgr sync.Map
+	playerDataModel  *playerModel.PlayerDataModel
 }
 
 func GetLandModel() (*LandModel, error) {
@@ -49,13 +51,15 @@ func (p *LandModel) OnInit(modelMgr *component.ModelManager) error {
 }
 
 func (p *LandModel) OnStart() (err error) {
+	p.playerDataModel, err = playerModel.GetPlayerDataModel()
+	if err != nil {
+		return err
+	}
+
 	p.mapLandRecordMgr.Range(func(key, value interface{}) bool {
 		mapRecord := value.(*MapLandDataRecord)
 		err = mapRecord.OnStart()
-		if err != nil {
-			return false
-		}
-		return true
+		return err == nil
 	})
 	return err
 }
@@ -83,4 +87,12 @@ func (p *LandModel) GetMapLandRecord(mapId int32) (*MapLandDataRecord, error) {
 		return nil, fmt.Errorf("map[%d] record not found", mapId)
 	}
 	return mapRecord.(*MapLandDataRecord), nil
+}
+
+func (p *LandModel) GetMapLandRecordByUser(userId int64) (*MapLandDataRecord, error) {
+	playerData, err := p.playerDataModel.GetPlayerSceneData(userId)
+	if err != nil {
+		return nil, err
+	}
+	return p.GetMapLandRecord(playerData.MapId)
 }
