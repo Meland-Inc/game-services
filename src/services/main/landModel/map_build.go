@@ -229,6 +229,7 @@ func (p *MapLandDataRecord) Recycling(userId int64, buildId int64) error {
 
 	p.removeNftBuildRecord(build)
 	grpcPubsubEvent.RPCPubsubEventNftBuildRemove(build.ToGrpcData())
+	p.BroadcastBuildRecycling(build)
 	return nil
 }
 

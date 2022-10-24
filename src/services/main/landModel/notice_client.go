@@ -55,3 +55,21 @@ func (p *MapLandDataRecord) BroadcastBuildUpdate(build *NftBuildData) {
 	}
 	p.SendToPlayer(build.GetOwner(), msg)
 }
+
+func (p *MapLandDataRecord) BroadcastBuildRecycling(build *NftBuildData) {
+	if build == nil {
+		return
+	}
+
+	msg := &proto.Envelope{
+		Type: proto.EnvelopeType_BroadCastSelfBuildRecycling,
+		Payload: &proto.Envelope_BroadCastSelfBuildRecyclingResponse{
+			BroadCastSelfBuildRecyclingResponse: &proto.BroadCastSelfBuildRecyclingResponse{
+				BuildId: build.GetBuildId(),
+				FromNft: build.GetNftId(),
+				Owner:   build.GetOwner(),
+			},
+		},
+	}
+	p.SendToPlayer(build.GetOwner(), msg)
+}
