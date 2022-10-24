@@ -67,7 +67,6 @@ func (j *AppId) UnmarshalJSON(b []byte) error {
 }
 
 const AppIdGameServiceMain AppId = "game-service-main"
-const AppIdLandService AppId = "land-service"
 const AppIdMelandService AppId = "meland-service"
 const AppIdPvpService AppId = "pvp-service"
 const AppIdWeb3Service AppId = "web3-service"
@@ -277,6 +276,9 @@ func (j *BatchMintNFTWithItemIdOutput) UnmarshalJSON(b []byte) error {
 }
 
 type BuildData struct {
+	// 建造id
+	BuildId int `json:"buildId"`
+
 	// 下次可采集(偷取)的时间戳 单位秒
 	CollectionAt int `json:"collectionAt"`
 
@@ -289,8 +291,8 @@ type BuildData struct {
 	// 可收获的物品数量统计(没电时转移到采集) 单位秒
 	HarvestItemCount int `json:"harvestItemCount"`
 
-	// 占用的地格id  列表
-	LandIds []float64 `json:"landIds"`
+	// LandIds corresponds to the JSON schema field "landIds".
+	LandIds []int `json:"landIds"`
 
 	// 地图id 为多地图准备
 	MapId int `json:"mapId"`
@@ -302,7 +304,7 @@ type BuildData struct {
 	ProduceBeginAt int `json:"produceBeginAt"`
 
 	// 玩家id
-	UserId int `json:"userId"`
+	UserId string `json:"userId"`
 }
 
 // UnmarshalJSON implements json.Unmarshaler.
@@ -310,6 +312,9 @@ func (j *BuildData) UnmarshalJSON(b []byte) error {
 	var raw map[string]interface{}
 	if err := json.Unmarshal(b, &raw); err != nil {
 		return err
+	}
+	if v, ok := raw["buildId"]; !ok || v == nil {
+		return fmt.Errorf("field buildId: required")
 	}
 	if v, ok := raw["collectionAt"]; !ok || v == nil {
 		return fmt.Errorf("field collectionAt: required")
@@ -348,8 +353,8 @@ func (j *BuildData) UnmarshalJSON(b []byte) error {
 }
 
 type BuildInput struct {
-	// 占用的地格id  列表
-	LandIds []float64 `json:"landIds"`
+	// LandIds corresponds to the JSON schema field "landIds".
+	LandIds []int `json:"landIds"`
 
 	// 地图id 为多地图准备
 	MapId int `json:"mapId"`
@@ -358,7 +363,7 @@ type BuildInput struct {
 	NftId string `json:"nftId"`
 
 	// 玩家id
-	UserId int `json:"userId"`
+	UserId string `json:"userId"`
 }
 
 // UnmarshalJSON implements json.Unmarshaler.
@@ -708,17 +713,17 @@ func (j *CanBuildNFTOutput) UnmarshalJSON(b []byte) error {
 }
 
 type ChargedInput struct {
+	// 建造id
+	BuildId int `json:"buildId"`
+
 	// 地图id 为多地图准备
 	MapId int `json:"mapId"`
-
-	// nftId
-	NftId string `json:"nftId"`
 
 	// 电池数量
 	Num int `json:"num"`
 
 	// 玩家id
-	UserId int `json:"userId"`
+	UserId string `json:"userId"`
 }
 
 // UnmarshalJSON implements json.Unmarshaler.
@@ -727,11 +732,11 @@ func (j *ChargedInput) UnmarshalJSON(b []byte) error {
 	if err := json.Unmarshal(b, &raw); err != nil {
 		return err
 	}
+	if v, ok := raw["buildId"]; !ok || v == nil {
+		return fmt.Errorf("field buildId: required")
+	}
 	if v, ok := raw["mapId"]; !ok || v == nil {
 		return fmt.Errorf("field mapId: required")
-	}
-	if v, ok := raw["nftId"]; !ok || v == nil {
-		return fmt.Errorf("field nftId: required")
 	}
 	if v, ok := raw["num"]; !ok || v == nil {
 		return fmt.Errorf("field num: required")
@@ -830,14 +835,14 @@ func (j *CheckQuestionAnswerOutput) UnmarshalJSON(b []byte) error {
 }
 
 type CollectionInput struct {
+	// 建造Id
+	BuildId int `json:"buildId"`
+
 	// 地图id 为多地图准备
 	MapId int `json:"mapId"`
 
-	// nftId
-	NftId string `json:"nftId"`
-
 	// 玩家id
-	UserId int `json:"userId"`
+	UserId string `json:"userId"`
 }
 
 // UnmarshalJSON implements json.Unmarshaler.
@@ -846,11 +851,11 @@ func (j *CollectionInput) UnmarshalJSON(b []byte) error {
 	if err := json.Unmarshal(b, &raw); err != nil {
 		return err
 	}
+	if v, ok := raw["buildId"]; !ok || v == nil {
+		return fmt.Errorf("field buildId: required")
+	}
 	if v, ok := raw["mapId"]; !ok || v == nil {
 		return fmt.Errorf("field mapId: required")
-	}
-	if v, ok := raw["nftId"]; !ok || v == nil {
-		return fmt.Errorf("field nftId: required")
 	}
 	if v, ok := raw["userId"]; !ok || v == nil {
 		return fmt.Errorf("field userId: required")
@@ -1025,9 +1030,10 @@ func (j *DitaminBurnSource_2) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
+const DitaminBurnSource_2_Build3DrNFT DitaminBurnSource_2 = "build3drNFT"
+
 type AppId string
 
-const DitaminBurnSource_2_BuildNFT DitaminBurnSource_2 = "buildNFT"
 const DitaminBurnSource_2_BuyEnergy DitaminBurnSource_2 = "buyEnergy"
 const DitaminBurnSource_2_Craft DitaminBurnSource_2 = "craft"
 const DitaminBurnSource_2_Exchange DitaminBurnSource_2 = "exchange"
@@ -1485,8 +1491,8 @@ type LandData struct {
 	// 占领时间 单位秒
 	OccupyAt int `json:"occupyAt"`
 
-	// 归宿
-	Owner int `json:"owner"`
+	// owner userId
+	OwnerId string `json:"ownerId"`
 
 	// 占领过期时间 单位秒
 	// 当地块上存在有电量建筑物时，
@@ -1494,10 +1500,13 @@ type LandData struct {
 	TimeoutAt int `json:"timeoutAt"`
 
 	// 地格坐标
-	X int `json:"x"`
+	X float64 `json:"x"`
+
+	// Y corresponds to the JSON schema field "y".
+	Y float64 `json:"y"`
 
 	// Z corresponds to the JSON schema field "z".
-	Z int `json:"z"`
+	Z float64 `json:"z"`
 }
 
 // UnmarshalJSON implements json.Unmarshaler.
@@ -1512,14 +1521,17 @@ func (j *LandData) UnmarshalJSON(b []byte) error {
 	if v, ok := raw["occupyAt"]; !ok || v == nil {
 		return fmt.Errorf("field occupyAt: required")
 	}
-	if v, ok := raw["owner"]; !ok || v == nil {
-		return fmt.Errorf("field owner: required")
+	if v, ok := raw["ownerId"]; !ok || v == nil {
+		return fmt.Errorf("field ownerId: required")
 	}
 	if v, ok := raw["timeoutAt"]; !ok || v == nil {
 		return fmt.Errorf("field timeoutAt: required")
 	}
 	if v, ok := raw["x"]; !ok || v == nil {
 		return fmt.Errorf("field x: required")
+	}
+	if v, ok := raw["y"]; !ok || v == nil {
+		return fmt.Errorf("field y: required")
 	}
 	if v, ok := raw["z"]; !ok || v == nil {
 		return fmt.Errorf("field z: required")
@@ -2679,11 +2691,11 @@ func (j *RecyclingInput) UnmarshalJSON(b []byte) error {
 	if err := json.Unmarshal(b, &raw); err != nil {
 		return err
 	}
+	if v, ok := raw["buildId"]; !ok || v == nil {
+		return fmt.Errorf("field buildId: required")
+	}
 	if v, ok := raw["mapId"]; !ok || v == nil {
 		return fmt.Errorf("field mapId: required")
-	}
-	if v, ok := raw["nftId"]; !ok || v == nil {
-		return fmt.Errorf("field nftId: required")
 	}
 	if v, ok := raw["userId"]; !ok || v == nil {
 		return fmt.Errorf("field userId: required")
@@ -2703,14 +2715,14 @@ func (j *RecyclingEvent) UnmarshalJSON(b []byte) error {
 	if err := json.Unmarshal(b, &raw); err != nil {
 		return err
 	}
+	if v, ok := raw["buildId"]; !ok || v == nil {
+		return fmt.Errorf("field buildId: required")
+	}
 	if v, ok := raw["etag"]; !ok || v == nil {
 		return fmt.Errorf("field etag: required")
 	}
 	if v, ok := raw["mapId"]; !ok || v == nil {
 		return fmt.Errorf("field mapId: required")
-	}
-	if v, ok := raw["nftId"]; !ok || v == nil {
-		return fmt.Errorf("field nftId: required")
 	}
 	if v, ok := raw["userId"]; !ok || v == nil {
 		return fmt.Errorf("field userId: required")
@@ -3534,14 +3546,14 @@ func (j *GetUserWeb3ProfileOutput) UnmarshalJSON(b []byte) error {
 }
 
 type HarvestInput struct {
+	// 建造id
+	BuildId int `json:"buildId"`
+
 	// 地图id 为多地图准备
 	MapId int `json:"mapId"`
 
-	// nftId
-	NftId string `json:"nftId"`
-
 	// 玩家id
-	UserId int `json:"userId"`
+	UserId string `json:"userId"`
 }
 
 // UnmarshalJSON implements json.Unmarshaler.
@@ -3550,11 +3562,11 @@ func (j *HarvestInput) UnmarshalJSON(b []byte) error {
 	if err := json.Unmarshal(b, &raw); err != nil {
 		return err
 	}
+	if v, ok := raw["buildId"]; !ok || v == nil {
+		return fmt.Errorf("field buildId: required")
+	}
 	if v, ok := raw["mapId"]; !ok || v == nil {
 		return fmt.Errorf("field mapId: required")
-	}
-	if v, ok := raw["nftId"]; !ok || v == nil {
-		return fmt.Errorf("field nftId: required")
 	}
 	if v, ok := raw["userId"]; !ok || v == nil {
 		return fmt.Errorf("field userId: required")
@@ -4327,7 +4339,7 @@ func (j *MintNFTWithItemIdOutput) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-const DitaminBurnSource_2_Build3DrNFT DitaminBurnSource_2 = "build3drNFT"
+const DitaminBurnSource_2_BuildNFT DitaminBurnSource_2 = "buildNFT"
 
 // UnmarshalJSON implements json.Unmarshaler.
 func (j *MintNFTWithMetadataInput) UnmarshalJSON(b []byte) error {
@@ -5210,7 +5222,7 @@ type OccupyLandInput struct {
 	MapId int `json:"mapId"`
 
 	// 玩家id
-	UserId int `json:"userId"`
+	UserId string `json:"userId"`
 }
 
 type OccupyLandOutput struct {
@@ -5620,28 +5632,28 @@ type RecipeInfo struct {
 }
 
 type RecyclingEvent struct {
+	// nftId
+	BuildId int `json:"buildId"`
+
 	// 消息版本号
 	Etag int `json:"etag"`
 
 	// 地图id 为多地图准备
 	MapId int `json:"mapId"`
 
-	// nftId
-	NftId string `json:"nftId"`
-
 	// 玩家id
-	UserId int `json:"userId"`
+	UserId string `json:"userId"`
 }
 
 type RecyclingInput struct {
+	// 建造Id
+	BuildId int `json:"buildId"`
+
 	// 地图id 为多地图准备
 	MapId int `json:"mapId"`
 
-	// nftId
-	NftId string `json:"nftId"`
-
 	// 玩家id
-	UserId int `json:"userId"`
+	UserId string `json:"userId"`
 }
 
 type RecyclingOutput struct {
@@ -6040,7 +6052,6 @@ const Web3ServiceActionUseMELD Web3ServiceAction = "UseMELD"
 
 var enumValues_AppId = []interface{}{
 	"game-service-main",
-	"land-service",
 	"meland-service",
 	"pvp-service",
 	"web3-service",

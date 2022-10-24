@@ -6,6 +6,7 @@ import (
 
 	dbData "github.com/Meland-Inc/game-services/src/global/gameDB/data"
 	message "github.com/Meland-Inc/game-services/src/global/web3Message"
+	"github.com/spf13/cast"
 )
 
 type NftBuildData struct {
@@ -20,8 +21,8 @@ func NewNftBuildData(gameData dbData.NftBuild, web3Data message.BuildData) *NftB
 	}
 }
 
-func (p *NftBuildData) GetOwner() int64                 { return int64(p.Web3Data.UserId) }
-func (p *NftBuildData) GetEntityId() int64              { return p.GameData.EntityId }
+func (p *NftBuildData) GetOwner() int64                 { return cast.ToInt64(p.Web3Data.UserId) }
+func (p *NftBuildData) GetBuildId() int64               { return int64(p.Web3Data.BuildId) }
 func (p *NftBuildData) GetNftId() string                { return p.Web3Data.NftId }
 func (p *NftBuildData) GetGameData() *dbData.NftBuild   { return p.GameData }
 func (p *NftBuildData) GetWeb3Data() *message.BuildData { return p.Web3Data }
@@ -44,10 +45,10 @@ func (p *NftBuildData) ToProtoData() *proto.NftBuild {
 	pos := &proto.Vector3{X: p.GameData.X, Y: p.GameData.Y, Z: p.GameData.Z}
 	dir := &proto.Vector3{X: p.GameData.DirX, Y: p.GameData.DirY, Z: p.GameData.DirZ}
 	pbBuild := &proto.NftBuild{
-		Id:                  p.GameData.EntityId,
+		Id:                  p.GetBuildId(),
 		Cid:                 p.GameData.Cid,
 		FromNft:             p.Web3Data.NftId,
-		Owner:               int64(p.Web3Data.UserId),
+		Owner:               p.GetOwner(),
 		LandIds:             p.InLandIds(),
 		Position:            pos,
 		Dir:                 dir,
@@ -64,10 +65,10 @@ func (p *NftBuildData) ToGrpcData() base_data.GrpcNftBuild {
 	pos := base_data.GrpcVector3{X: p.GameData.X, Y: p.GameData.Y, Z: p.GameData.Z}
 	dir := base_data.GrpcVector3{X: p.GameData.DirX, Y: p.GameData.DirY, Z: p.GameData.DirZ}
 	grpcBuild := base_data.GrpcNftBuild{
-		Id:                  p.GameData.EntityId,
+		Id:                  p.GetBuildId(),
 		Cid:                 p.GameData.Cid,
 		FromNft:             p.Web3Data.NftId,
-		Owner:               int64(p.Web3Data.UserId),
+		Owner:               p.GetOwner(),
 		LandIds:             p.InLandIds(),
 		Position:            pos,
 		Dir:                 dir,

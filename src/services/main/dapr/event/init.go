@@ -36,13 +36,6 @@ func initWeb3ServicesPubsubEventHandler() error {
 	}
 
 	if err := daprInvoke.AddTopicEventHandler(
-		string(message.SubscriptionEventMultiUpdateUserNFT),
-		Web3MultiUpdateUserNftHandler,
-	); err != nil {
-		return err
-	}
-
-	if err := daprInvoke.AddTopicEventHandler(
 		string(message.SubscriptionEventMultiLandDataUpdateEvent),
 		Web3MultiLandDataUpdateEventHandler,
 	); err != nil {

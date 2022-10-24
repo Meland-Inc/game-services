@@ -23,7 +23,7 @@ func RPCLoadNftBuildData(mapId int32) ([]message.BuildData, error) {
 	}
 
 	outBytes, err := daprInvoke.InvokeMethod(
-		string(message.AppIdLandService),
+		string(message.AppIdWeb3Service),
 		string(message.LandServiceActionGetAllBuildData),
 		inputBytes,
 	)
@@ -53,12 +53,12 @@ func RPCBuild(userId int64, nftId string, mapId int32, lands []int32) (*message.
 	}()
 
 	input := message.BuildInput{
-		UserId: int(userId),
+		UserId: fmt.Sprint(userId),
 		NftId:  nftId,
 		MapId:  int(mapId),
 	}
 	for _, land := range lands {
-		input.LandIds = append(input.LandIds, float64(land))
+		input.LandIds = append(input.LandIds, int(land))
 	}
 	inputBytes, err := json.Marshal(input)
 	if err != nil {
@@ -66,7 +66,7 @@ func RPCBuild(userId int64, nftId string, mapId int32, lands []int32) (*message.
 	}
 
 	outBytes, err := daprInvoke.InvokeMethod(
-		string(message.AppIdLandService),
+		string(message.AppIdWeb3Service),
 		string(message.LandServiceActionBuild),
 		inputBytes,
 	)
@@ -89,16 +89,16 @@ func RPCBuild(userId int64, nftId string, mapId int32, lands []int32) (*message.
 	return &output.BuildData, nil
 }
 
-func RPCRecyclingBuild(userId int64, nftId string, mapId int32) error {
+func RPCRecyclingBuild(userId int64, buildId int64, mapId int32) error {
 	beginMs := time_helper.NowMill()
 	defer func() {
 		serviceLog.Info("RPCRecyclingBuild used time [%04d]Ms", time_helper.NowMill()-beginMs)
 	}()
 
 	input := message.RecyclingInput{
-		UserId: int(userId),
-		NftId:  nftId,
-		MapId:  int(mapId),
+		UserId:  fmt.Sprint(userId),
+		BuildId: int(buildId),
+		MapId:   int(mapId),
 	}
 	inputBytes, err := json.Marshal(input)
 	if err != nil {
@@ -106,7 +106,7 @@ func RPCRecyclingBuild(userId int64, nftId string, mapId int32) error {
 	}
 
 	outBytes, err := daprInvoke.InvokeMethod(
-		string(message.AppIdLandService),
+		string(message.AppIdWeb3Service),
 		string(message.LandServiceActionRecycling),
 		inputBytes,
 	)
@@ -129,17 +129,17 @@ func RPCRecyclingBuild(userId int64, nftId string, mapId int32) error {
 	return nil
 }
 
-func RPCBuildCharged(userId int64, nftId string, mapId, num int32) error {
+func RPCBuildCharged(userId int64, buildId int64, mapId, num int32) error {
 	beginMs := time_helper.NowMill()
 	defer func() {
 		serviceLog.Info("RPCBuildCharged used time [%04d]Ms", time_helper.NowMill()-beginMs)
 	}()
 
 	input := message.ChargedInput{
-		UserId: int(userId),
-		NftId:  nftId,
-		MapId:  int(mapId),
-		Num:    int(num),
+		UserId:  fmt.Sprint(userId),
+		BuildId: int(buildId),
+		MapId:   int(mapId),
+		Num:     int(num),
 	}
 	inputBytes, err := json.Marshal(input)
 	if err != nil {
@@ -147,7 +147,7 @@ func RPCBuildCharged(userId int64, nftId string, mapId, num int32) error {
 	}
 
 	outBytes, err := daprInvoke.InvokeMethod(
-		string(message.AppIdLandService),
+		string(message.AppIdWeb3Service),
 		string(message.LandServiceActionCharged),
 		inputBytes,
 	)
@@ -170,16 +170,16 @@ func RPCBuildCharged(userId int64, nftId string, mapId, num int32) error {
 	return nil
 }
 
-func RPCHarvest(userId int64, nftId string, mapId int32) error {
+func RPCHarvest(userId int64, buildId int64, mapId int32) error {
 	beginMs := time_helper.NowMill()
 	defer func() {
 		serviceLog.Info("RPCHarvest used time [%04d]Ms", time_helper.NowMill()-beginMs)
 	}()
 
 	input := message.HarvestInput{
-		UserId: int(userId),
-		NftId:  nftId,
-		MapId:  int(mapId),
+		UserId:  fmt.Sprint(userId),
+		BuildId: int(buildId),
+		MapId:   int(mapId),
 	}
 	inputBytes, err := json.Marshal(input)
 	if err != nil {
@@ -187,7 +187,7 @@ func RPCHarvest(userId int64, nftId string, mapId int32) error {
 	}
 
 	outBytes, err := daprInvoke.InvokeMethod(
-		string(message.AppIdLandService),
+		string(message.AppIdWeb3Service),
 		string(message.LandServiceActionHarvest),
 		inputBytes,
 	)
@@ -210,16 +210,16 @@ func RPCHarvest(userId int64, nftId string, mapId int32) error {
 	return nil
 }
 
-func RPCCollection(userId int64, nftId string, mapId int32) error {
+func RPCCollection(userId int64, buildId int64, mapId int32) error {
 	beginMs := time_helper.NowMill()
 	defer func() {
 		serviceLog.Info("RPCCollection used time [%04d]Ms", time_helper.NowMill()-beginMs)
 	}()
 
 	input := message.CollectionInput{
-		UserId: int(userId),
-		NftId:  nftId,
-		MapId:  int(mapId),
+		UserId:  fmt.Sprint(userId),
+		BuildId: int(buildId),
+		MapId:   int(mapId),
 	}
 	inputBytes, err := json.Marshal(input)
 	if err != nil {
@@ -227,7 +227,7 @@ func RPCCollection(userId int64, nftId string, mapId int32) error {
 	}
 
 	outBytes, err := daprInvoke.InvokeMethod(
-		string(message.AppIdLandService),
+		string(message.AppIdWeb3Service),
 		string(message.LandServiceActionCollection),
 		inputBytes,
 	)
