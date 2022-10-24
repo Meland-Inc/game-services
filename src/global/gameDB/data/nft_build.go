@@ -11,7 +11,6 @@ type NftBuild struct {
 	UId       uint      `gorm:"primaryKey;autoIncrement" json:"uid,string"`
 	Owner     int64     `json:"owner"`
 	NftId     string    `json:"nftId"`
-	EntityId  int64     `json:"entityId"`
 	Cid       int32     `json:"cid"`
 	MapId     int32     `json:"mapId"`
 	X         float32   `json:"x"`
@@ -31,7 +30,6 @@ func NewNftBuild(
 	data := &NftBuild{
 		Owner:     userId,
 		NftId:     nftId,
-		EntityId:  time_helper.NowUTCMicro(),
 		Cid:       cid,
 		MapId:     mapId,
 		X:         pos.X,

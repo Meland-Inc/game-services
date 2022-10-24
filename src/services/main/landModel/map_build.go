@@ -85,19 +85,19 @@ func (p *MapLandDataRecord) GetUserNftBuilds(userId int64) (builds []*NftBuildDa
 	return
 }
 
-func (p *MapLandDataRecord) getBuildByEntityId(entityId int64) *NftBuildData {
+func (p *MapLandDataRecord) getBuildById(buildId int64) *NftBuildData {
 	for _, build := range p.buildRecord {
-		if build.GetEntityId() == entityId {
+		if build.GetBuildId() == buildId {
 			return build
 		}
 	}
 	return nil
 }
 
-func (p *MapLandDataRecord) GetNftBuildByEntityId(entityId int64) *NftBuildData {
+func (p *MapLandDataRecord) GetNftBuildById(buildId int64) *NftBuildData {
 	p.RLock()
 	defer p.RUnlock()
-	return p.getBuildByEntityId(entityId)
+	return p.getBuildById(buildId)
 }
 
 // if not found return nil
@@ -164,6 +164,10 @@ func (p *MapLandDataRecord) canBuild(
 		return nil, err
 	}
 
+	if item.Used {
+		return nil, fmt.Errorf("nft is used")
+	}
+
 	if pos == nil {
 		return nil, fmt.Errorf("pos is nil")
 	}
@@ -207,18 +211,18 @@ func (p *MapLandDataRecord) Build(
 }
 
 // 拆除建筑物
-func (p *MapLandDataRecord) Recycling(userId int64, nftId string) error {
+func (p *MapLandDataRecord) Recycling(userId int64, buildId int64) error {
 	p.RLock()
 	defer p.RUnlock()
-	build := p.getBuildByNftId(nftId)
+	build := p.getBuildById(buildId)
 	if build == nil {
-		return fmt.Errorf("nft[%s] build not found", nftId)
+		return fmt.Errorf("buildId[%d] build not found", buildId)
 	}
 	if build.GetOwner() != userId {
 		return fmt.Errorf("can't recycling other owner builds")
 	}
 
-	err := grpcInvoke.RPCRecyclingBuild(userId, nftId, p.MapId)
+	err := grpcInvoke.RPCRecyclingBuild(userId, buildId, p.MapId)
 	if err != nil {
 		return err
 	}
@@ -237,40 +241,40 @@ func (p *MapLandDataRecord) BuildCharged(userId int64, nftId string, buildId int
 		return fmt.Errorf("invalid charged num [%d]", num)
 	}
 
-	build := p.getBuildByNftId(nftId)
+	build := p.getBuildById(buildId)
 	if build == nil {
-		return fmt.Errorf("nft[%s] build not found", nftId)
+		return fmt.Errorf("build[%s] build not found", nftId)
 	}
 	if build.GetOwner() != userId {
 		return fmt.Errorf("can't charged other owner builds")
 	}
-	return grpcInvoke.RPCBuildCharged(userId, nftId, p.MapId, num)
+	return grpcInvoke.RPCBuildCharged(userId, buildId, p.MapId, num)
 }
 
 // 收获(harvest)自己建造物的产出(有电量的建造物)
 func (p *MapLandDataRecord) Harvest(userId int64, nftId string, buildId int64) error {
 	p.RLock()
 	defer p.RUnlock()
-	build := p.getBuildByNftId(nftId)
+	build := p.getBuildById(buildId)
 	if build == nil {
-		return fmt.Errorf("nft[%s] build not found", nftId)
+		return fmt.Errorf("build[%s]  not found", nftId)
 	}
 	if build.GetOwner() != userId {
 		return fmt.Errorf("can't Harvest other owner builds")
 	}
-	return grpcInvoke.RPCHarvest(userId, nftId, p.MapId)
+	return grpcInvoke.RPCHarvest(userId, buildId, p.MapId)
 }
 
 // 采集/偷取(collection) 他人的或者自己的没电量的建造物产出
 func (p *MapLandDataRecord) Collection(userId int64, nftId string, buildId int64) error {
 	p.RLock()
 	defer p.RUnlock()
-	build := p.getBuildByNftId(nftId)
+	build := p.getBuildById(buildId)
 	if build == nil {
-		return fmt.Errorf("nft[%s] build not found", nftId)
+		return fmt.Errorf("build[%s] not found", nftId)
 	}
 	if build.GetOwner() != userId {
 		return fmt.Errorf("can't Harvest other owner builds")
 	}
-	return grpcInvoke.RPCCollection(userId, nftId, p.MapId)
+	return grpcInvoke.RPCCollection(userId, buildId, p.MapId)
 }

@@ -186,7 +186,7 @@ func RecyclingHandler(input *methodData.PullClientMessageInput, msg *proto.Envel
 		return
 	}
 
-	err = mapLandRecord.Recycling(input.UserId, req.NftId)
+	err = mapLandRecord.Recycling(input.UserId, req.BuildId)
 	if err != nil {
 		respMsg.ErrorMessage = err.Error()
 		return

@@ -23,7 +23,7 @@ func RPCLoadLandData(mapId int32) ([]message.LandData, error) {
 	}
 
 	outBytes, err := daprInvoke.InvokeMethod(
-		string(message.AppIdLandService),
+		string(message.AppIdWeb3Service),
 		string(message.LandServiceActionGetAllLandData),
 		inputBytes,
 	)
@@ -53,7 +53,7 @@ func RPCOccupyLand(userId int64, mapId, landId int32) error {
 	}()
 
 	input := message.OccupyLandInput{
-		UserId: int(userId),
+		UserId: fmt.Sprint(userId),
 		LandId: int(landId),
 		MapId:  int(mapId),
 	}
@@ -63,7 +63,7 @@ func RPCOccupyLand(userId int64, mapId, landId int32) error {
 	}
 
 	outBytes, err := daprInvoke.InvokeMethod(
-		string(message.AppIdLandService),
+		string(message.AppIdWeb3Service),
 		string(message.LandServiceActionOccupyLand),
 		inputBytes,
 	)
