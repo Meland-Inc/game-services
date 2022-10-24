@@ -5,6 +5,7 @@ import (
 	"game-message-core/proto"
 
 	"github.com/Meland-Inc/game-services/src/common/serviceLog"
+	"github.com/Meland-Inc/game-services/src/common/time_helper"
 	"github.com/Meland-Inc/game-services/src/global/auth"
 	gameDb "github.com/Meland-Inc/game-services/src/global/gameDB"
 	dbData "github.com/Meland-Inc/game-services/src/global/gameDB/data"
@@ -128,6 +129,8 @@ func (ch *MsgChannel) CreatePlayerHandler(input *methodData.PullClientMessageInp
 	player.RoleId = req.RoleId
 	player.RoleIcon = req.Icon
 	player.SetFeature(req.Feature)
+	player.CreatedAt = time_helper.NowUTC()
+	player.UpdateAt = time_helper.NowUTC()
 
 	err = gameDb.GetGameDB().Create(player).Error
 	if err != nil {
