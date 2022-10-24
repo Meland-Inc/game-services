@@ -72,7 +72,8 @@ func profileAddByLv(pro *proto.EntityProfile, lv int32) error {
 
 func profileAddByAvatar(pro *proto.EntityProfile, avatars []*Item) {
 	for _, it := range avatars {
-		if it == nil || it.Attribute == nil {
+		if it == nil || it.Attribute == nil ||
+			it.AvatarPos > int32(proto.AvatarPosition_AvatarPositionWeapon) {
 			continue
 		}
 		// 耐久度=0 装备属性无效

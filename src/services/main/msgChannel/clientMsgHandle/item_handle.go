@@ -166,7 +166,7 @@ func LoadAvatarHandle(input *methodData.PullClientMessageInput, msg *proto.Envel
 		return
 	}
 
-	err = dataModel.LoadAvatar(input.UserId, req.ItemId)
+	err = dataModel.LoadAvatar(input.UserId, req.ItemId, req.IsAppearance)
 	if err != nil {
 		respMsg.ErrorMessage = err.Error()
 		return
@@ -202,7 +202,7 @@ func UnloadAvatarHandle(input *methodData.PullClientMessageInput, msg *proto.Env
 		return
 	}
 
-	err = dataModel.UnloadAvatar(input.UserId, req.ItemId, true)
+	err = dataModel.UnloadAvatar(input.UserId, req.ItemId, true, false)
 	if err != nil {
 		respMsg.ErrorMessage = err.Error()
 		return

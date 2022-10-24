@@ -131,11 +131,13 @@ func (p *PlayerDataModel) UsingAvatars(userId int64) (avatars []*Item, err error
 		return nil, err
 	}
 	for _, it := range userItems.Items {
-		if it.Used &&
-			it.AvatarPos >= int32(proto.AvatarPosition_AvatarPositionHead) &&
-			it.AvatarPos <= int32(proto.AvatarPosition_AvatarPositionWeapon) {
-			avatars = append(avatars, it)
+		if !it.Used {
+			continue
 		}
+		if it.AvatarPos < int32(proto.AvatarPosition_AvatarPositionHead) {
+			continue
+		}
+		avatars = append(avatars, it)
 	}
 	return avatars, err
 }
@@ -168,23 +170,6 @@ func (p *PlayerDataModel) removeUsingNftRecord(userId int64, nftId string) error
 	return gameDB.GetGameDB().Delete(&usingNft).Error
 }
 
-func (p *PlayerDataModel) canLoadAvatar(userId int64, item *Item, pos proto.AvatarPosition) error {
-	if item.Attribute == nil {
-		return fmt.Errorf("item [%s] attribute not found", item.Id)
-	}
-	if item.Attribute.Durability < 1 {
-		return fmt.Errorf("item [%s] Durability is zero", item.Id)
-	}
-	player, err := p.GetPlayerSceneData(userId)
-	if err != nil {
-		return err
-	}
-	if player.Level < item.NFTData.UseLevel() {
-		return fmt.Errorf("player level < item need level")
-	}
-	return nil
-}
-
 func (p *PlayerDataModel) UpdateItemUseState(userId int64, itemId string, using bool, pos int32) (err error) {
 	item, err := p.ItemById(userId, itemId)
 	if err != nil {
@@ -204,43 +189,161 @@ func (p *PlayerDataModel) UpdateItemUseState(userId int64, itemId string, using 
 	return nil
 }
 
+func (p *PlayerDataModel) canLoadAvatar(userId int64, item *Item) error {
+	if item.Attribute == nil {
+		return fmt.Errorf("item [%s] attribute not found", item.Id)
+	}
+	if item.Attribute.Durability < 1 {
+		return fmt.Errorf("item [%s] Durability is zero", item.Id)
+	}
+	player, err := p.GetPlayerSceneData(userId)
+	if err != nil {
+		return err
+	}
+	if player.Level < item.NFTData.UseLevel() {
+		return fmt.Errorf("player level < item need level")
+	}
+	return nil
+}
+
+func (p *PlayerDataModel) canLoadAppearance(userId int64, item *Item, pos proto.AvatarPosition) error {
+	if err := p.canLoadAvatar(userId, item); err != nil {
+		return err
+	}
+
+	userItems, err := p.GetPlayerItems(userId)
+	if err != nil {
+		return err
+	}
+	avatarPos := pos - proto.AvatarPosition_AppearancePosOffset
+	var avatarItem *Item
+	for _, it := range userItems.Items {
+		if it.AvatarPos == int32(avatarPos) {
+			avatarItem = it
+			break
+		}
+	}
+	if avatarItem == nil {
+		return fmt.Errorf("can't find using avatar by position")
+	}
+	_, EquipmentName := item.NFTData.EquipmentPosition()
+	_, avatarEquipmentName := avatarItem.NFTData.EquipmentPosition()
+	if EquipmentName != avatarEquipmentName {
+		return fmt.Errorf("not use other equipment type")
+	}
+
+	return nil
+}
+
 // 穿装备
-func (p *PlayerDataModel) LoadAvatar(userId int64, itemId string) error {
+func (p *PlayerDataModel) LoadAvatar(userId int64, itemId string, isAppearance bool) error {
+	userItems, err := p.GetPlayerItems(userId)
+	if err != nil {
+		return err
+	}
 	item, err := p.ItemById(userId, itemId)
 	if err != nil {
 		return err
 	}
 
-	pos := item.NFTData.EquipmentPosition()
-	if pos < proto.AvatarPosition_AvatarPositionHead || pos > proto.AvatarPosition_AvatarPositionWeapon {
-		return fmt.Errorf("invalid avatar position [%v]", pos)
+	avatarPos, equipmentName := item.NFTData.EquipmentPosition()
+	if avatarPos < proto.AvatarPosition_AvatarPositionHead || avatarPos > proto.AvatarPosition_AvatarPositionWeapon {
+		return fmt.Errorf("invalid avatar position [%v]", avatarPos)
 	}
+	appearancePos := proto.AvatarPosition_AppearancePosOffset + avatarPos // 装备位置转换为时装位置
 
-	if err = p.canLoadAvatar(userId, item, pos); err != nil {
+	// check can use
+	if isAppearance {
+		err = p.canLoadAppearance(userId, item, appearancePos)
+	} else {
+		err = p.canLoadAvatar(userId, item)
+	}
+	if err != nil {
 		return err
 	}
-	// 检查目标avatar POS 是否有装备正在使用, 有就先卸下
-	usingAvatars, _ := p.UsingAvatars(userId)
-	for _, it := range usingAvatars {
-		if it.Used && it.AvatarPos == int32(pos) {
-			p.UnloadAvatar(userId, it.Id, false)
+
+	// 检查目标avatar POS 是否有装备正在使用, 有就先卸下, 如果是时装则先强制卸下时装，不卸下装备
+	var usingAvatar *Item
+	var usingAppearance *Item
+	for _, it := range userItems.Items {
+		if it.AvatarPos == int32(appearancePos) {
+			usingAppearance = it
+		}
+		if it.AvatarPos == int32(avatarPos) {
+			usingAvatar = it
+		}
+		if usingAvatar != nil && usingAppearance != nil {
 			break
 		}
 	}
 
-	// 使用装备
-	err = p.UpdateItemUseState(userId, itemId, true, int32(pos))
-	if err != nil {
-		return err
+	if isAppearance {
+		if usingAppearance != nil {
+			p.UnloadAvatar(userId, usingAppearance.Id, false, true)
+		}
+		// 使用时装
+		err = p.UpdateItemUseState(userId, itemId, true, int32(appearancePos))
+		if err != nil {
+			return err
+		}
+	} else {
+		if usingAvatar != nil {
+			p.UnloadAvatar(userId, usingAvatar.Id, false, true)
+		}
+		if usingAppearance != nil {
+			_, appearanceEquipmentName := usingAppearance.NFTData.EquipmentPosition()
+			if equipmentName != appearanceEquipmentName {
+				p.UnloadAvatar(userId, usingAppearance.Id, false, true)
+			}
+		}
+		// 使用装备
+		err = p.UpdateItemUseState(userId, itemId, true, int32(avatarPos))
+		if err != nil {
+			return err
+		}
 	}
 
 	p.RPCCallUpdateUserUsingAvatar(userId)
 	return nil
 }
 
+func (p *PlayerDataModel) canUnloadAvatar(item *Item) error {
+	if !item.Used && item.AvatarPos == 0 {
+		return fmt.Errorf("item not used")
+	}
+	return nil
+}
+
 // 卸装备
-func (p *PlayerDataModel) UnloadAvatar(userId int64, itemId string, callProfileUp bool) error {
-	err := p.UpdateItemUseState(userId, itemId, true, int32(proto.AvatarPosition_AvatarPositionNone))
+func (p *PlayerDataModel) UnloadAvatar(userId int64, itemId string, callProfileUp, ignoreAppearance bool) error {
+	item, err := p.ItemById(userId, itemId)
+	if err != nil {
+		return err
+	}
+	if err = p.canUnloadAvatar(item); err != nil {
+		return err
+	}
+
+	unloadAvatar := item.AvatarPos <= int32(proto.AvatarPosition_AvatarPositionWeapon)
+	if !ignoreAppearance && unloadAvatar {
+		appearancePos := item.AvatarPos + int32(proto.AvatarPosition_AppearancePosOffset)
+		userItems, err := p.GetPlayerItems(userId)
+		if err != nil {
+			return err
+		}
+		var usingAppearance *Item
+		for _, it := range userItems.Items {
+			if it.AvatarPos == appearancePos {
+				usingAppearance = it
+				break
+			}
+		}
+		if usingAppearance != nil {
+			p.UnloadAvatar(userId, usingAppearance.Id, false, true)
+		}
+	}
+
+	err = p.UpdateItemUseState(userId, itemId, false, int32(proto.AvatarPosition_AvatarPositionNone))
 	if err != nil {
 		return err
 	}
