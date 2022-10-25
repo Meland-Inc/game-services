@@ -9,6 +9,7 @@ import (
 	"github.com/Meland-Inc/game-services/src/common/daprInvoke"
 	"github.com/Meland-Inc/game-services/src/common/serviceLog"
 	"github.com/Meland-Inc/game-services/src/global/grpcAPI/grpcNetTool"
+	land_model "github.com/Meland-Inc/game-services/src/services/main/landModel"
 	"github.com/Meland-Inc/game-services/src/services/main/playerModel"
 	"github.com/dapr/go-sdk/service/common"
 )
@@ -77,4 +78,46 @@ func GRPCGetUserDataHandler(ctx context.Context, in *common.InvocationEvent) (*c
 		dir,
 		pbAvatars,
 	)
+}
+
+func GRPCGetAllBuildHandlerHandler(ctx context.Context, in *common.InvocationEvent) (*common.Content, error) {
+	resFunc := func(
+		success bool, err error, builds []base_data.GrpcNftBuild,
+	) (*common.Content, error) {
+		out := &methodData.MainServiceActionGetAllBuildOutput{}
+		out.Success = success
+		if err != nil {
+			out.ErrMsg = err.Error()
+			serviceLog.Error("get user data err: %v", err)
+		} else {
+			out.AllBuilds = builds
+		}
+		content, _ := daprInvoke.MakeOutputContent(in, out)
+		return content, err
+	}
+
+	serviceLog.Info("get all build received data: %v", string(in.Data))
+
+	input := &methodData.MainServiceActionGetAllBuildInput{}
+	err := grpcNetTool.UnmarshalGrpcData(in.Data, input)
+	if err != nil {
+		return nil, err
+	}
+
+	buildModel, err := land_model.GetLandModel()
+	if err != nil {
+		return resFunc(false, err, nil)
+	}
+
+	mapRecord, err := buildModel.GetMapLandRecord(input.MapId)
+	if err != nil {
+		return resFunc(false, err, nil)
+	}
+
+	builds := []base_data.GrpcNftBuild{}
+	nftBuilds := mapRecord.GetAllNftBuild()
+	for _, nftBuild := range nftBuilds {
+		builds = append(builds, nftBuild.ToGrpcData())
+	}
+	return resFunc(true, err, builds)
 }

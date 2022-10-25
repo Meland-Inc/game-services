@@ -66,5 +66,12 @@ func initServiceGrpcCallHandle() error {
 		return err
 	}
 
+	if err := daprInvoke.AddServiceInvocationHandler(
+		string(grpc.MainServiceActionGetAllBuild),
+		GRPCGetAllBuildHandlerHandler,
+	); err != nil {
+		return err
+	}
+
 	return nil
 }
