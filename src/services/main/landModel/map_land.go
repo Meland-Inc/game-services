@@ -72,20 +72,20 @@ func (p *MapLandDataRecord) OccupyLand(userId int64, landId, landPosX, landPosZ 
 		return fmt.Errorf("land[%d] is occupied by[%d]", landId, land.Owner)
 	}
 
-	// TODO: ... CHECK LAND SEED
-	// userItems, err := p.playerDataModel.GetPlayerItems(userId)
-	// if err != nil {
-	// 	return err
-	// }
-	// var occupySeedCount int32
-	// for _, item := range userItems.Items {
-	// 	if item.Cid == 888 {
-	// 		occupySeedCount += item.Num
-	// 	}
-	// }
-	// if occupySeedCount < 1 {
-	// 	return fmt.Errorf("land seed not found")
-	// }
+	userItems, err := p.playerDataModel.GetPlayerItems(userId)
+	if err != nil {
+		return err
+	}
+	var occupySeedCount int32
+	for _, item := range userItems.Items {
+		if item.Cid == 3010204 { //占地种子id
+			occupySeedCount += item.Num
+			break
+		}
+	}
+	if occupySeedCount < 1 {
+		return fmt.Errorf("land seed not found")
+	}
 
 	return grpcInvoke.RPCOccupyLand(userId, p.MapId, landId)
 }
