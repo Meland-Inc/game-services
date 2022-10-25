@@ -27,6 +27,7 @@ func RPCLoadNftBuildData(mapId int32) ([]message.BuildData, error) {
 		string(message.LandServiceActionGetAllBuildData),
 		inputBytes,
 	)
+	serviceLog.Debug(" output   %+v", string(outBytes))
 	if err != nil {
 		serviceLog.Error("load all nft build data failed err:%+v", err)
 		return nil, err
@@ -70,6 +71,7 @@ func RPCBuild(userId int64, nftId string, mapId int32, lands []int32) (*message.
 		string(message.LandServiceActionBuild),
 		inputBytes,
 	)
+	serviceLog.Debug("build out bytes  = %+v", string(outBytes))
 	if err != nil {
 		serviceLog.Error("RPCBuild failed err:%+v", err)
 		return nil, err

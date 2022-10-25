@@ -34,6 +34,7 @@ func (p *MapLandDataRecord) removeUsingLandRecord(build *NftBuildData) {
 func (p *MapLandDataRecord) loadBuildGameData() ([]dbData.NftBuild, error) {
 	var builds []dbData.NftBuild
 	err := gameDB.GetGameDB().Where("map_id = ?", p.MapId).Find(&builds).Error
+	serviceLog.Debug("loadBuildGameData err : %+v", err)
 	return builds, err
 }
 
@@ -177,7 +178,7 @@ func (p *MapLandDataRecord) canBuild(
 		if !exist {
 			return nil, fmt.Errorf("land[%d] not found", landId)
 		}
-		if landData.GetOwner() != userId {
+		if owner := landData.GetOwner(); owner > 0 && owner != userId {
 			return nil, fmt.Errorf("can't build other owner land[%d]", landId)
 		}
 		if _, exist := p.usingLand[landId]; exist {
@@ -218,7 +219,7 @@ func (p *MapLandDataRecord) Recycling(userId int64, buildId int64) error {
 	if build == nil {
 		return fmt.Errorf("buildId[%d] build not found", buildId)
 	}
-	if build.GetOwner() != userId {
+	if owner := build.GetOwner(); owner > 0 && owner != userId {
 		return fmt.Errorf("can't recycling other owner builds")
 	}
 
@@ -246,7 +247,7 @@ func (p *MapLandDataRecord) BuildCharged(userId int64, nftId string, buildId int
 	if build == nil {
 		return fmt.Errorf("build[%s] build not found", nftId)
 	}
-	if build.GetOwner() != userId {
+	if owner := build.GetOwner(); owner > 0 && owner != userId {
 		return fmt.Errorf("can't charged other owner builds")
 	}
 	return grpcInvoke.RPCBuildCharged(userId, buildId, p.MapId, num)
@@ -260,7 +261,7 @@ func (p *MapLandDataRecord) Harvest(userId int64, nftId string, buildId int64) e
 	if build == nil {
 		return fmt.Errorf("build[%s]  not found", nftId)
 	}
-	if build.GetOwner() != userId {
+	if owner := build.GetOwner(); owner > 0 && owner != userId {
 		return fmt.Errorf("can't Harvest other owner builds")
 	}
 	return grpcInvoke.RPCHarvest(userId, buildId, p.MapId)
@@ -273,9 +274,6 @@ func (p *MapLandDataRecord) Collection(userId int64, nftId string, buildId int64
 	build := p.getBuildById(buildId)
 	if build == nil {
 		return fmt.Errorf("build[%s] not found", nftId)
-	}
-	if build.GetOwner() != userId {
-		return fmt.Errorf("can't Harvest other owner builds")
 	}
 	return grpcInvoke.RPCCollection(userId, buildId, p.MapId)
 }
