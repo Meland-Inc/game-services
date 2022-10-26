@@ -45,18 +45,20 @@ func (p *NftBuildData) ToProtoData() *proto.NftBuild {
 	pos := &proto.Vector3{X: p.GameData.X, Y: p.GameData.Y, Z: p.GameData.Z}
 	dir := &proto.Vector3{X: p.GameData.DirX, Y: p.GameData.DirY, Z: p.GameData.DirZ}
 	pbBuild := &proto.NftBuild{
-		Id:          p.GetBuildId(),
-		Cid:         p.GameData.Cid,
-		FromNft:     p.Web3Data.NftId,
-		Owner:       p.GetOwner(),
-		LandIds:     p.InLandIds(),
-		Position:    pos,
-		Dir:         dir,
-		ElectricEnd: int32(p.Web3Data.ElectricEnd),
-		// ProduceBeginAt:      int32(p.Web3Data.ProduceBeginAt),
+		Id:                  p.GetBuildId(),
+		Cid:                 p.GameData.Cid,
+		FromNft:             p.Web3Data.NftId,
+		Owner:               p.GetOwner(),
+		LandIds:             p.InLandIds(),
+		Position:            pos,
+		Dir:                 dir,
+		ElectricEnd:         int32(p.Web3Data.ElectricEnd),
+		HarvestStartAt:      int32(p.Web3Data.HarvestStartAt),
+		HarvestAt:           int32(p.Web3Data.HarvestAt),
 		HarvestItemCount:    int32(p.Web3Data.HarvestItemCount),
-		CollectionItemCount: int32(p.Web3Data.CollectionItemCount),
+		CollectionStartAt:   int32(p.Web3Data.CollectionStartAt),
 		CollectionAt:        int32(p.Web3Data.CollectionAt),
+		CollectionItemCount: int32(p.Web3Data.CollectionItemCount),
 	}
 	return pbBuild
 }
@@ -65,18 +67,22 @@ func (p *NftBuildData) ToGrpcData() base_data.GrpcNftBuild {
 	pos := base_data.GrpcVector3{X: p.GameData.X, Y: p.GameData.Y, Z: p.GameData.Z}
 	dir := base_data.GrpcVector3{X: p.GameData.DirX, Y: p.GameData.DirY, Z: p.GameData.DirZ}
 	grpcBuild := base_data.GrpcNftBuild{
-		Id:          p.GetBuildId(),
-		Cid:         p.GameData.Cid,
-		FromNft:     p.Web3Data.NftId,
-		Owner:       p.GetOwner(),
-		LandIds:     p.InLandIds(),
-		Position:    pos,
-		Dir:         dir,
-		ElectricEnd: int32(p.Web3Data.ElectricEnd),
-		// ProduceBeginAt:      int32(p.Web3Data.ProduceBeginAt),
-		HarvestItemCount:    int32(p.Web3Data.HarvestItemCount),
-		CollectionItemCount: int32(p.Web3Data.CollectionItemCount),
-		CollectionAt:        int32(p.Web3Data.CollectionAt),
+		Id:                                    p.GetBuildId(),
+		Cid:                                   p.GameData.Cid,
+		FromNft:                               p.Web3Data.NftId,
+		Owner:                                 p.GetOwner(),
+		LandIds:                               p.InLandIds(),
+		Position:                              pos,
+		Dir:                                   dir,
+		ElectricEnd:                           int32(p.Web3Data.ElectricEnd),
+		HarvestStartAt:                        int32(p.Web3Data.HarvestStartAt),
+		HarvestAt:                             int32(p.Web3Data.HarvestAt),
+		HarvestItemCount:                      int32(p.Web3Data.HarvestItemCount),
+		CollectionStartAt:                     int32(p.Web3Data.CollectionStartAt),
+		CollectionAt:                          int32(p.Web3Data.CollectionAt),
+		CollectionItemCount:                   int32(p.Web3Data.CollectionItemCount),
+		LandPlacementPowerZeroCooldownStartAt: int32(p.Web3Data.LandPlacementPowerZeroCooldownStartAt),
+		LandPlacementPowerZeroCooldownAt:      int32(p.Web3Data.LandPlacementPowerZeroCooldownAt),
 	}
 	return grpcBuild
 }
