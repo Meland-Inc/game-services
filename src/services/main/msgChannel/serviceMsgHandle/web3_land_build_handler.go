@@ -3,6 +3,8 @@ package serviceMsgHandle
 import (
 	"game-message-core/proto"
 
+	message "github.com/Meland-Inc/game-services/src/global/web3Message"
+
 	"github.com/Meland-Inc/game-services/src/common/serviceLog"
 	message "github.com/Meland-Inc/game-services/src/global/web3Message"
 	land_model "github.com/Meland-Inc/game-services/src/services/main/landModel"
@@ -49,11 +51,11 @@ func Web3RecyclingHandler(iMsg interface{}) {
 	// 	return
 	// }
 
-	// err = mapRecord.Recycling(cast.ToInt64(input.UserId), int64(input.BuildId))
-	// if err != nil {
-	// 	serviceLog.Error("RecyclingEvent error: %v", err)
-	// 	return
-	// }
+	err = mapRecord.OnReceiveRecyclingEvent(int64(input.BuildId))
+	if err != nil {
+		serviceLog.Error("RecyclingEvent error: %v", err)
+		return
+	}
 }
 
 func Web3BuildUpdateHandler(iMsg interface{}) {

@@ -223,13 +223,25 @@ func (p *MapLandDataRecord) Recycling(userId int64, buildId int64) error {
 		return fmt.Errorf("can't recycling other owner builds")
 	}
 
-	err := grpcInvoke.RPCRecyclingBuild(userId, buildId, p.MapId)
-	if err != nil {
-		return err
+	return grpcInvoke.RPCRecyclingBuild(userId, buildId, p.MapId)
+}
+
+// 拆除建筑物
+func (p *MapLandDataRecord) OnReceiveRecyclingEvent(buildId int64) error {
+	p.RLock()
+	defer p.RUnlock()
+	serviceLog.Debug("OnReceiveRecyclingEvent ```````````````````````````` (%v)", buildId)
+
+	build := p.getBuildById(buildId)
+	if build == nil {
+		return fmt.Errorf("buildId[%d] build not found", buildId)
 	}
 
+	serviceLog.Debug("OnReceiveRecyclingEvent  (%v)", buildId)
 	p.removeNftBuildRecord(build)
+	serviceLog.Debug("call scene service remove  (%v)", buildId)
 	grpcPubsubEvent.RPCPubsubEventNftBuildRemove(build.ToGrpcData())
+	serviceLog.Debug("call client =============== remove  (%v)", buildId)
 	p.BroadcastBuildRecycling(build)
 	return nil
 }
