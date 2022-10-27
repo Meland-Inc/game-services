@@ -43,7 +43,7 @@ func Run(errChan chan error) {
 }
 
 func initDaprClient() error {
-	time.Sleep(time.Millisecond * 300) //300Ms wait dapr link over
+	time.Sleep(time.Millisecond * 1000) // main wait 1000MS dapr started
 
 	grpcPort := os.Getenv("DAPR_GRPC_PORT")
 	serviceLog.Info("dapr grpc port: [%s]", grpcPort)
