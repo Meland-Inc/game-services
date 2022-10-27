@@ -38,42 +38,45 @@ func Web3MultiLandDataUpdateEventHandler(iMsg interface{}) {
 	mapRecord.MultiUpdateLandData(upLands)
 }
 
-func Web3RecyclingHandler(iMsg interface{}) {
-	// input, ok := iMsg.(*message.RecyclingEvent)
-	// if !ok {
-	// 	serviceLog.Error("iMsg to RecyclingEvent failed")
-	// 	return
-	// }
-
-	// mapRecord, err := getMapLandRecord(int32(input.MapId))
-	// if err != nil {
-	// 	serviceLog.Error("RecyclingEvent error: %v", err)
-	// 	return
-	// }
-
-	err = mapRecord.OnReceiveRecyclingEvent(int64(input.BuildId))
-	if err != nil {
-		serviceLog.Error("RecyclingEvent error: %v", err)
+func Web3MultiRecyclingHandler(iMsg interface{}) {
+	input, ok := iMsg.(*message.MultiRecyclingEvent)
+	if !ok {
+		serviceLog.Error("iMsg to MultiRecyclingEvent failed")
 		return
+	}
+
+	mapRecord, err := getMapLandRecord(int32(input.MapId))
+	if err != nil {
+		serviceLog.Error("MultiRecyclingEvent error: %v", err)
+		return
+	}
+
+	for _, buildId := range input.BuildIds {
+		err = mapRecord.OnReceiveRecyclingEvent(int64(buildId))
+		if err != nil {
+			serviceLog.Error("MultiRecyclingEvent error: %v", err)
+		}
 	}
 }
 
-func Web3BuildUpdateHandler(iMsg interface{}) {
-	// input, ok := iMsg.(*message.BuildUpdateEvent)
-	// if !ok {
-	// 	serviceLog.Error("iMsg to BuildUpdateEvent failed")
-	// 	return
-	// }
+func Web3MultiBuildUpdateHandler(iMsg interface{}) {
+	input, ok := iMsg.(*message.MultiBuildUpdateEvent)
+	if !ok {
+		serviceLog.Error("iMsg to MultiBuildUpdateEvent failed")
+		return
+	}
 
-	// mapRecord, err := getMapLandRecord(int32(input.MapId))
-	// if err != nil {
-	// 	serviceLog.Error("BuildUpdateEvent error: %v", err)
-	// 	return
-	// }
+	mapRecord, err := getMapLandRecord(int32(input.MapId))
+	if err != nil {
+		serviceLog.Error("MultiBuildUpdateEvent error: %v", err)
+		return
+	}
 
-	// err = mapRecord.UpdateNftBuildWeb3Data(input.BuildData)
-	// if err != nil {
-	// 	serviceLog.Error("BuildUpdateEvent error: %v", err)
-	// 	return
-	// }
+	for _, build := range input.BuildDatas {
+		err = mapRecord.UpdateNftBuildWeb3Data(build)
+		if err != nil {
+			serviceLog.Error("MultiBuildUpdateEvent error: %v", err)
+		}
+	}
+
 }

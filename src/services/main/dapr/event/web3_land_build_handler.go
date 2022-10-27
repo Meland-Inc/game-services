@@ -33,46 +33,46 @@ func Web3MultiLandDataUpdateEventHandler(ctx context.Context, e *common.TopicEve
 	return false, nil
 }
 
-func Web3RecyclingEventHandler(ctx context.Context, e *common.TopicEvent) (retry bool, err error) {
+func Web3MultiRecyclingEventHandler(ctx context.Context, e *common.TopicEvent) (retry bool, err error) {
 	serviceLog.Info("Receive Web3RecyclingEvent data: %v", e.Data)
 
-	// input := &message.RecyclingEvent{}
-	// err = grpcNetTool.UnmarshalGrpcTopicEvent(e, input)
-	// if err != nil {
-	// 	serviceLog.Error("Web3RecyclingEvent UnmarshalEvent fail err: %v ", err)
-	// 	return false, err
-	// }
+	input := &message.MultiRecyclingEvent{}
+	err = grpcNetTool.UnmarshalGrpcTopicEvent(e, input)
+	if err != nil {
+		serviceLog.Error("Web3RecyclingEvent UnmarshalEvent fail err: %v ", err)
+		return false, err
+	}
 
-	// if input.Etag < int(serviceCnf.GetInstance().StartMs/1000) {
-	// 	return false, nil
-	// }
+	if input.Etag < int(serviceCnf.GetInstance().StartMs/1000) {
+		return false, nil
+	}
 
-	// msgChannel.GetInstance().CallServiceMsg(&msgChannel.ServiceMsgData{
-	// 	MsgId:   string(message.SubscriptionEventRecyclingEvent),
-	// 	MsgBody: input,
-	// })
+	msgChannel.GetInstance().CallServiceMsg(&msgChannel.ServiceMsgData{
+		MsgId:   string(message.SubscriptionEventMultiRecyclingEvent),
+		MsgBody: input,
+	})
 
 	return false, nil
 }
 
-func Web3BuildUpdateEventHandler(ctx context.Context, e *common.TopicEvent) (retry bool, err error) {
+func Web3MultiBuildUpdateEventHandler(ctx context.Context, e *common.TopicEvent) (retry bool, err error) {
 	serviceLog.Info("Receive Web3BuildUpdateEvent data: %v", e.Data)
 
-	// input := &message.BuildUpdateEvent{}
-	// err = grpcNetTool.UnmarshalGrpcTopicEvent(e, input)
-	// if err != nil {
-	// 	serviceLog.Error("Web3BuildUpdateEvent UnmarshalEvent fail err: %v ", err)
-	// 	return false, err
-	// }
+	input := &message.MultiBuildUpdateEvent{}
+	err = grpcNetTool.UnmarshalGrpcTopicEvent(e, input)
+	if err != nil {
+		serviceLog.Error("Web3BuildUpdateEvent UnmarshalEvent fail err: %v ", err)
+		return false, err
+	}
 
-	// if input.Etag < int(serviceCnf.GetInstance().StartMs/1000) {
-	// 	return false, nil
-	// }
+	if input.Etag < int(serviceCnf.GetInstance().StartMs/1000) {
+		return false, nil
+	}
 
-	// msgChannel.GetInstance().CallServiceMsg(&msgChannel.ServiceMsgData{
-	// 	MsgId:   string(message.SubscriptionEventBuildUpdateEvent),
-	// 	MsgBody: input,
-	// })
+	msgChannel.GetInstance().CallServiceMsg(&msgChannel.ServiceMsgData{
+		MsgId:   string(message.SubscriptionEventMultiBuildUpdateEvent),
+		MsgBody: input,
+	})
 
 	return false, nil
 }
