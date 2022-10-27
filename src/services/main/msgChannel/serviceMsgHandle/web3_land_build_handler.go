@@ -25,17 +25,28 @@ func Web3MultiLandDataUpdateEventHandler(iMsg interface{}) {
 		return
 	}
 
-	mapRecord, err := getMapLandRecord(int32(input.MapId))
-	if err != nil {
-		serviceLog.Error("MultiLandDataUpdateEvent error: %v", err)
-		return
+	landGroup := make(map[int32][]*proto.LandData)
+	for _, land := range input.Lands {
+		mapId := int32(land.MapId)
+		pbLandData := message.ToProtoLandData(land)
+		if pbLandData == nil {
+			continue
+		}
+		if _, exist := landGroup[mapId]; exist {
+			landGroup[mapId] = append(landGroup[mapId], pbLandData)
+		} else {
+			landGroup[mapId] = []*proto.LandData{pbLandData}
+		}
 	}
 
-	upLands := make([]*proto.LandData, 0, len(input.Lands))
-	for _, l := range input.Lands {
-		upLands = append(upLands, message.ToProtoLandData(l))
+	for mapId, upLands := range landGroup {
+		mapRecord, err := getMapLandRecord(mapId)
+		if err != nil {
+			serviceLog.Error("MultiLandDataUpdateEvent error: %v", err)
+			continue
+		}
+		mapRecord.MultiUpdateLandData(upLands)
 	}
-	mapRecord.MultiUpdateLandData(upLands)
 }
 
 func Web3MultiRecyclingHandler(iMsg interface{}) {
@@ -45,14 +56,14 @@ func Web3MultiRecyclingHandler(iMsg interface{}) {
 		return
 	}
 
-	mapRecord, err := getMapLandRecord(int32(input.MapId))
-	if err != nil {
-		serviceLog.Error("MultiRecyclingEvent error: %v", err)
-		return
-	}
+	for _, info := range input.RecyclingInfos {
+		mapRecord, err := getMapLandRecord(int32(info.MapId))
+		if err != nil {
+			serviceLog.Error("MultiRecyclingEvent error: %v", err)
+			return
+		}
 
-	for _, buildId := range input.BuildIds {
-		err = mapRecord.OnReceiveRecyclingEvent(int64(buildId))
+		err = mapRecord.OnReceiveRecyclingEvent(int64(info.BuildId))
 		if err != nil {
 			serviceLog.Error("MultiRecyclingEvent error: %v", err)
 		}
@@ -66,17 +77,16 @@ func Web3MultiBuildUpdateHandler(iMsg interface{}) {
 		return
 	}
 
-	mapRecord, err := getMapLandRecord(int32(input.MapId))
-	if err != nil {
-		serviceLog.Error("MultiBuildUpdateEvent error: %v", err)
-		return
-	}
-
 	for _, build := range input.BuildDatas {
+		mapRecord, err := getMapLandRecord(int32(build.MapId))
+		if err != nil {
+			serviceLog.Error("MultiBuildUpdateEvent error: %v", err)
+			continue
+		}
+
 		err = mapRecord.UpdateNftBuildWeb3Data(build)
 		if err != nil {
 			serviceLog.Error("MultiBuildUpdateEvent error: %v", err)
 		}
 	}
-
 }
