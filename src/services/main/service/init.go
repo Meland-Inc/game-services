@@ -89,9 +89,9 @@ func (s *Service) initServiceModels() error {
 		return err
 	}
 
-	if err := s.initLandModel(); err != nil {
-		return err
-	}
+	// if err := s.initLandModel(); err != nil {
+	// 	return err
+	// }
 
 	return nil
 }
