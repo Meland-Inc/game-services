@@ -10,6 +10,7 @@ import (
 type NftBuild struct {
 	UId       uint      `gorm:"primaryKey;autoIncrement" json:"uid,string"`
 	Owner     int64     `json:"owner"`
+	BuildId   int64     `json:"buildId"`
 	NftId     string    `json:"nftId"`
 	Cid       int32     `json:"cid"`
 	MapId     int32     `json:"mapId"`
@@ -24,11 +25,12 @@ type NftBuild struct {
 }
 
 func NewNftBuild(
-	userId int64, nftId string, cid, mapId int32, pos *proto.Vector3, lands []int32,
+	userId, buildId int64, nftId string, cid, mapId int32, pos *proto.Vector3, lands []int32,
 ) *NftBuild {
 	nowTm := time_helper.NowUTC()
 	data := &NftBuild{
 		Owner:     userId,
+		BuildId:   buildId,
 		NftId:     nftId,
 		Cid:       cid,
 		MapId:     mapId,

@@ -71,6 +71,5 @@ func (p *MapLandDataRecord) BroadcastBuildRecycling(build *NftBuildData) {
 			},
 		},
 	}
-	serviceLog.Debug("@@ %+v", msg)
 	p.SendToPlayer(build.GetOwner(), msg)
 }

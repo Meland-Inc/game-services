@@ -3,7 +3,6 @@ package daprInvoke
 import (
 	"context"
 
-	"github.com/Meland-Inc/game-services/src/common/serviceLog"
 	daprC "github.com/dapr/go-sdk/client"
 )
 
@@ -29,7 +28,6 @@ func InvokeMethod(serviceAppId, methodName string, data []byte) ([]byte, error) 
 }
 
 func PubSubEventCall(topic string, jsonString string) error {
-	serviceLog.Debug("pubsubEventCall  [%v], [%v]", topic, jsonString)
 	return client.PublishEvent(context.Background(), "pubsub", topic, jsonString)
 }
 

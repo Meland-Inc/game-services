@@ -34,7 +34,6 @@ func (p *MapLandDataRecord) removeUsingLandRecord(build *NftBuildData) {
 func (p *MapLandDataRecord) loadBuildGameData() ([]dbData.NftBuild, error) {
 	var builds []dbData.NftBuild
 	err := gameDB.GetGameDB().Where("map_id = ?", p.MapId).Find(&builds).Error
-	serviceLog.Debug("loadBuildGameData err : %+v", err)
 	return builds, err
 }
 
@@ -42,12 +41,16 @@ func (p *MapLandDataRecord) InitBuildData() error {
 	// load all land data for land-service
 	web3BuildDatas, err := grpcInvoke.RPCLoadNftBuildData(p.MapId)
 	if err != nil {
+		serviceLog.Error("RPCLoadNftBuildData err : %+v", err)
 		return err
 	}
 	gameBuildDatas, err := p.loadBuildGameData()
 	if err != nil {
+		serviceLog.Error("loadBuildGameData err : %+v", err)
 		return err
 	}
+
+	serviceLog.Info("INitBuildData web3Build len[%d], gameBuildDatas[%d]", len(web3BuildDatas), len(gameBuildDatas))
 
 	for _, web3build := range web3BuildDatas {
 		exist := false
@@ -144,17 +147,31 @@ func (p *MapLandDataRecord) addNftBuildRecord(build *NftBuildData) error {
 	return nil
 }
 
-func (p *MapLandDataRecord) removeNftBuildRecord(build *NftBuildData) error {
+func (p *MapLandDataRecord) removeNftBuildRecord(build *NftBuildData) (err error) {
 	if build == nil {
 		return fmt.Errorf("delete nft build is nil")
 	}
-	err := p.playerDataModel.UpdateItemUseState(build.GetOwner(), build.GetNftId(), false, 0)
-	if err != nil {
-		return err
-	}
-	delete(p.buildRecord, build.GetNftId())
+
 	p.removeUsingLandRecord(build)
-	return gameDB.GetGameDB().Delete(build.GameData).Error
+	delete(p.buildRecord, build.GetNftId())
+	if err1 := gameDB.GetGameDB().Where(
+		"build_id=? AND map_id=?", build.Web3Data.BuildId, build.Web3Data.MapId,
+	).Delete(&dbData.NftBuild{}).Error; err1 != nil {
+		serviceLog.Error(err1.Error())
+		err = err1
+	}
+
+	err2 := p.playerDataModel.UpdateItemUseState(build.GetOwner(), build.GetNftId(), false, 0)
+	if err2 != nil {
+		if err2 := gameDB.GetGameDB().Where(
+			"nft_id = ? ", build.Web3Data.NftId,
+		).First(&dbData.UsingNft{}).Error; err2 != nil {
+			serviceLog.Error(err2.Error())
+			err = err2
+		}
+	}
+
+	return err
 }
 
 func (p *MapLandDataRecord) canBuild(
@@ -204,7 +221,7 @@ func (p *MapLandDataRecord) Build(
 		return nil, err
 	}
 
-	gameBuildData := dbData.NewNftBuild(userId, nftId, item.Cid, p.MapId, pos, landIds)
+	gameBuildData := dbData.NewNftBuild(userId, int64(web3BuildData.BuildId), nftId, item.Cid, p.MapId, pos, landIds)
 	nftBuild := NewNftBuildData(*gameBuildData, *web3BuildData)
 	p.addNftBuildRecord(nftBuild)
 	grpcPubsubEvent.RPCPubsubEventNftBuildAdd(nftBuild.ToGrpcData())
@@ -230,18 +247,17 @@ func (p *MapLandDataRecord) Recycling(userId int64, buildId int64) error {
 func (p *MapLandDataRecord) OnReceiveRecyclingEvent(buildId int64) error {
 	p.RLock()
 	defer p.RUnlock()
-	serviceLog.Debug("OnReceiveRecyclingEvent ```````````````````````````` (%v)", buildId)
+	serviceLog.Info("OnReceiveRecyclingEvent [%d]", buildId)
 
 	build := p.getBuildById(buildId)
 	if build == nil {
 		return fmt.Errorf("buildId[%d] build not found", buildId)
 	}
 
-	serviceLog.Debug("OnReceiveRecyclingEvent  (%v)", buildId)
-	p.removeNftBuildRecord(build)
-	serviceLog.Debug("call scene service remove  (%v)", buildId)
+	if err := p.removeNftBuildRecord(build); err != nil {
+		serviceLog.Error(err.Error())
+	}
 	grpcPubsubEvent.RPCPubsubEventNftBuildRemove(build.ToGrpcData())
-	serviceLog.Debug("call client =============== remove  (%v)", buildId)
 	p.BroadcastBuildRecycling(build)
 	return nil
 }

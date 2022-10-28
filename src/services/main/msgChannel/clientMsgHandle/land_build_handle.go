@@ -76,7 +76,6 @@ func QueryLandsHandler(input *methodData.PullClientMessageInput, msg *proto.Enve
 	}
 
 	lands, err := mapLandRecord.AllLandData()
-	serviceLog.Debug("QueryLandsHandler land length = %+v", len(lands))
 	if err != nil {
 		respMsg.ErrorMessage = err.Error()
 		return
@@ -326,7 +325,6 @@ func SelfNftBuildsHandler(input *methodData.PullClientMessageInput, msg *proto.E
 	}
 
 	builds := mapLandRecord.GetUserNftBuilds(input.UserId)
-	serviceLog.Debug("SelfNftBuildsHandler  buildIds length=[%d]", len(builds))
 	for _, build := range builds {
 		res.Builds = append(res.Builds, build.ToProtoData())
 	}
