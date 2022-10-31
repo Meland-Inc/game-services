@@ -129,17 +129,18 @@ func RPCRecyclingBuild(userId int64, buildId int64, mapId int32) error {
 	return nil
 }
 
-func RPCBuildCharged(userId int64, buildId int64, mapId, num int32) error {
+func RPCBuildCharged(userId int64, buildId int64, mapId, num, nativeTokenNum int32) error {
 	beginMs := time_helper.NowMill()
 	defer func() {
 		serviceLog.Info("RPCBuildCharged used time [%04d]Ms", time_helper.NowMill()-beginMs)
 	}()
 
 	input := message.ChargedInput{
-		UserId:  fmt.Sprint(userId),
-		BuildId: int(buildId),
-		MapId:   int(mapId),
-		Num:     int(num),
+		UserId:            fmt.Sprint(userId),
+		BuildId:           int(buildId),
+		MapId:             int(mapId),
+		Num:               int(num),
+		UseNativeTokenNum: int(nativeTokenNum),
 	}
 	inputBytes, err := json.Marshal(input)
 	if err != nil {

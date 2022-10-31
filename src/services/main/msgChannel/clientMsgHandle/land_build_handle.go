@@ -222,7 +222,7 @@ func ChargedHandler(input *methodData.PullClientMessageInput, msg *proto.Envelop
 		return
 	}
 
-	err = mapLandRecord.BuildCharged(input.UserId, req.NftId, req.BuildId, req.Num)
+	err = mapLandRecord.BuildCharged(input.UserId, req.NftId, req.BuildId, req.Num, req.NativeTokenNum)
 	if err != nil {
 		respMsg.ErrorMessage = err.Error()
 		return

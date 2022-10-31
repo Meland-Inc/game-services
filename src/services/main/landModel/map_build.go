@@ -263,12 +263,14 @@ func (p *MapLandDataRecord) OnReceiveRecyclingEvent(buildId int64) error {
 }
 
 // 充电
-func (p *MapLandDataRecord) BuildCharged(userId int64, nftId string, buildId int64, num int32) error {
+func (p *MapLandDataRecord) BuildCharged(
+	userId int64, nftId string, buildId int64, num, nativeTokenNum int32,
+) error {
 	p.RLock()
 	defer p.RUnlock()
 
-	if num < 1 {
-		return fmt.Errorf("invalid charged num [%d]", num)
+	if num < 1 && nativeTokenNum < 1 {
+		return fmt.Errorf("invalid charged num[%d], tokenNum[%d]", num, nativeTokenNum)
 	}
 
 	build := p.getBuildById(buildId)
@@ -278,7 +280,7 @@ func (p *MapLandDataRecord) BuildCharged(userId int64, nftId string, buildId int
 	if owner := build.GetOwner(); owner > 0 && owner != userId {
 		return fmt.Errorf("can't charged other owner builds")
 	}
-	return grpcInvoke.RPCBuildCharged(userId, buildId, p.MapId, num)
+	return grpcInvoke.RPCBuildCharged(userId, buildId, p.MapId, num, nativeTokenNum)
 }
 
 // 收获(harvest)自己建造物的产出(有电量的建造物)
