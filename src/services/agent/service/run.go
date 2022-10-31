@@ -50,7 +50,7 @@ func (s *Service) run() {
 	}()
 
 	err := <-errChan
-	serviceLog.Error(err.Error())
+	serviceLog.Info(err.Error())
 }
 
 func (s *Service) registerService() {

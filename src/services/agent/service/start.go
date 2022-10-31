@@ -33,6 +33,9 @@ func (s *Service) initTcpServer() (err error) {
 
 func (s *Service) OnSessionConnect(se *session.Session) {
 	fmt.Printf("session [%s][%s] ---- Connect to agent service ", se.SessionId(), se.RemoteAddr())
+	if s.closed {
+		return
+	}
 	channel := userChannel.NewUserChannel(se)
 	se.SetCallBack(channel.OnSessionReceivedData, channel.OnSessionClose)
 	userChannel.GetInstance().AddUserChannelById(channel)

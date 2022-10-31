@@ -13,6 +13,7 @@ type SessionManager struct {
 	sessions   map[string]*Session
 	count      uint32
 	timeoutSec int64
+	closed     bool
 }
 
 func NewSessionMgr(maxConnNum uint32, timeoutSec int64) *SessionManager {
@@ -21,6 +22,7 @@ func NewSessionMgr(maxConnNum uint32, timeoutSec int64) *SessionManager {
 		timeoutSec: timeoutSec,
 		count:      0,
 		sessions:   make(map[string]*Session),
+		closed:     false,
 	}
 	go func() {
 		mgr.checkTimeout()
@@ -29,6 +31,16 @@ func NewSessionMgr(maxConnNum uint32, timeoutSec int64) *SessionManager {
 }
 
 func (mgr *SessionManager) Count() uint32 { return mgr.count }
+
+func (mgr *SessionManager) Stop() {
+	mgr.RLock()
+	defer mgr.RUnlock()
+	mgr.closed = true
+	for _, s := range mgr.sessions {
+		s.Stop()
+	}
+	mgr.count = 0
+}
 
 func (mgr *SessionManager) AddSession(s *Session) {
 	if s == nil {
@@ -101,7 +113,10 @@ func (mgr *SessionManager) checkTimeout() {
 	}()
 
 	for {
-		time.Sleep(5 * time.Second)
+		time.Sleep(3 * time.Second)
+		if mgr.closed {
+			return
+		}
 
 		timeoutSessions := make([]*Session, 0, 5)
 		nowSec := time.Now().UTC().Unix()
@@ -109,7 +124,7 @@ func (mgr *SessionManager) checkTimeout() {
 			if s != nil {
 				// 间隔大于?秒客户端超时
 				if (nowSec - s.GetActiveTime()) > mgr.timeoutSec {
-					serviceLog.Info("session remote addr[%v][%s] timeout and close", s.RemoteAddr(),s.SessionId())
+					serviceLog.Info("session remote addr[%v][%s] timeout and close", s.RemoteAddr(), s.SessionId())
 					timeoutSessions = append(timeoutSessions, s)
 				}
 			}
