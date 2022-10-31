@@ -28,7 +28,7 @@ func NewTcpServer(
 	s := &Server{
 		addr:              addr,
 		maxConNum:         maxConnNum,
-		sessionMgr:        session.NewSessionMgr(maxConnNum,timeoutSec),
+		sessionMgr:        session.NewSessionMgr(maxConnNum, timeoutSec),
 		onConnectCallback: connectCallback,
 	}
 
@@ -59,6 +59,7 @@ func (s *Server) setLimit() {
 }
 
 func (s *Server) Stop() error {
+	s.sessionMgr.Stop()
 	return s.listener.Close()
 }
 

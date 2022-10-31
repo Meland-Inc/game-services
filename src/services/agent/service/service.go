@@ -14,12 +14,14 @@ type Service struct {
 	tcpServer  *tcp.Server
 	osSignal   chan os.Signal
 	stopChan   chan chan struct{}
+	closed     bool
 }
 
 func NewAgentService() *Service {
 	s := &Service{
 		osSignal: make(chan os.Signal, 1),
 		stopChan: make(chan chan struct{}, 1),
+		closed:   false,
 	}
 	s.modelMgr = component.InitModelManager(s)
 	return s
