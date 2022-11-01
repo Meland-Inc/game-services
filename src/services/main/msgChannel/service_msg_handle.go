@@ -41,10 +41,10 @@ func (ch *MsgChannel) onServiceMessage(input *ServiceMsgData) {
 
 	case string(message.SubscriptionEventMultiLandDataUpdateEvent):
 		serviceMsgHandle.Web3MultiLandDataUpdateEventHandler(input.MsgBody)
-	case string(message.SubscriptionEventRecyclingEvent):
-		serviceMsgHandle.Web3RecyclingHandler(input.MsgBody)
-	case string(message.SubscriptionEventBuildUpdateEvent):
-		serviceMsgHandle.Web3BuildUpdateHandler(input.MsgBody)
+		// case string(message.SubscriptionEventRecyclingEvent):
+		// 	serviceMsgHandle.Web3RecyclingHandler(input.MsgBody)
+		// case string(message.SubscriptionEventBuildUpdateEvent):
+		// 	serviceMsgHandle.Web3BuildUpdateHandler(input.MsgBody)
 
 	}
 }

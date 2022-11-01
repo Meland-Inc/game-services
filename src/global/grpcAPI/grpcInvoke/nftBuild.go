@@ -86,7 +86,7 @@ func RPCBuild(userId int64, nftId string, mapId int32, lands []int32) (*message.
 		return nil, fmt.Errorf(output.FailedReason)
 	}
 
-	return &output.BuildData, nil
+	return output.BuildData, nil
 }
 
 func RPCRecyclingBuild(userId int64, buildId int64, mapId int32) error {
