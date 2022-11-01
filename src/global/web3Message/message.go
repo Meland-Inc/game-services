@@ -710,9 +710,6 @@ type ChargedInput struct {
 	// 电池数量
 	Num int `json:"num"`
 
-	// 使用token购买电量的数量
-	UseNativeTokenNum int `json:"useNativeTokenNum"`
-
 	// 玩家id
 	UserId string `json:"userId"`
 }
@@ -731,9 +728,6 @@ func (j *ChargedInput) UnmarshalJSON(b []byte) error {
 	}
 	if v, ok := raw["num"]; !ok || v == nil {
 		return fmt.Errorf("field num: required")
-	}
-	if v, ok := raw["useNativeTokenNum"]; !ok || v == nil {
-		return fmt.Errorf("field useNativeTokenNum: required")
 	}
 	if v, ok := raw["userId"]; !ok || v == nil {
 		return fmt.Errorf("field userId: required")

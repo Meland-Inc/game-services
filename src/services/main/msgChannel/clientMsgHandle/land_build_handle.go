@@ -5,6 +5,7 @@ import (
 	"game-message-core/proto"
 
 	"github.com/Meland-Inc/game-services/src/common/serviceLog"
+	"github.com/Meland-Inc/game-services/src/global/grpcAPI/grpcInvoke"
 	"github.com/Meland-Inc/game-services/src/global/userAgent"
 	land_model "github.com/Meland-Inc/game-services/src/services/main/landModel"
 )
@@ -193,6 +194,34 @@ func RecyclingHandler(input *methodData.PullClientMessageInput, msg *proto.Envel
 	}
 }
 
+func MintBatteryHandler(input *methodData.PullClientMessageInput, msg *proto.Envelope) {
+	agent := GetOrStoreUserAgent(input)
+	res := &proto.MintBatteryResponse{}
+	respMsg := makeResponseMsg(msg)
+	defer func() {
+		if respMsg.ErrorMessage != "" {
+			respMsg.ErrorCode = 22009 // TODO: USE PROTO ERROR CODE
+		}
+		respMsg.Payload = &proto.Envelope_MintBatteryResponse{MintBatteryResponse: res}
+		ResponseClientMessage(agent, input, respMsg)
+	}()
+
+	if input.UserId < 1 {
+		respMsg.ErrorMessage = "MintBattery Invalid User ID"
+		return
+	}
+
+	req := msg.GetMintBatteryRequest()
+	if req == nil {
+		respMsg.ErrorMessage = "MintBattery request is nil"
+		return
+	}
+	err := grpcInvoke.MintBattery(input.UserId, req.MintNum, req.GiftNum)
+	if err != nil {
+		respMsg.ErrorMessage = err.Error()
+	}
+}
+
 func ChargedHandler(input *methodData.PullClientMessageInput, msg *proto.Envelope) {
 	agent := GetOrStoreUserAgent(input)
 	res := &proto.ChargedResponse{}
@@ -212,7 +241,7 @@ func ChargedHandler(input *methodData.PullClientMessageInput, msg *proto.Envelop
 
 	req := msg.GetChargedRequest()
 	if req == nil {
-		serviceLog.Error("main service Build Charged request is nil")
+		respMsg.ErrorMessage = "Build Charged request is nil"
 		return
 	}
 
@@ -222,7 +251,7 @@ func ChargedHandler(input *methodData.PullClientMessageInput, msg *proto.Envelop
 		return
 	}
 
-	err = mapLandRecord.BuildCharged(input.UserId, req.NftId, req.BuildId, req.Num, req.NativeTokenNum)
+	err = mapLandRecord.BuildCharged(input.UserId, req.NftId, req.BuildId, req.Num)
 	if err != nil {
 		respMsg.ErrorMessage = err.Error()
 		return
@@ -248,7 +277,7 @@ func HarvestHandler(input *methodData.PullClientMessageInput, msg *proto.Envelop
 
 	req := msg.GetHarvestRequest()
 	if req == nil {
-		serviceLog.Error("main service Build Harvest request is nil")
+		respMsg.ErrorMessage = "Build Harvest request is nil"
 		return
 	}
 
@@ -284,7 +313,7 @@ func CollectionHandler(input *methodData.PullClientMessageInput, msg *proto.Enve
 
 	req := msg.GetCollectionRequest()
 	if req == nil {
-		serviceLog.Error("main service Build Collection request is nil")
+		respMsg.ErrorMessage = "Build Collection request is nil"
 		return
 	}
 

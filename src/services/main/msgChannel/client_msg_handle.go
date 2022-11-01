@@ -24,6 +24,7 @@ func (ch *MsgChannel) registerClientMsgHandler() {
 	ch.clientMsgHandler[proto.EnvelopeType_OccupyLand] = clientMsgHandle.OccupyLandHandler
 	ch.clientMsgHandler[proto.EnvelopeType_Build] = clientMsgHandle.BuildHandler
 	ch.clientMsgHandler[proto.EnvelopeType_Recycling] = clientMsgHandle.RecyclingHandler
+	ch.clientMsgHandler[proto.EnvelopeType_MintBattery] = clientMsgHandle.MintBatteryHandler
 	ch.clientMsgHandler[proto.EnvelopeType_Charged] = clientMsgHandle.ChargedHandler
 	ch.clientMsgHandler[proto.EnvelopeType_Harvest] = clientMsgHandle.HarvestHandler
 	ch.clientMsgHandler[proto.EnvelopeType_Collection] = clientMsgHandle.CollectionHandler
