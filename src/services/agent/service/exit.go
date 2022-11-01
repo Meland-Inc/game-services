@@ -12,15 +12,15 @@ import (
 
 func (s *Service) onStop() error {
 	s.closed = true
-	s.unRegisterService()
-	time.Sleep(100 * time.Millisecond)
-	daprInvoke.Stop()
-
 	if err := s.tcpServer.Stop(); err != nil {
 		serviceLog.Error(
 			"agent service [%s] stop tcp server err: %v", s.serviceCnf.AppId, err,
 		)
 	}
+
+	s.unRegisterService()
+	time.Sleep(100 * time.Millisecond)
+	daprInvoke.Stop()
 
 	if err := s.modelMgr.StopModel(); err != nil {
 		serviceLog.Error(
