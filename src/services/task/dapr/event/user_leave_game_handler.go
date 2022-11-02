@@ -8,7 +8,7 @@ import (
 	"github.com/Meland-Inc/game-services/src/common/serviceLog"
 	"github.com/Meland-Inc/game-services/src/global/grpcAPI/grpcNetTool"
 	"github.com/Meland-Inc/game-services/src/global/serviceCnf"
-	"github.com/Meland-Inc/game-services/src/services/chat/msgChannel"
+	"github.com/Meland-Inc/game-services/src/services/task/msgChannel"
 	"github.com/dapr/go-sdk/service/common"
 )
 
@@ -25,7 +25,7 @@ func UserLeaveGameHandler(ctx context.Context, e *common.TopicEvent) (retry bool
 		return false, nil
 	}
 
-	serviceLog.Info("chat service receive LeaveGame: %+v", input)
+	serviceLog.Info("task service receive enterGame: %+v", input)
 
 	msgChannel.GetInstance().CallServiceMsg(&msgChannel.ServiceMsgData{
 		MsgId:   string(grpc.SubscriptionEventUserLeaveGame),

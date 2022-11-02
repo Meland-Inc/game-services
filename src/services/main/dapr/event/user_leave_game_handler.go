@@ -25,7 +25,7 @@ func UserLeaveGameHandler(ctx context.Context, e *common.TopicEvent) (retry bool
 		return false, nil
 	}
 
-	serviceLog.Info("main service receive enterGame: %+v", input)
+	serviceLog.Info("main service receive LeaveGame: %+v", input)
 
 	msgChannel.GetInstance().CallServiceMsg(&msgChannel.ServiceMsgData{
 		MsgId:   string(grpc.SubscriptionEventUserLeaveGame),

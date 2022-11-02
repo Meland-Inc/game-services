@@ -4,7 +4,6 @@ import (
 	"game-message-core/grpc/pubsubEventData"
 
 	"github.com/Meland-Inc/game-services/src/common/serviceLog"
-	"github.com/Meland-Inc/game-services/src/global/serviceCnf"
 	"github.com/Meland-Inc/game-services/src/global/userAgent"
 	"github.com/Meland-Inc/game-services/src/services/chat/chatModel"
 )
@@ -13,10 +12,6 @@ func PlayerLeaveGameHandler(iMsg interface{}) {
 	input, ok := iMsg.(*pubsubEventData.UserLeaveGameEvent)
 	if !ok {
 		serviceLog.Error("iMsg to UserLeaveGameEvent failed")
-		return
-	}
-
-	if input.MsgVersion < serviceCnf.GetInstance().StartMs {
 		return
 	}
 

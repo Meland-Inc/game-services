@@ -22,12 +22,5 @@ func initClientMsgCallHandle() error {
 		return err
 	}
 
-	if err := daprInvoke.AddServiceInvocationHandler(
-		string(grpc.UserActionLeaveGame),
-		UserLeaveGameHandler,
-	); err != nil {
-		return err
-	}
-
 	return nil
 }
