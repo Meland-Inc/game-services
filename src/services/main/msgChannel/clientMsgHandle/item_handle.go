@@ -134,7 +134,7 @@ func ItemUseHandle(input *methodData.PullClientMessageInput, msg *proto.Envelope
 		return
 	}
 
-	dataModel.UseItem(input.UserId, req.ItemId)
+	dataModel.UseItem(input.UserId, req.ItemId, req.Args)
 }
 
 func LoadAvatarHandle(input *methodData.PullClientMessageInput, msg *proto.Envelope) {

@@ -9,12 +9,13 @@ import (
 	message "github.com/Meland-Inc/game-services/src/global/web3Message"
 )
 
-func RPCCallUseConsumableToWeb3(userId int64, nftId string, x, y int32) error {
+func RPCCallUseConsumableToWeb3(userId int64, nftId string, x, y int32, args string) error {
 	input := message.UseConsumableInput{
 		UserId: fmt.Sprint(userId),
 		NftId:  nftId,
 		Amount: 1,
 		LandId: int(message.XyToTileId(x, y)),
+		Args:   &args,
 	}
 	inputBytes, err := json.Marshal(input)
 	if err != nil {

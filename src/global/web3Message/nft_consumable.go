@@ -54,6 +54,9 @@ func (n *NFT) GetConsumableData() (isConsumable bool, data *proto.NFTConsumableI
 			data.ConsumableType = proto.NFTConsumableType_NFTConsumableTypeAddBuff
 			data.Value = cast.ToInt32(na.Value)
 
+		case string(NFTTraitTypesOccupyLand):
+			data.ConsumableType = proto.NFTConsumableType_NFTConsumableTypeOccupyLand
+
 		default:
 
 		}

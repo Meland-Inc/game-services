@@ -3,8 +3,6 @@ package serviceMsgHandle
 import (
 	"game-message-core/proto"
 
-	message "github.com/Meland-Inc/game-services/src/global/web3Message"
-
 	"github.com/Meland-Inc/game-services/src/common/serviceLog"
 	message "github.com/Meland-Inc/game-services/src/global/web3Message"
 	land_model "github.com/Meland-Inc/game-services/src/services/main/landModel"

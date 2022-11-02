@@ -85,42 +85,6 @@ func QueryLandsHandler(input *methodData.PullClientMessageInput, msg *proto.Enve
 	queryLandsGroupingResponse(input, agent, lands)
 }
 
-func OccupyLandHandler(input *methodData.PullClientMessageInput, msg *proto.Envelope) {
-	agent := GetOrStoreUserAgent(input)
-	res := &proto.OccupyLandResponse{}
-	respMsg := makeResponseMsg(msg)
-	defer func() {
-		if respMsg.ErrorMessage != "" {
-			respMsg.ErrorCode = 22002 // TODO: USE PROTO ERROR CODE
-		}
-		respMsg.Payload = &proto.Envelope_OccupyLandResponse{OccupyLandResponse: res}
-		ResponseClientMessage(agent, input, respMsg)
-	}()
-
-	if input.UserId < 1 {
-		respMsg.ErrorMessage = "Occupy Land Invalid User ID"
-		return
-	}
-
-	req := msg.GetOccupyLandRequest()
-	if req == nil {
-		serviceLog.Error("main service Occupy Lands request is nil")
-		return
-	}
-
-	mapLandRecord, err := getMapLandRecordByUser(input.UserId)
-	if err != nil {
-		respMsg.ErrorMessage = err.Error()
-		return
-	}
-
-	err = mapLandRecord.OccupyLand(input.UserId, req.LandId, req.X, req.Z)
-	if err != nil {
-		respMsg.ErrorMessage = err.Error()
-		return
-	}
-}
-
 func BuildHandler(input *methodData.PullClientMessageInput, msg *proto.Envelope) {
 	agent := GetOrStoreUserAgent(input)
 	res := &proto.BuildResponse{}

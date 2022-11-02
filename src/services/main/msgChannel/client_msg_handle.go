@@ -21,7 +21,6 @@ func (ch *MsgChannel) registerClientMsgHandler() {
 
 	// land and build client msg handles
 	ch.clientMsgHandler[proto.EnvelopeType_QueryLands] = clientMsgHandle.QueryLandsHandler
-	ch.clientMsgHandler[proto.EnvelopeType_OccupyLand] = clientMsgHandle.OccupyLandHandler
 	ch.clientMsgHandler[proto.EnvelopeType_Build] = clientMsgHandle.BuildHandler
 	ch.clientMsgHandler[proto.EnvelopeType_Recycling] = clientMsgHandle.RecyclingHandler
 	ch.clientMsgHandler[proto.EnvelopeType_MintBattery] = clientMsgHandle.MintBatteryHandler
