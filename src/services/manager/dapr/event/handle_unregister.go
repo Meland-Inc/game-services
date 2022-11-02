@@ -7,6 +7,7 @@ import (
 
 	"github.com/Meland-Inc/game-services/src/common/serviceLog"
 	"github.com/Meland-Inc/game-services/src/global/grpcAPI/grpcNetTool"
+	"github.com/Meland-Inc/game-services/src/global/serviceCnf"
 	"github.com/Meland-Inc/game-services/src/services/manager/controller"
 	"github.com/dapr/go-sdk/service/common"
 )
@@ -19,6 +20,11 @@ func ServiceUnRegisterHandler(ctx context.Context, e *common.TopicEvent) (retry 
 	if err != nil {
 		serviceLog.Error("ServiceUnregisterEvent UnmarshalEvent fail err: %v ", err)
 		return false, err
+	}
+
+	// 抛弃过期事件
+	if input.MsgVersion < serviceCnf.GetInstance().StartMs {
+		return false, nil
 	}
 
 	service := controller.ServiceData{

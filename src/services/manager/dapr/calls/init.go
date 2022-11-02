@@ -14,16 +14,13 @@ func InitDaprCallHandle() (err error) {
 	); err != nil {
 		return err
 	}
-	if daprInvoke.AddServiceInvocationHandler(
-		string(grpc.ManagerServiceActionDestroy), DestroyServiceHandler,
-	); err != nil {
-		return err
-	}
+
 	if daprInvoke.AddServiceInvocationHandler(
 		string(grpc.ManagerServiceActionSelectService), SelectServiceHandler,
 	); err != nil {
 		return err
 	}
+
 	serviceLog.Info(" InitDaprCallHandle ------ end ------")
 	return nil
 }

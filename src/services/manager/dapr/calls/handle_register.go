@@ -11,54 +11,32 @@ import (
 	"github.com/dapr/go-sdk/service/common"
 )
 
-func toLocalServiceData(input *methodData.ServiceDataInput) controller.ServiceData {
-	return controller.ServiceData{
-		AppId:       input.AppId,
-		ServiceType: input.ServiceType,
-		Host:        input.Host,
-		Port:        input.Port,
-		MapId:       input.MapId,
-		Online:      input.Online,
-		MaxOnline:   input.MaxOnline,
-		CreateAt:    input.CreatedAt,
-		UpdateAt:    input.UpdatedAt,
-	}
-}
-
 func RegisterServiceHandler(ctx context.Context, in *common.InvocationEvent) (*common.Content, error) {
-	input := &methodData.ServiceDataInput{}
+	input := &methodData.ServiceRegisterInput{}
 	err := grpcNetTool.UnmarshalGrpcData(in.Data, input)
 	if err != nil {
 		return nil, err
 	}
 
-	service := toLocalServiceData(input)
+	service := controller.ServiceData{
+		AppId:       input.Service.AppId,
+		ServiceType: input.Service.ServiceType,
+		Host:        input.Service.Host,
+		Port:        input.Service.Port,
+		MapId:       input.Service.MapId,
+		Online:      input.Service.Online,
+		MaxOnline:   input.Service.MaxOnline,
+		CreateAt:    input.Service.CreatedAt,
+		UpdateAt:    input.Service.UpdatedAt,
+	}
+
 	serviceLog.Info("received register service: %v", service)
 	controller.GetInstance().RegisterService(service)
 
-	output := &methodData.ServiceDataOutput{
+	output := &methodData.ServiceRegisterOutput{
 		Success: true,
 	}
 	// serviceLog.Info("register service res = %+v", output)
 
-	return daprInvoke.MakeOutputContent(in, output)
-}
-
-func DestroyServiceHandler(ctx context.Context, in *common.InvocationEvent) (*common.Content, error) {
-	serviceLog.Info("received Destroy service  data: %v", string(in.Data))
-	input := &methodData.ServiceDataInput{}
-	err := grpcNetTool.UnmarshalGrpcData(in.Data, input)
-	if err != nil {
-		return nil, err
-	}
-
-	service := toLocalServiceData(input)
-	controller.GetInstance().DestroyService(service)
-
-	output := &methodData.ServiceDataOutput{
-		Success: true,
-	}
-
-	serviceLog.Info("Destroy service res = %+v", output)
 	return daprInvoke.MakeOutputContent(in, output)
 }
