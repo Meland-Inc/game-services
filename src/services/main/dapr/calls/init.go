@@ -53,13 +53,6 @@ func initServiceGrpcCallHandle() error {
 	}
 
 	if err := daprInvoke.AddServiceInvocationHandler(
-		string(grpc.UserActionLeaveGame),
-		UserLeaveGameHandler,
-	); err != nil {
-		return err
-	}
-
-	if err := daprInvoke.AddServiceInvocationHandler(
 		string(grpc.MainServiceActionTakeNFT),
 		TakeUserNftHandler,
 	); err != nil {
