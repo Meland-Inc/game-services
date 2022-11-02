@@ -1,13 +1,11 @@
 package service
 
 import (
-	base_data "game-message-core/grpc/baseData"
 	"time"
 
 	"github.com/Meland-Inc/game-services/src/common/daprInvoke"
 	"github.com/Meland-Inc/game-services/src/common/serviceLog"
-	"github.com/Meland-Inc/game-services/src/common/time_helper"
-	"github.com/Meland-Inc/game-services/src/global/grpcAPI/grpcPubsubEvent"
+	"github.com/Meland-Inc/game-services/src/global/serviceRegister"
 )
 
 func (s *Service) onStop() error {
@@ -32,17 +30,8 @@ func (s *Service) onStop() error {
 }
 
 func (s *Service) unRegisterService() {
-	data := base_data.ServiceData{
-		AppId:       s.serviceCnf.AppId,
-		ServiceType: s.serviceCnf.ServiceType,
-		Host:        s.serviceCnf.Host,
-		Port:        s.serviceCnf.Port,
-		MapId:       s.serviceCnf.MapId,
-		MaxOnline:   s.serviceCnf.MaxOnline,
-		CreatedAt:   s.serviceCnf.StartMs,
-		UpdatedAt:   time_helper.NowUTCMill(),
-	}
-	grpcPubsubEvent.RPCPubsubEventServiceUnregister(data)
+	err := serviceRegister.UnRegisterService(*s.serviceCnf, 0)
+	serviceLog.Info("UnRegisterService data: %+v, err: %v", *s.serviceCnf, err)
 }
 
 func (s *Service) onExit() error {
