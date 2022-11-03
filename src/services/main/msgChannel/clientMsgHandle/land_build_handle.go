@@ -92,6 +92,7 @@ func BuildHandler(input *methodData.PullClientMessageInput, msg *proto.Envelope)
 	defer func() {
 		if respMsg.ErrorMessage != "" {
 			respMsg.ErrorCode = 22003 // TODO: USE PROTO ERROR CODE
+			serviceLog.Error(respMsg.ErrorMessage)
 		}
 		respMsg.Payload = &proto.Envelope_BuildResponse{BuildResponse: res}
 		ResponseClientMessage(agent, input, respMsg)

@@ -138,13 +138,9 @@ func (p *MapLandDataRecord) addNftBuildRecord(build *NftBuildData) error {
 	if err != nil {
 		return err
 	}
-	err = gameDB.GetGameDB().Create(build.GameData).Error
-	if err != nil {
-		return err
-	}
 	p.buildRecord[build.GetNftId()] = build
 	p.addUsingLandRecord(build)
-	return nil
+	return gameDB.GetGameDB().Create(build.GameData).Error
 }
 
 func (p *MapLandDataRecord) removeNftBuildRecord(build *NftBuildData) (err error) {
@@ -223,7 +219,9 @@ func (p *MapLandDataRecord) Build(
 
 	gameBuildData := dbData.NewNftBuild(userId, int64(web3BuildData.BuildId), nftId, item.Cid, p.MapId, pos, landIds)
 	nftBuild := NewNftBuildData(*gameBuildData, *web3BuildData)
-	p.addNftBuildRecord(nftBuild)
+	if err = p.addNftBuildRecord(nftBuild); err != nil {
+		return nil, err
+	}
 	grpcPubsubEvent.RPCPubsubEventNftBuildAdd(nftBuild.ToGrpcData())
 	return nftBuild, nil
 }
