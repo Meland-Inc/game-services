@@ -12,6 +12,8 @@ import (
 )
 
 func RegisterServiceHandler(ctx context.Context, in *common.InvocationEvent) (*common.Content, error) {
+	serviceLog.Info("register data: %+v", string(in.Data))
+
 	input := &methodData.ServiceRegisterInput{}
 	err := grpcNetTool.UnmarshalGrpcData(in.Data, input)
 	if err != nil {
