@@ -14,18 +14,41 @@ import (
 	"github.com/Meland-Inc/game-services/src/global/grpcAPI/grpcInvoke"
 )
 
-func (p *TaskModel) randomTaskOption(tOpt xlsxTable.TaskTableOption) *xlsxTable.TaskTableOptionParam {
-	rn := matrix.Random32(0, tOpt.RandomExclusive)
-	for _, rl := range tOpt.RandList {
-		probability := rl.Param3 // TODO: ... 定义各种任务option 的数据规则。。。@雨越
-
-		if rn <= rl.Param3 {
-			return &rl
-		} else {
-			rn -= probability
-		}
+func (p *TaskModel) randomTaskOption(taskSetting *xlsxTable.TaskTableRow) ([]*dbData.TaskOption, error) {
+	taskCnfOptions, err := taskSetting.GetOptions()
+	if err != nil {
+		return nil, err
 	}
-	return nil
+
+	// 随机获取 任务真实的 完成条件(单条 || 多条)
+	taskOption := []*dbData.TaskOption{}
+	for _, option := range taskCnfOptions.Options {
+		var realOption *xlsxTable.TaskTableOptionParam
+		rn := matrix.Random32(0, option.RandomExclusive)
+		for _, rl := range option.RandList {
+			probability := rl.Param3 // TODO: ... 定义各种任务option 的数据规则。。。@雨越
+			if rn <= rl.Param3 {
+				realOption = &rl
+			} else {
+				rn -= probability
+			}
+		}
+
+		if realOption == nil {
+			serviceLog.Error("tasks[%v] option data is invalid", taskSetting.Id)
+			continue
+		}
+		dbOpt := &dbData.TaskOptionCnf{
+			TaskOptionType: int32(option.OptionType),
+			Param1:         realOption.Param1,
+			Param2:         realOption.Param2,
+			Param3:         realOption.Param3,
+			Param4:         realOption.Param4,
+			Param5:         realOption.Param5,
+		}
+		taskOption = append(taskOption, &dbData.TaskOption{OptionCnf: dbOpt})
+	}
+	return taskOption, nil
 }
 
 func (p *TaskModel) randomTask(tl *dbData.TaskList) (*dbData.Task, error) {
@@ -53,33 +76,15 @@ func (p *TaskModel) randomTask(tl *dbData.TaskList) (*dbData.Task, error) {
 		}
 	}
 
-	taskCnf := configData.ConfigMgr().TaskCnfById(taskId)
-	if taskCnf == nil {
+	taskSetting := configData.ConfigMgr().TaskCnfById(taskId)
+	if taskSetting == nil {
 		return nil, fmt.Errorf("task[%v] config not found", taskId)
 	}
 
-	taskCnfOptions, err := taskCnf.GetOptions()
+	// 随机获取 任务真实的 完成条件(单条 || 多条)
+	taskOption, err := p.randomTaskOption(taskSetting)
 	if err != nil {
 		return nil, err
-	}
-
-	// 随机获取 任务真实的 完成条件(单条 || 多条)
-	taskOption := []*dbData.TaskOption{}
-	for _, option := range taskCnfOptions.Options {
-		realOption := p.randomTaskOption(option)
-		if realOption == nil {
-			serviceLog.Error("tasks[%v] option data is invalid", taskId)
-			continue
-		}
-		dbOpt := &dbData.TaskOptionCnf{
-			TaskOptionType: int32(option.OptionType),
-			Param1:         realOption.Param1,
-			Param2:         realOption.Param2,
-			Param3:         realOption.Param3,
-			Param4:         realOption.Param4,
-			Param5:         realOption.Param5,
-		}
-		taskOption = append(taskOption, &dbData.TaskOption{OptionCnf: dbOpt})
 	}
 
 	now := time.Now().UTC()
@@ -128,37 +133,6 @@ func (p *TaskModel) randomTaskList(userId int64, tlType proto.TaskListType) (*db
 	}
 
 	return curTl, nil
-}
-
-func (p *TaskModel) refreshPlayerTasks(userId int64, pt *dbData.PlayerTask) {
-	if pt == nil {
-		return
-	}
-
-	changed := false
-	if dtl := pt.GetDailyTaskList(); dtl == nil {
-		dtl, _ := p.randomTaskList(userId, proto.TaskListType_TaskListTypeDaily)
-		if dtl != nil {
-			pt.SetDailyTaskList(dtl)
-			changed = true
-			p.broadCastUpdateTaskListInfo(userId, proto.TaskListType_TaskListTypeDaily, dtl)
-		}
-	}
-
-	if rtl := pt.GetRewardTaskList(); rtl == nil {
-		rtl, _ := p.randomTaskList(userId, proto.TaskListType_TaskListTypeRewarded)
-		if rtl != nil {
-			pt.SetRewardTaskList(rtl)
-			changed = true
-			p.broadCastUpdateTaskListInfo(userId, proto.TaskListType_TaskListTypeRewarded, rtl)
-		}
-	}
-
-	if changed {
-		if err := gameDB.GetGameDB().Save(pt).Error; err != nil {
-			serviceLog.Error(err.Error())
-		}
-	}
 }
 
 func (p *TaskModel) InitPlayerTask(userId int64) (*dbData.PlayerTask, error) {

@@ -2,7 +2,9 @@ package taskModel
 
 import (
 	"fmt"
+	"game-message-core/proto"
 
+	"github.com/Meland-Inc/game-services/src/common/serviceLog"
 	"github.com/Meland-Inc/game-services/src/common/time_helper"
 	"github.com/Meland-Inc/game-services/src/global/gameDB"
 	dbData "github.com/Meland-Inc/game-services/src/global/gameDB/data"
@@ -45,6 +47,37 @@ func (p *TaskModel) GetPlayerTask(userId int64) (*dbData.PlayerTask, error) {
 	pt := rv.(*dbData.PlayerTask)
 	p.refreshPlayerTasks(userId, pt)
 	return pt, nil
+}
+
+func (p *TaskModel) refreshPlayerTasks(userId int64, pt *dbData.PlayerTask) {
+	if pt == nil {
+		return
+	}
+
+	changed := false
+	if dtl := pt.GetDailyTaskList(); dtl == nil {
+		dtl, _ := p.randomTaskList(userId, proto.TaskListType_TaskListTypeDaily)
+		if dtl != nil {
+			pt.SetDailyTaskList(dtl)
+			changed = true
+		}
+	}
+
+	if rtl := pt.GetRewardTaskList(); rtl == nil {
+		rtl, _ := p.randomTaskList(userId, proto.TaskListType_TaskListTypeRewarded)
+		if rtl != nil {
+			pt.SetRewardTaskList(rtl)
+			changed = true
+		}
+	}
+
+	if changed {
+		if err := gameDB.GetGameDB().Save(pt).Error; err != nil {
+			serviceLog.Error(err.Error())
+		}
+	}
+
+	p.RefreshGuideTask(userId, false)
 }
 
 func (p *TaskModel) taskTick(curMs int64) error {

@@ -193,7 +193,7 @@ func (p *TaskModel) KillMonsterHandler(
 func (p *TaskModel) UserLevelHandler(
 	userId int64, taskListKind proto.TaskListType, userLv int32,
 ) error {
-	return p.upgradeTaskOption(
+	err := p.upgradeTaskOption(
 		userId,
 		taskListKind,
 		func(taskOption *dbData.TaskOption) (upgrade bool) {
@@ -204,6 +204,9 @@ func (p *TaskModel) UserLevelHandler(
 			taskOption.Rate = userLv
 			return true
 		})
+
+	p.RefreshGuideTask(userId, true)
+	return err
 }
 
 func (p *TaskModel) TargetSlotLevelHandler(

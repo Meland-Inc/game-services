@@ -47,6 +47,13 @@ func (p *TaskModel) givePlayerReward(
 }
 
 func (p *TaskModel) TaskReward(userId int64, taskListKind proto.TaskListType) (*dbData.TaskList, error) {
+	if taskListKind == proto.TaskListType_TaskListTypeGuide {
+		return p.guideTaskReward(userId, taskListKind)
+	}
+	return p.normalTaskReward(userId, taskListKind)
+}
+
+func (p *TaskModel) normalTaskReward(userId int64, taskListKind proto.TaskListType) (*dbData.TaskList, error) {
 	pt, err := p.GetPlayerTask(userId)
 	if err != nil {
 		return nil, err
@@ -57,6 +64,8 @@ func (p *TaskModel) TaskReward(userId int64, taskListKind proto.TaskListType) (*
 		tl = pt.GetRewardTaskList()
 	case proto.TaskListType_TaskListTypeDaily:
 		tl = pt.GetDailyTaskList()
+	case proto.TaskListType_TaskListTypeGuide:
+		tl = pt.GetGuideTaskList()
 	}
 	if tl == nil || tl.CurTask == nil {
 		return tl, fmt.Errorf("task list cur task not found")
