@@ -9,6 +9,10 @@ import (
 	"gorm.io/gorm"
 )
 
+const (
+	TASK_PLAYER_CACHE_KEY = "task_player_cache_key_%d"
+)
+
 func (p *TaskModel) getPlayerTaskCacheKey(userId int64) string {
 	return fmt.Sprintf(TASK_PLAYER_CACHE_KEY, userId)
 

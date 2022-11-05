@@ -14,85 +14,78 @@ import (
 	"github.com/Meland-Inc/game-services/src/global/grpcAPI/grpcInvoke"
 )
 
-func (p *TaskModel) randomTask(tl *dbData.TaskList) (*dbData.Task, error) {
-	randTaskF := func(obj xlsxTable.TaskObjectList) (param1, param2 int32) {
-		rn := matrix.Random32(0, obj.ChanceSum)
-		for _, t := range obj.ParamList {
-			if rn <= t.Param3 {
-				param1 = t.Param1
-				param2 = t.Param2
-				break
-			} else {
-				rn -= t.Param3
-			}
-		}
-		return
-	}
+func (p *TaskModel) randomTaskOption(tOpt xlsxTable.TaskTableOption) *xlsxTable.TaskTableOptionParam {
+	rn := matrix.Random32(0, tOpt.RandomExclusive)
+	for _, rl := range tOpt.RandList {
+		probability := rl.Param3 // TODO: ... 定义各种任务option 的数据规则。。。@雨越
 
+		if rn <= rl.Param3 {
+			return &rl
+		} else {
+			rn -= probability
+		}
+	}
+	return nil
+}
+
+func (p *TaskModel) randomTask(tl *dbData.TaskList) (*dbData.Task, error) {
 	if tl == nil {
 		return nil, fmt.Errorf("task list is nil")
 	}
 
 	taskListCnf := configData.ConfigMgr().TaskListCnfById(tl.TaskListId)
 	if taskListCnf == nil {
-		return nil, fmt.Errorf("TaskList [%d] not found", tl.TaskListId)
+		return nil, fmt.Errorf("TaskList [%d] config not found", tl.TaskListId)
+	}
+	taskList, err := taskListCnf.GetIncludeTask()
+	if err != nil {
+		return nil, err
 	}
 
 	var taskId int32
-	taskList := taskListCnf.GetIncludeTask()
 	rn := matrix.Random32(0, taskList.ChanceSum)
-	for _, t := range taskList.ParamList {
-		if rn <= t.Param2 {
-			taskId = t.Param1
+	for _, parm := range taskList.Param {
+		if rn <= parm.Chance {
+			taskId = parm.TaskId
 			break
 		} else {
-			rn -= t.Param2
+			rn -= parm.Chance
 		}
 	}
 
-	cnf := configData.ConfigMgr().TaskCnfById(taskId)
-	if cnf == nil {
+	taskCnf := configData.ConfigMgr().TaskCnfById(taskId)
+	if taskCnf == nil {
 		return nil, fmt.Errorf("task[%v] config not found", taskId)
 	}
 
-	var taskObjectList *xlsxTable.TaskObjectList
-	switch proto.TaskType(cnf.Kind) {
-	case proto.TaskType_TaskTypeGetItem:
-		taskObjectList = cnf.GetNeedItem()
-	case proto.TaskType_TaskTypeUseItem:
-		taskObjectList = cnf.GetUseItem()
-	case proto.TaskType_TaskTypeKillMonster:
-		taskObjectList = cnf.GetKillMonster()
-	case proto.TaskType_TaskTypeMoveTo:
-		taskObjectList = cnf.GetTargetPos()
-	case proto.TaskType_TaskTypeQuiz:
-		taskObjectList = cnf.GetQuiz()
-	case proto.TaskType_TaskTypeOccupiedLand:
-		taskObjectList = &xlsxTable.TaskObjectList{
-			ChanceSum: 10000,
-			ParamList: []xlsxTable.TaskObject{
-				xlsxTable.TaskObject{
-					Param1: cnf.RequestLand,
-					Param3: 10000,
-				},
-			},
-		}
-	default:
-		return nil, fmt.Errorf("task[%v] config invalid", taskId)
+	taskCnfOptions, err := taskCnf.GetOptions()
+	if err != nil {
+		return nil, err
 	}
 
-	optionCnf := &dbData.TaskOptionCnf{TaskType: cnf.Kind}
-	optionCnf.Param1, optionCnf.Param2 = randTaskF(*taskObjectList)
-	opt := &dbData.TaskOption{
-		OptionCnf: optionCnf,
-		Rate:      0,
+	// 随机获取 任务真实的 完成条件(单条 || 多条)
+	taskOption := []*dbData.TaskOption{}
+	for _, option := range taskCnfOptions.Options {
+		realOption := p.randomTaskOption(option)
+		if realOption == nil {
+			serviceLog.Error("tasks[%v] option data is invalid", taskId)
+			continue
+		}
+		dbOpt := &dbData.TaskOptionCnf{
+			TaskOptionType: int32(option.OptionType),
+			Param1:         realOption.Param1,
+			Param2:         realOption.Param2,
+			Param3:         realOption.Param3,
+			Param4:         realOption.Param4,
+			Param5:         realOption.Param5,
+		}
+		taskOption = append(taskOption, &dbData.TaskOption{OptionCnf: dbOpt})
 	}
 
 	now := time.Now().UTC()
 	pt := &dbData.Task{
 		TaskId:    int32(taskId),
-		TaskType:  cnf.Kind,
-		Options:   []*dbData.TaskOption{opt},
+		Options:   taskOption,
 		CreatedAt: now,
 		UpdatedAt: now,
 	}
@@ -107,7 +100,7 @@ func (p *TaskModel) randomTaskList(userId int64, tlType proto.TaskListType) (*db
 
 	cnf := configData.ConfigMgr().TaskListCnfByLevel(int32(tlType), player.Level)
 	if cnf == nil {
-		serviceLog.Warning("task list lv[%dv] config not found", player.Level)
+		serviceLog.Warning("task list[%v], lv[%v] config not found", tlType, player.Level)
 		return nil, nil
 	}
 
@@ -123,6 +116,15 @@ func (p *TaskModel) randomTaskList(userId int64, tlType proto.TaskListType) (*db
 	}
 	if tlType == proto.TaskListType_TaskListTypeRewarded {
 		curTl.ResetAt = rewardTaskLastResetTime()
+	}
+
+	// init player guide task list auto accept first task
+	if tlType == proto.TaskListType_TaskListTypeGuide {
+		nextTask, err := p.randomTask(curTl)
+		if err != nil {
+			return nil, err
+		}
+		curTl.CurTask = nextTask
 	}
 
 	return curTl, nil
@@ -168,8 +170,11 @@ func (p *TaskModel) InitPlayerTask(userId int64) (*dbData.PlayerTask, error) {
 	if err != nil {
 		return nil, err
 	}
-
-	pt := dbData.NewPlayerTask(userId, dtl, rtl)
+	gtl, err := p.randomTaskList(userId, proto.TaskListType_TaskListTypeGuide)
+	if err != nil {
+		return nil, err
+	}
+	pt := dbData.NewPlayerTask(userId, dtl, rtl, gtl)
 	if err := gameDB.GetGameDB().Save(pt).Error; err != nil {
 		return nil, err
 	}
@@ -254,6 +259,31 @@ func (p *TaskModel) acceptDailyTask(userId int64) (*dbData.TaskList, error) {
 	return dtl, err
 }
 
+func (p *TaskModel) updatePlayerTaskList(userId int64, taskList *dbData.TaskList) error {
+	playerTl, err := p.GetPlayerTask(userId)
+	if err != nil {
+		return err
+	}
+
+	switch proto.TaskListType(taskList.TaskListType) {
+	case proto.TaskListType_TaskListTypeDaily:
+		playerTl.SetDailyTaskList(taskList)
+	case proto.TaskListType_TaskListTypeRewarded:
+		playerTl.SetRewardTaskList(taskList)
+	case proto.TaskListType_TaskListTypeGuide:
+		playerTl.SetGuideTaskList(taskList)
+	default:
+		return fmt.Errorf("up player task list type [%v] not define", taskList.TaskListType)
+	}
+
+	err = gameDB.GetGameDB().Save(playerTl).Error
+	if err != nil {
+		return err
+	}
+	p.broadCastUpdateTaskListInfo(userId, proto.TaskListType(taskList.TaskListType), taskList)
+	return nil
+}
+
 func (p *TaskModel) AcceptTask(userId int64, kind proto.TaskListType) (*dbData.TaskList, error) {
 	if kind == proto.TaskListType_TaskListTypeRewarded {
 		return p.acceptRewardedTask(userId)
@@ -292,107 +322,4 @@ func (p *TaskModel) AbandonmentTask(userId int64, kind proto.TaskListType) (*dbD
 
 	err = gameDB.GetGameDB().Save(pt).Error
 	return tl, err
-}
-
-func (p *TaskModel) UpGradeTaskProgress(
-	userId int64,
-	taskListKind proto.TaskListType,
-	items []*proto.TaskOptionItem,
-	pos *proto.TaskOptionMoveTo,
-	quiz *proto.TaskOptionQuiz,
-	monsterCid int32,
-	usedItemCid, usedItemNum, optionLandNum int32,
-) (*dbData.TaskList, error) {
-	pt, err := p.GetPlayerTask(userId)
-	if err != nil {
-		return nil, err
-	}
-
-	var tl *dbData.TaskList
-	switch taskListKind {
-	case proto.TaskListType_TaskListTypeRewarded:
-		tl = pt.GetRewardTaskList()
-	case proto.TaskListType_TaskListTypeDaily:
-		tl = pt.GetDailyTaskList()
-	}
-
-	if tl == nil || tl.CurTask == nil {
-		return nil, fmt.Errorf("task list cur task not found")
-	}
-	if tl.CurTask.IsFinish() {
-		return nil, fmt.Errorf("task list cur task is finish")
-	}
-	if err = p.takeUserNft(userId, items); err != nil {
-		return nil, err
-	}
-
-	upgrade := false
-
-	for _, opt := range tl.CurTask.Options {
-		if opt == nil || opt.OptionCnf == nil {
-			continue
-		}
-
-		switch t := proto.TaskType(opt.OptionCnf.TaskType); t {
-		case proto.TaskType_TaskTypeGetItem:
-			for _, oit := range items {
-				opt.Rate += oit.Num
-				upgrade = true
-			}
-		case proto.TaskType_TaskTypeMoveTo:
-			if pos == nil || pos.R != opt.OptionCnf.Param1 || pos.C != opt.OptionCnf.Param2 {
-				return nil, fmt.Errorf("invalid pos")
-			}
-			opt.Rate = 1
-			upgrade = true
-
-		case proto.TaskType_TaskTypeQuiz:
-			if quiz == nil || quiz.QuizType != opt.OptionCnf.Param1 {
-				return nil, fmt.Errorf("invalid quiz")
-			}
-			opt.Rate = matrix.MinInt32(opt.Rate+quiz.QuizNum, opt.OptionCnf.Param2)
-			upgrade = true
-
-		case proto.TaskType_TaskTypeUseItem:
-			if usedItemCid < 1 || usedItemNum < 1 {
-				return tl, nil
-			}
-			for _, opt := range tl.CurTask.Options {
-				if opt.OptionCnf == nil || opt.OptionCnf.Param1 != usedItemCid {
-					continue
-				}
-				opt.Rate += usedItemNum
-				upgrade = true
-			}
-
-		case proto.TaskType_TaskTypeKillMonster:
-			if opt.OptionCnf != nil &&
-				opt.OptionCnf.Param1 == monsterCid &&
-				opt.Rate < opt.OptionCnf.Param2 {
-				opt.Rate++
-				upgrade = true
-			}
-		case proto.TaskType_TaskTypeOccupiedLand:
-			opt.Rate = matrix.MinInt32(opt.Rate+optionLandNum, opt.OptionCnf.Param1)
-			upgrade = true
-
-		}
-	}
-	if !upgrade {
-		return tl, nil
-	}
-
-	switch taskListKind {
-	case proto.TaskListType_TaskListTypeDaily:
-		pt.SetDailyTaskList(tl)
-	case proto.TaskListType_TaskListTypeRewarded:
-		pt.SetRewardTaskList(tl)
-	}
-	err = gameDB.GetGameDB().Save(pt).Error
-	if err != nil {
-		return tl, err
-	}
-
-	p.broadCastUpdateTaskListInfo(userId, taskListKind, tl)
-	return tl, nil
 }
