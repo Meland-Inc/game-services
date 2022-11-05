@@ -7,6 +7,7 @@ import (
 	"github.com/Meland-Inc/game-services/src/common/matrix"
 	"github.com/Meland-Inc/game-services/src/global/configData"
 	dbData "github.com/Meland-Inc/game-services/src/global/gameDB/data"
+	"github.com/Meland-Inc/game-services/src/global/grpcAPI/grpcPubsubEvent"
 )
 
 func (p *PlayerDataModel) canUpgradeLevel(player *dbData.PlayerSceneData) error {
@@ -78,6 +79,7 @@ func (p *PlayerDataModel) UpgradePlayerLevel(userId int64) (lv int32, exp int32,
 		return curLv, curExp, err
 	}
 
+	grpcPubsubEvent.RPCPubsubEventUserLevelUpgrade(userId, newLv)
 	p.RPCCallUpdateUserProfile(userId)
 	return player.Level, player.Exp, nil
 }

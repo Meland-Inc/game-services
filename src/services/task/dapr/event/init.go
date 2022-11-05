@@ -43,5 +43,19 @@ func initServiceGrpcPubsubEventHandle() error {
 		return err
 	}
 
+	if err := daprInvoke.AddTopicEventHandler(
+		string(grpc.SubscriptionEventUserLevelUpgrade),
+		UserLevelUpgradeHandler,
+	); err != nil {
+		return err
+	}
+
+	if err := daprInvoke.AddTopicEventHandler(
+		string(grpc.SubscriptionEventSlotLevelUpgrade),
+		SlotLevelUpgradeHandler,
+	); err != nil {
+		return err
+	}
+
 	return nil
 }

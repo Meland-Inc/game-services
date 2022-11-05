@@ -1,6 +1,7 @@
 package clientMsgHandle
 
 import (
+	"errors"
 	"game-message-core/grpc/methodData"
 	"game-message-core/proto"
 
@@ -27,16 +28,29 @@ func UpgradeTaskProgressHandler(input *methodData.PullClientMessageInput, msg *p
 		return
 	}
 
-	taskModel, err := taskModel.GetTaskModel()
-	if err != nil {
-		respMsg.ErrorMessage = "UpgradeTaskProgress taskModel not found"
-		return
-	}
-
-	if _, err := taskModel.UpGradeTaskProgress(
-		input.UserId, req.TaskListKind, req.Items, req.Pos, req.Quiz, 0, 0, 0, 0,
-	); err != nil {
+	if err := tryUpTaskOptions(input.UserId, req); err != nil {
 		respMsg.ErrorMessage = err.Error()
 		return
 	}
+}
+
+func tryUpTaskOptions(userId int64, req *proto.UpgradeTaskProgressRequest) error {
+	taskModel, err := taskModel.GetTaskModel()
+	if err != nil {
+		return errors.New("UpgradeTaskProgress taskModel not found")
+	}
+
+	if req.Items != nil {
+		return taskModel.HandInItemHandler(userId, req.TaskListKind, req.Items)
+	}
+	if req.Pos != nil {
+		return taskModel.TargetPositionHandler(userId, req.TaskListKind, req.Pos)
+	}
+	if req.UseRecipe != nil {
+		return taskModel.UseRecipeHandler(userId, req.TaskListKind, req.UseRecipe)
+	}
+	if req.CraftSkillLevel != nil {
+		return taskModel.CraftSkillLevelHandler(userId, req.TaskListKind, req.CraftSkillLevel)
+	}
+	return nil
 }

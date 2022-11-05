@@ -10,6 +10,7 @@ import (
 	"github.com/Meland-Inc/game-services/src/global/gameDB"
 	dbData "github.com/Meland-Inc/game-services/src/global/gameDB/data"
 	"github.com/Meland-Inc/game-services/src/global/grpcAPI/grpcInvoke"
+	"github.com/Meland-Inc/game-services/src/global/grpcAPI/grpcPubsubEvent"
 	message "github.com/Meland-Inc/game-services/src/global/web3Message"
 	"gorm.io/gorm"
 )
@@ -110,7 +111,11 @@ func (p *PlayerDataModel) UpgradeItemSlots(
 	setting := configData.ConfigMgr().GetSlotCnf(int32(pos), player.Level)
 	p.setLevelAndExp(userId, player.Level, player.Exp-setting.UpExp)
 
-	_, err = p.setPlayerItemSlotLevel(userId, pos, int32(curSocket.Level+1), broadcast)
+	newLevel := int32(curSocket.Level + 1)
+	_, err = p.setPlayerItemSlotLevel(userId, pos, newLevel, broadcast)
+	if err == nil {
+		grpcPubsubEvent.RPCPubsubEventSlotLevelUpgrade(userId, int32(pos), newLevel)
+	}
 	return userSlot, err
 }
 

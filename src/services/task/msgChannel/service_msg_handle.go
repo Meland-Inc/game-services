@@ -24,5 +24,14 @@ func (ch *MsgChannel) onServiceMessage(input *ServiceMsgData) {
 
 	case string(grpc.SubscriptionEventUseNFT):
 		serviceMsgHandle.PlayerUseItemHandler(input.MsgBody)
+		
+	case string(grpc.SubscriptionEventUserLevelUpgrade):
+		serviceMsgHandle.UserLevelUpgradeHandler(input.MsgBody)
+
+	case string(grpc.SubscriptionEventSlotLevelUpgrade):
+		serviceMsgHandle.SlotLevelUpgradeHandler(input.MsgBody)
+
+
+		
 	}
 }

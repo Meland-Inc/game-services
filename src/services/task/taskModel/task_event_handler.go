@@ -146,12 +146,8 @@ func (p *TaskModel) UseItemHandler(
 }
 
 func (p *TaskModel) PickUpItemHandler(
-	userId int64, taskListKind proto.TaskListType, pickItem *proto.TaskOptionItem,
+	userId int64, taskListKind proto.TaskListType, pickItems []*proto.TaskOptionItem,
 ) error {
-	if pickItem.Num < 1 || pickItem.ItemCid < 1 {
-		return fmt.Errorf("invalid item cid%d] num[%d]", pickItem.ItemCid, pickItem.Num)
-	}
-
 	return p.upgradeTaskOption(
 		userId,
 		taskListKind,
@@ -160,10 +156,13 @@ func (p *TaskModel) PickUpItemHandler(
 			if taskOption.OptionCnf.TaskOptionType != int32(proto.TaskOptionType_PickUpItem) {
 				return false
 			}
-			if pickItem.ItemCid != taskOption.OptionCnf.Param1 {
-				return false
+			for _, pickItem := range pickItems {
+
+				if pickItem.ItemCid != taskOption.OptionCnf.Param1 {
+					return false
+				}
+				taskOption.Rate += pickItem.Num
 			}
-			taskOption.Rate += pickItem.Num
 			return true
 		})
 }
