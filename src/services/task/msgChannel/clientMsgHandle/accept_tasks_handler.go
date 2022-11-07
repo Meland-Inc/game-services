@@ -33,15 +33,15 @@ func AcceptTaskHandler(input *methodData.PullClientMessageInput, msg *proto.Enve
 		return
 	}
 
-	task, err := taskModel.AcceptTask(input.UserId, req.Kind)
+	taskListData, err := taskModel.AcceptTask(input.UserId, req.Kind)
 	if err != nil {
 		respMsg.ErrorMessage = err.Error()
 		return
 	}
 
 	var pbTlData *proto.TaskList
-	if task != nil {
-		pbTlData = task.ToPbData()
+	if taskListData != nil {
+		pbTlData = taskListData.ToPbData()
 	}
 	res.TaskListInfo = pbTlData
 }

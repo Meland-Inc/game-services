@@ -2,7 +2,6 @@ package daprEvent
 
 import (
 	"context"
-	"fmt"
 	"game-message-core/grpc"
 	"game-message-core/grpc/pubsubEventData"
 
@@ -14,14 +13,14 @@ import (
 	"github.com/spf13/cast"
 )
 
-func PlayerKillMonsterEventHandle(ctx context.Context, e *common.TopicEvent) (retry bool, err error) {
-	serviceLog.Info("task Receive KillMonsterEvent: %v ", e.Data)
+func TaskListFinishHandler(ctx context.Context, e *common.TopicEvent) (retry bool, err error) {
+	serviceLog.Info("task Receive TaskListFinishEvent: %v", e.Data)
 
-	input := &pubsubEventData.KillMonsterEventData{}
+	input := &pubsubEventData.TaskListFinishEvent{}
 	err = grpcNetTool.UnmarshalGrpcTopicEvent(e, input)
 	if err != nil {
-		serviceLog.Error("task KillMonsterEvent UnmarshalEvent fail err: %v ", err)
-		return false, err
+		serviceLog.Error("task TaskListFinishEvent UnmarshalEvent fail err: %v ", err)
+		return false, nil
 	}
 
 	// 抛弃过期事件
@@ -31,12 +30,12 @@ func PlayerKillMonsterEventHandle(ctx context.Context, e *common.TopicEvent) (re
 
 	userId := cast.ToInt64(input.UserId)
 	if userId < 1 {
-		serviceLog.Error("task KillMonsterEventData invalid Data[%v]", input)
-		return false, fmt.Errorf("task KillMonsterEventData invalid Data [%v]", input)
+		serviceLog.Error("task TaskListFinishEvent invalid Data[%v]", input)
+		return false, nil
 	}
 
 	msgChannel.GetInstance().CallServiceMsg(&msgChannel.ServiceMsgData{
-		MsgId:   string(grpc.SubscriptionEventKillMonster),
+		MsgId:   string(grpc.SubscriptionEventTaskListFinish),
 		MsgBody: input,
 	})
 

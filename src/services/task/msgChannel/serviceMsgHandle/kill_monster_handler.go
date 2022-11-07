@@ -34,10 +34,10 @@ func KillMonsterHandler(iMsg interface{}) {
 		for _, drop := range input.DropList {
 			pickItems = append(pickItems, &proto.TaskOptionItem{ItemCid: drop.Cid, Num: drop.Num})
 		}
-		if err := taskModel.PickUpItemHandler(
+		if err := taskModel.GetItemHandler(
 			input.UserId, proto.TaskListType_TaskListTypeUnknown, pickItems,
 		); err != nil {
-			serviceLog.Error("task pick up item handler err:%+v", err)
+			serviceLog.Error("task get item handler err:%+v", err)
 		}
 	}
 }

@@ -1,6 +1,7 @@
 package configData
 
 import (
+	"game-message-core/proto"
 	xlsxTable "game-message-core/xlsxTableData"
 )
 
@@ -33,7 +34,10 @@ func (mgr *ConfigDataManager) TaskListCnfById(id int32) *xlsxTable.TaskListTable
 
 func (mgr *ConfigDataManager) TaskListCnfByLevel(taskListType, lv int32) *xlsxTable.TaskListTableRow {
 	for _, cnf := range configMgr.taskListCnf {
-		if cnf.Level == lv && cnf.System == taskListType {
+		if cnf.System != taskListType {
+			continue
+		}
+		if cnf.System == int32(proto.TaskListType_TaskListTypeGuide) || cnf.Level == lv {
 			return &cnf
 		}
 	}

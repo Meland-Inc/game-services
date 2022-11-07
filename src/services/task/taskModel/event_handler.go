@@ -67,12 +67,17 @@ func (p *TaskModel) upgradeTaskOption(
 				continue
 			}
 			if opt.OptionCnf == nil {
-				serviceLog.Error("user[%d] taskList[%v] task[%d] optionCnf is nil", userId, taskListKind, checkTl.CurTask.TaskId)
+				serviceLog.Error(
+					"user[%d] taskList[%v] task[%d] optionCnf is nil",
+					userId, taskListKind, checkTl.CurTask.TaskId,
+				)
 				continue
 			}
 
 			// upgrade task rate logic
-			upgrade = upOptionF(opt)
+			if upOptionF(opt) {
+				upgrade = true
+			}
 		}
 
 		if upgrade {
@@ -88,7 +93,10 @@ func (p *TaskModel) HandInItemHandler(
 	for _, it := range handInItems {
 		err := grpcInvoke.BurnNFT(userId, it.NftId, it.Num)
 		if err != nil {
-			serviceLog.Error("handInItem web3 burn nft [%d][%s][%d] fail, error: %v", userId, userId, it.NftId, it.Num, err)
+			serviceLog.Error(
+				"handInItem web3 burn nft [%d][%s][%d] fail, error: %v",
+				userId, userId, it.NftId, it.Num, err,
+			)
 			return err
 		}
 	}
@@ -118,7 +126,7 @@ func (p *TaskModel) HandInItemHandler(
 				item.Num -= rateAdd
 				upgrade = true
 			}
-			return false
+			return upgrade
 		})
 }
 
@@ -145,18 +153,21 @@ func (p *TaskModel) UseItemHandler(
 		})
 }
 
-func (p *TaskModel) PickUpItemHandler(
-	userId int64, taskListKind proto.TaskListType, pickItems []*proto.TaskOptionItem,
+func (p *TaskModel) GetItemHandler(
+	userId int64, taskListKind proto.TaskListType, items []*proto.TaskOptionItem,
 ) error {
+	if len(items) < 1 {
+		return nil
+	}
 	return p.upgradeTaskOption(
 		userId,
 		taskListKind,
 		func(taskOption *dbData.TaskOption) (upgrade bool) {
 			// upgrade task rate logic
-			if taskOption.OptionCnf.TaskOptionType != int32(proto.TaskOptionType_PickUpItem) {
+			if taskOption.OptionCnf.TaskOptionType != int32(proto.TaskOptionType_GetItem) {
 				return false
 			}
-			for _, pickItem := range pickItems {
+			for _, pickItem := range items {
 
 				if pickItem.ItemCid != taskOption.OptionCnf.Param1 {
 					return false
@@ -193,7 +204,7 @@ func (p *TaskModel) KillMonsterHandler(
 func (p *TaskModel) UserLevelHandler(
 	userId int64, taskListKind proto.TaskListType, userLv int32,
 ) error {
-	err := p.upgradeTaskOption(
+	return p.upgradeTaskOption(
 		userId,
 		taskListKind,
 		func(taskOption *dbData.TaskOption) (upgrade bool) {
@@ -204,9 +215,6 @@ func (p *TaskModel) UserLevelHandler(
 			taskOption.Rate = userLv
 			return true
 		})
-
-	p.RefreshGuideTask(userId, true)
-	return err
 }
 
 func (p *TaskModel) TargetSlotLevelHandler(
@@ -233,7 +241,7 @@ func (p *TaskModel) SlotLevelCountHandler(
 ) error {
 	playerSlotData, err := p.getPlayerSlotData(userId)
 	if err != nil {
-
+		return err
 	}
 
 	return p.upgradeTaskOption(
@@ -285,33 +293,53 @@ func (p *TaskModel) UseRecipeHandler(
 		userId,
 		taskListKind,
 		func(taskOption *dbData.TaskOption) (upgrade bool) {
+			// 使用指定的配方合成
+			if taskOption.OptionCnf.TaskOptionType == int32(proto.TaskOptionType_UseRecipe) &&
+				recipeInfo.RecipeId == taskOption.OptionCnf.Param1 {
+				taskOption.Rate += recipeInfo.Times
+				return true
+			}
+			// 合成若干次(累计合成多少次)
+			if taskOption.OptionCnf.TaskOptionType == int32(proto.TaskOptionType_RecipeUseCount) {
+				taskOption.Rate += recipeInfo.Times
+				return true
+			}
+			return false
+		})
+}
+
+func (p *TaskModel) TaskFinishCountHandler(userId int64, finishTaskListType proto.TaskListType) error {
+	return p.upgradeTaskOption(
+		userId,
+		proto.TaskListType_TaskListTypeUnknown,
+		func(taskOption *dbData.TaskOption) (upgrade bool) {
 			// upgrade task rate logic
-			if taskOption.OptionCnf.TaskOptionType != int32(proto.TaskOptionType_UseRecipe) {
+			if taskOption.OptionCnf.TaskOptionType != int32(proto.TaskOptionType_TaskCount) {
 				return false
 			}
-			if recipeInfo.RecipeId != taskOption.OptionCnf.Param1 {
+			if int32(finishTaskListType) != taskOption.OptionCnf.Param1 {
 				return false
 			}
-			taskOption.Rate += recipeInfo.Times
+			taskOption.Rate += 1
 			return true
 		})
 }
 
-func (p *TaskModel) TaskTypeCountHandler(
-	userId int64, taskListKind proto.TaskListType, taskInfo *proto.TaskOptionTaskTypeCount,
+func (p *TaskModel) TaskListTypeCountHandler(
+	userId int64, taskListKind proto.TaskListType, finishTaskListType proto.TaskListType,
 ) error {
 	return p.upgradeTaskOption(
 		userId,
 		taskListKind,
 		func(taskOption *dbData.TaskOption) (upgrade bool) {
 			// upgrade task rate logic
-			if taskOption.OptionCnf.TaskOptionType != int32(proto.TaskOptionType_TaskTypeCount) {
+			if taskOption.OptionCnf.TaskOptionType != int32(proto.TaskOptionType_TaskListTypeCount) {
 				return false
 			}
-			if int32(taskInfo.Kind) != taskOption.OptionCnf.Param1 {
+			if int32(finishTaskListType) != taskOption.OptionCnf.Param1 {
 				return false
 			}
-			taskOption.Rate += taskInfo.Count // TODO: 任务类型已经移除只作为任务的子项类型， @雨越
+			taskOption.Rate += 1
 			return true
 		})
 }

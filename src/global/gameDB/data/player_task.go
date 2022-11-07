@@ -14,7 +14,6 @@ type TaskOptionCnf struct {
 	Param2         int32 `json:"param2"`
 	Param3         int32 `json:"param3"`
 	Param4         int32 `json:"param4"`
-	Param5         int32 `json:"param5"`
 }
 
 func (p *TaskOptionCnf) ToPbData() *proto.TaskOptionCnf {
@@ -37,18 +36,18 @@ func (p *TaskOptionCnf) ToPbData() *proto.TaskOptionCnf {
 				Num:     p.Param2,
 			},
 		}
-	case proto.TaskOptionType_PickUpItem:
-		pbSetting.Data = &proto.TaskOptionCnf_PickUpItem{
-			PickUpItem: &proto.TaskOptionItem{
+	case proto.TaskOptionType_GetItem:
+		pbSetting.Data = &proto.TaskOptionCnf_GetItem{
+			GetItem: &proto.TaskOptionItem{
 				ItemCid: p.Param1,
 				Num:     p.Param2,
 			},
 		}
 	case proto.TaskOptionType_KillMonster:
-		pbSetting.Data = &proto.TaskOptionCnf_PickUpItem{
-			PickUpItem: &proto.TaskOptionItem{
-				ItemCid: p.Param1,
-				Num:     p.Param2,
+		pbSetting.Data = &proto.TaskOptionCnf_KillMonster{
+			KillMonster: &proto.TaskOptionKillMonster{
+				MonCid: p.Param1,
+				Num:    p.Param2,
 			},
 		}
 	case proto.TaskOptionType_UserLevel:
@@ -83,10 +82,21 @@ func (p *TaskOptionCnf) ToPbData() *proto.TaskOptionCnf {
 				Times:    p.Param2,
 			},
 		}
-	case proto.TaskOptionType_TaskTypeCount:
-		pbSetting.Data = &proto.TaskOptionCnf_TaskTypeCount{
-			TaskTypeCount: &proto.TaskOptionTaskTypeCount{
-				Kind:  proto.TaskOptionType(p.Param1),
+	case proto.TaskOptionType_RecipeUseCount:
+		pbSetting.Data = &proto.TaskOptionCnf_RecipeUseCount{
+			RecipeUseCount: p.Param1,
+		}
+	case proto.TaskOptionType_TaskCount:
+		pbSetting.Data = &proto.TaskOptionCnf_FinishTaskCount{
+			FinishTaskCount: &proto.TaskOptionFinishTaskCount{
+				Kind:  proto.TaskListType(p.Param1),
+				Count: p.Param2,
+			},
+		}
+	case proto.TaskOptionType_TaskListTypeCount:
+		pbSetting.Data = &proto.TaskOptionCnf_FinishTaskListCount{
+			FinishTaskListCount: &proto.TaskOptionFinishTaskListCount{
+				Kind:  proto.TaskListType(p.Param1),
 				Count: p.Param2,
 			},
 		}
@@ -123,7 +133,7 @@ func (p *TaskOption) IsFinish() bool {
 	switch proto.TaskOptionType(p.OptionCnf.TaskOptionType) {
 	case proto.TaskOptionType_HandInItem,
 		proto.TaskOptionType_UseItem,
-		proto.TaskOptionType_PickUpItem:
+		proto.TaskOptionType_GetItem:
 		if p.Rate < p.OptionCnf.Param2 {
 			return false
 		}
@@ -151,7 +161,15 @@ func (p *TaskOption) IsFinish() bool {
 		if p.Rate < p.OptionCnf.Param2 {
 			return false
 		}
-	case proto.TaskOptionType_TaskTypeCount:
+	case proto.TaskOptionType_RecipeUseCount:
+		if p.Rate < p.OptionCnf.Param1 {
+			return false
+		}
+	case proto.TaskOptionType_TaskCount:
+		if p.Rate < p.OptionCnf.Param2 {
+			return false
+		}
+	case proto.TaskOptionType_TaskListTypeCount:
 		if p.Rate < p.OptionCnf.Param2 {
 			return false
 		}
@@ -199,8 +217,8 @@ func (p *Task) IsFinish() bool {
 type TaskList struct {
 	TaskListId    int32     `json:"taskListId"`
 	TaskListType  int32     `json:"taskListType"` // 等价于 proto.TaskListType
-	CanReceive    bool      `json:"canReceive"`
-	Doing         bool      `json:"doing"` // 任务链是否正在进行
+	CanReceive    bool      `json:"canReceive"`   // 任务链是否可以在接取 子任务
+	Doing         bool      `json:"doing"`        // 任务链是否正在进行
 	Rate          int32     `json:"rate"`
 	CurTask       *Task     `json:"curTask"`
 	ReceiveReward int32     `json:"receiveReward"` // 已经领取了的阶段奖励 0：未领取

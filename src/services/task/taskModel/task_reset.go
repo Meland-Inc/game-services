@@ -29,7 +29,7 @@ func rewardTaskLastResetTime() time.Time {
 
 func (this *TaskModel) resetPlayerTask(now time.Time, pt *dbData.PlayerTask, resetDTl, resetRTL, broadCast bool) {
 	if resetDTl {
-		dtl, err := this.randomTaskList(pt.UserId, proto.TaskListType_TaskListTypeDaily)
+		dtl, err := this.initTaskList(pt.UserId, proto.TaskListType_TaskListTypeDaily)
 		if err == nil {
 			pt.SetDailyTaskList(dtl)
 			if broadCast {
@@ -41,7 +41,7 @@ func (this *TaskModel) resetPlayerTask(now time.Time, pt *dbData.PlayerTask, res
 	if resetRTL {
 		rtl := pt.GetRewardTaskList()
 		if rtl == nil || !rtl.Doing {
-			rtl, _ = this.randomTaskList(pt.UserId, proto.TaskListType_TaskListTypeRewarded)
+			rtl, _ = this.initTaskList(pt.UserId, proto.TaskListType_TaskListTypeRewarded)
 		}
 		if rtl != nil {
 			rtl.CanReceive = true

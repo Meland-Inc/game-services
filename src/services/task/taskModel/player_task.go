@@ -35,6 +35,13 @@ func (p *TaskModel) GetPlayerTask(userId int64) (*dbData.PlayerTask, error) {
 				}
 			}
 			p.tryRestTask(playerTask)
+
+			if p.refreshPlayerTasksRate(userId, playerTask) {
+				err := gameDB.GetGameDB().Save(playerTask).Error
+				if err != nil {
+					serviceLog.Error(err.Error())
+				}
+			}
 			return playerTask, err
 		},
 		p.cacheTTL)
@@ -56,7 +63,7 @@ func (p *TaskModel) refreshPlayerTasks(userId int64, pt *dbData.PlayerTask) {
 
 	changed := false
 	if dtl := pt.GetDailyTaskList(); dtl == nil {
-		dtl, _ := p.randomTaskList(userId, proto.TaskListType_TaskListTypeDaily)
+		dtl, _ := p.initTaskList(userId, proto.TaskListType_TaskListTypeDaily)
 		if dtl != nil {
 			pt.SetDailyTaskList(dtl)
 			changed = true
@@ -64,9 +71,22 @@ func (p *TaskModel) refreshPlayerTasks(userId int64, pt *dbData.PlayerTask) {
 	}
 
 	if rtl := pt.GetRewardTaskList(); rtl == nil {
-		rtl, _ := p.randomTaskList(userId, proto.TaskListType_TaskListTypeRewarded)
+		rtl, _ := p.initTaskList(userId, proto.TaskListType_TaskListTypeRewarded)
 		if rtl != nil {
 			pt.SetRewardTaskList(rtl)
+			changed = true
+		}
+	}
+
+	if gtl := pt.GetGuideTaskList(); gtl == nil {
+		gtl, _ := p.initTaskList(userId, proto.TaskListType_TaskListTypeGuide)
+		if gtl != nil {
+			pt.SetGuideTaskList(gtl)
+			changed = true
+		}
+	} else if gtl.CurTask == nil {
+		if nextTask, _ := p.getNextGuideTask(userId, gtl); nextTask != nil {
+			gtl.CurTask = nextTask
 			changed = true
 		}
 	}
@@ -76,8 +96,67 @@ func (p *TaskModel) refreshPlayerTasks(userId int64, pt *dbData.PlayerTask) {
 			serviceLog.Error(err.Error())
 		}
 	}
+}
 
-	p.RefreshGuideTask(userId, false)
+func (p *TaskModel) refreshPlayerTasksRate(userId int64, pt *dbData.PlayerTask) (upgrade bool) {
+	sceneData, err := p.getPlayerSceneData(userId)
+	if err != nil {
+		return false
+	}
+	slotData, err := p.getPlayerSlotData(userId)
+	if err != nil {
+		return false
+	}
+	if dtl := pt.GetDailyTaskList(); dtl != nil && dtl.CurTask != nil {
+		for _, opt := range dtl.CurTask.Options {
+			if p.updateTaskOptionRate(sceneData, slotData, opt) {
+				pt.SetDailyTaskList(dtl)
+				upgrade = true
+			}
+		}
+	}
+	if rtl := pt.GetRewardTaskList(); rtl != nil && rtl.CurTask != nil {
+		for _, opt := range rtl.CurTask.Options {
+			if p.updateTaskOptionRate(sceneData, slotData, opt) {
+				pt.SetRewardTaskList(rtl)
+				upgrade = true
+			}
+		}
+	}
+	if gtl := pt.GetGuideTaskList(); gtl != nil && gtl.CurTask != nil {
+		for _, opt := range gtl.CurTask.Options {
+			if p.updateTaskOptionRate(sceneData, slotData, opt) {
+				pt.SetGuideTaskList(gtl)
+				upgrade = true
+			}
+		}
+	}
+	return upgrade
+}
+
+func (p *TaskModel) updatePlayerTaskList(userId int64, taskList *dbData.TaskList) error {
+	playerTl, err := p.GetPlayerTask(userId)
+	if err != nil {
+		return err
+	}
+
+	switch proto.TaskListType(taskList.TaskListType) {
+	case proto.TaskListType_TaskListTypeDaily:
+		playerTl.SetDailyTaskList(taskList)
+	case proto.TaskListType_TaskListTypeRewarded:
+		playerTl.SetRewardTaskList(taskList)
+	case proto.TaskListType_TaskListTypeGuide:
+		playerTl.SetGuideTaskList(taskList)
+	default:
+		return fmt.Errorf("up player task list type [%v] not define", taskList.TaskListType)
+	}
+
+	err = gameDB.GetGameDB().Save(playerTl).Error
+	if err != nil {
+		return err
+	}
+	p.broadCastUpdateTaskListInfo(userId, proto.TaskListType(taskList.TaskListType), taskList)
+	return nil
 }
 
 func (p *TaskModel) taskTick(curMs int64) error {

@@ -75,6 +75,7 @@ func (p *PlayerDataModel) setPlayerItemSlotLevel(
 		return playerSlot, err
 	}
 	p.RPCCallUpdateUserProfile(userId)
+	grpcPubsubEvent.RPCPubsubEventSlotLevelUpgrade(userId, int32(pos), lv)
 	if broadcast {
 		p.noticeUpdatePlayerItemSlot(playerSlot)
 	}
@@ -113,9 +114,6 @@ func (p *PlayerDataModel) UpgradeItemSlots(
 
 	newLevel := int32(curSocket.Level + 1)
 	_, err = p.setPlayerItemSlotLevel(userId, pos, newLevel, broadcast)
-	if err == nil {
-		grpcPubsubEvent.RPCPubsubEventSlotLevelUpgrade(userId, int32(pos), newLevel)
-	}
 	return userSlot, err
 }
 
