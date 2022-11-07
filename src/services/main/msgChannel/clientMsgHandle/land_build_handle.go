@@ -87,6 +87,44 @@ func QueryLandsHandler(input *methodData.PullClientMessageInput, msg *proto.Enve
 
 func BuildHandler(input *methodData.PullClientMessageInput, msg *proto.Envelope) {
 	agent := GetOrStoreUserAgent(input)
+	res := &proto.BuildResponse{}
+	respMsg := makeResponseMsg(msg)
+	defer func() {
+		if respMsg.ErrorMessage != "" {
+			respMsg.ErrorCode = 22003 // TODO: USE PROTO ERROR CODE
+			serviceLog.Error(respMsg.ErrorMessage)
+		}
+		respMsg.Payload = &proto.Envelope_BuildResponse{BuildResponse: res}
+		ResponseClientMessage(agent, input, respMsg)
+	}()
+
+	if input.UserId < 1 {
+		respMsg.ErrorMessage = "land Build Invalid User ID"
+		return
+	}
+
+	req := msg.GetBuildRequest()
+	if req == nil {
+		serviceLog.Error("main service land Build request is nil")
+		return
+	}
+
+	mapLandRecord, err := getMapLandRecordByUser(input.UserId)
+	if err != nil {
+		respMsg.ErrorMessage = err.Error()
+		return
+	}
+
+	build, err := mapLandRecord.Build(input.UserId, req.NftId, req.Position, req.LandIds)
+	if err != nil {
+		respMsg.ErrorMessage = err.Error()
+		return
+	}
+	res.Build = build.ToProtoData()
+}
+
+func RecyclingHandler(input *methodData.PullClientMessageInput, msg *proto.Envelope) {
+	agent := GetOrStoreUserAgent(input)
 	res := &proto.RecyclingResponse{}
 	respMsg := makeResponseMsg(msg)
 	defer func() {
