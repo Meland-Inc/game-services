@@ -41,12 +41,16 @@ func (p *MapLandDataRecord) InitBuildData() error {
 	// load all land data for land-service
 	web3BuildDatas, err := grpcInvoke.RPCLoadNftBuildData(p.MapId)
 	if err != nil {
+		serviceLog.Error("RPCLoadNftBuildData err : %+v", err)
 		return err
 	}
 	gameBuildDatas, err := p.loadBuildGameData()
 	if err != nil {
+		serviceLog.Error("loadBuildGameData err : %+v", err)
 		return err
 	}
+
+	serviceLog.Info("INitBuildData web3Build len[%d], gameBuildDatas[%d]", len(web3BuildDatas), len(gameBuildDatas))
 
 	for _, web3build := range web3BuildDatas {
 		exist := false
@@ -134,26 +138,36 @@ func (p *MapLandDataRecord) addNftBuildRecord(build *NftBuildData) error {
 	if err != nil {
 		return err
 	}
-	err = gameDB.GetGameDB().Create(build.GameData).Error
-	if err != nil {
-		return err
-	}
 	p.buildRecord[build.GetNftId()] = build
 	p.addUsingLandRecord(build)
-	return nil
+	return gameDB.GetGameDB().Create(build.GameData).Error
 }
 
-func (p *MapLandDataRecord) removeNftBuildRecord(build *NftBuildData) error {
+func (p *MapLandDataRecord) removeNftBuildRecord(build *NftBuildData) (err error) {
 	if build == nil {
 		return fmt.Errorf("delete nft build is nil")
 	}
-	err := p.playerDataModel.UpdateItemUseState(build.GetOwner(), build.GetNftId(), false, 0)
-	if err != nil {
-		return err
-	}
-	delete(p.buildRecord, build.GetNftId())
+
 	p.removeUsingLandRecord(build)
-	return gameDB.GetGameDB().Delete(build.GameData).Error
+	delete(p.buildRecord, build.GetNftId())
+	if err1 := gameDB.GetGameDB().Where(
+		"build_id=? AND map_id=?", build.Web3Data.BuildId, build.Web3Data.MapId,
+	).Delete(&dbData.NftBuild{}).Error; err1 != nil {
+		serviceLog.Error(err1.Error())
+		err = err1
+	}
+
+	err2 := p.playerDataModel.UpdateItemUseState(build.GetOwner(), build.GetNftId(), false, 0)
+	if err2 != nil {
+		if err2 := gameDB.GetGameDB().Where(
+			"nft_id = ? ", build.Web3Data.NftId,
+		).First(&dbData.UsingNft{}).Error; err2 != nil {
+			serviceLog.Error(err2.Error())
+			err = err2
+		}
+	}
+
+	return err
 }
 
 func (p *MapLandDataRecord) canBuild(
@@ -177,7 +191,7 @@ func (p *MapLandDataRecord) canBuild(
 		if !exist {
 			return nil, fmt.Errorf("land[%d] not found", landId)
 		}
-		if landData.GetOwner() != userId {
+		if owner := landData.GetOwner(); owner > 0 && owner != userId {
 			return nil, fmt.Errorf("can't build other owner land[%d]", landId)
 		}
 		if _, exist := p.usingLand[landId]; exist {
@@ -203,9 +217,11 @@ func (p *MapLandDataRecord) Build(
 		return nil, err
 	}
 
-	gameBuildData := dbData.NewNftBuild(userId, nftId, item.Cid, p.MapId, pos, landIds)
+	gameBuildData := dbData.NewNftBuild(userId, int64(web3BuildData.BuildId), nftId, item.Cid, p.MapId, pos, landIds)
 	nftBuild := NewNftBuildData(*gameBuildData, *web3BuildData)
-	p.addNftBuildRecord(nftBuild)
+	if err = p.addNftBuildRecord(nftBuild); err != nil {
+		return nil, err
+	}
 	grpcPubsubEvent.RPCPubsubEventNftBuildAdd(nftBuild.ToGrpcData())
 	return nftBuild, nil
 }
@@ -218,16 +234,27 @@ func (p *MapLandDataRecord) Recycling(userId int64, buildId int64) error {
 	if build == nil {
 		return fmt.Errorf("buildId[%d] build not found", buildId)
 	}
-	if build.GetOwner() != userId {
+	if owner := build.GetOwner(); owner > 0 && owner != userId {
 		return fmt.Errorf("can't recycling other owner builds")
 	}
 
-	err := grpcInvoke.RPCRecyclingBuild(userId, buildId, p.MapId)
-	if err != nil {
-		return err
+	return grpcInvoke.RPCRecyclingBuild(userId, buildId, p.MapId)
+}
+
+// 拆除建筑物
+func (p *MapLandDataRecord) OnReceiveRecyclingEvent(buildId int64) error {
+	p.RLock()
+	defer p.RUnlock()
+	serviceLog.Info("OnReceiveRecyclingEvent [%d]", buildId)
+
+	build := p.getBuildById(buildId)
+	if build == nil {
+		return fmt.Errorf("buildId[%d] build not found", buildId)
 	}
 
-	p.removeNftBuildRecord(build)
+	if err := p.removeNftBuildRecord(build); err != nil {
+		serviceLog.Error(err.Error())
+	}
 	grpcPubsubEvent.RPCPubsubEventNftBuildRemove(build.ToGrpcData())
 	p.BroadcastBuildRecycling(build)
 	return nil
@@ -239,14 +266,14 @@ func (p *MapLandDataRecord) BuildCharged(userId int64, nftId string, buildId int
 	defer p.RUnlock()
 
 	if num < 1 {
-		return fmt.Errorf("invalid charged num [%d]", num)
+		return fmt.Errorf("invalid charged num[%d]", num)
 	}
 
 	build := p.getBuildById(buildId)
 	if build == nil {
 		return fmt.Errorf("build[%s] build not found", nftId)
 	}
-	if build.GetOwner() != userId {
+	if owner := build.GetOwner(); owner > 0 && owner != userId {
 		return fmt.Errorf("can't charged other owner builds")
 	}
 	return grpcInvoke.RPCBuildCharged(userId, buildId, p.MapId, num)
@@ -260,7 +287,7 @@ func (p *MapLandDataRecord) Harvest(userId int64, nftId string, buildId int64) e
 	if build == nil {
 		return fmt.Errorf("build[%s]  not found", nftId)
 	}
-	if build.GetOwner() != userId {
+	if owner := build.GetOwner(); owner > 0 && owner != userId {
 		return fmt.Errorf("can't Harvest other owner builds")
 	}
 	return grpcInvoke.RPCHarvest(userId, buildId, p.MapId)
@@ -273,9 +300,6 @@ func (p *MapLandDataRecord) Collection(userId int64, nftId string, buildId int64
 	build := p.getBuildById(buildId)
 	if build == nil {
 		return fmt.Errorf("build[%s] not found", nftId)
-	}
-	if build.GetOwner() != userId {
-		return fmt.Errorf("can't Harvest other owner builds")
 	}
 	return grpcInvoke.RPCCollection(userId, buildId, p.MapId)
 }

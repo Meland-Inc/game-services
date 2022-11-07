@@ -354,28 +354,13 @@ func (p *PlayerDataModel) UnloadAvatar(userId int64, itemId string, callProfileU
 	return nil
 }
 
-func (p *PlayerDataModel) UseItem(userId int64, itemId string) error {
+func (p *PlayerDataModel) UseItem(userId int64, itemId, args string) error {
 	it, err := p.ItemById(userId, itemId)
 	if err != nil {
 		return err
 	}
-	if err = p.canUse(userId, it); err != nil {
-		return err
-	}
-
-	if err = p.callUseItem(userId, it); err != nil {
-		return err
-	}
-
-	p.noticePlayerItemMsg(userId, proto.EnvelopeType_BroadCastItemUpdate, []*Item{it})
-	return nil
-}
-func (p *PlayerDataModel) canUse(userId int64, it *Item) error {
 	if it.Num < 1 {
 		return fmt.Errorf("item is empty")
-	}
-	if it.Used {
-		return fmt.Errorf("item is used")
 	}
 
 	player, err := p.GetPlayerSceneData(userId)
@@ -386,30 +371,30 @@ func (p *PlayerDataModel) canUse(userId int64, it *Item) error {
 	if player.Level < it.NFTData.UseLevel() {
 		return fmt.Errorf("Insufficient level")
 	}
-	return nil
-}
-func (p *PlayerDataModel) callUseItem(userId int64, it *Item) error {
+
 	switch it.NFTType {
 	case proto.NFTType_NFTTypeConsumable:
-		return p.callUseConsumable(userId, it)
+		return p.callUseConsumable(player, it, args)
 	case proto.NFTType_NFTTypePlaceable, proto.NFTType_NFTTypeThird:
 		// entities, err = m.useNFTBuild(userId, it)
 	}
-
 	return nil
 }
 
-func (p *PlayerDataModel) callUseConsumable(userId int64, item *Item) (err error) {
-	isConsumable, conData := item.NFTData.GetConsumableData()
-	if !isConsumable || conData == nil {
+func (p *PlayerDataModel) callUseConsumable(
+	player *dbData.PlayerSceneData, item *Item, args string,
+) (err error) {
+	isConsumable, consumableData := item.NFTData.GetConsumableData()
+	if !isConsumable || consumableData == nil {
 		return
 	}
 
-	err = grpcInvoke.RPCCallUseConsumableToWeb3(userId, item.Id, 0, 0)
+	err = grpcInvoke.RPCCallUseConsumableToWeb3(player.UserId, item.Id, 0, 0, args)
 	if err != nil {
 		return err
 	}
-	return p.RPCEventUsedConsumable(userId, item)
+
+	return p.RPCEventUsedConsumable(player.UserId, item)
 }
 
 func (p *PlayerDataModel) UpdatePlayerNFTs(userId int64, nfts []message.NFT) {

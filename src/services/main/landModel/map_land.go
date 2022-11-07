@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"game-message-core/proto"
 
+	"github.com/Meland-Inc/game-services/src/common/serviceLog"
 	"github.com/Meland-Inc/game-services/src/global/grpcAPI/grpcInvoke"
 	message "github.com/Meland-Inc/game-services/src/global/web3Message"
 )
@@ -11,6 +12,7 @@ import (
 func (p *MapLandDataRecord) InitLandData() error {
 	// load all land data for land-service
 	lands, err := grpcInvoke.RPCLoadLandData(p.MapId)
+	serviceLog.Info("RPC load land length[%v], err: %+v", len(lands), err)
 	if err != nil {
 		return err
 	}

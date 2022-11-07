@@ -112,6 +112,7 @@ func ItemUseHandle(input *methodData.PullClientMessageInput, msg *proto.Envelope
 	defer func() {
 		if respMsg.ErrorMessage != "" {
 			respMsg.ErrorCode = 20004 // TODO: USE PROTO ERROR CODE
+			serviceLog.Error(respMsg.ErrorMessage)
 		}
 		respMsg.Payload = &proto.Envelope_ItemUseResponse{ItemUseResponse: res}
 		ResponseClientMessage(agent, input, respMsg)
@@ -124,7 +125,7 @@ func ItemUseHandle(input *methodData.PullClientMessageInput, msg *proto.Envelope
 
 	req := msg.GetItemUseRequest()
 	if req == nil {
-		serviceLog.Error("main service use item request is nil")
+		respMsg.ErrorMessage = "main service use item request is nil"
 		return
 	}
 
@@ -134,7 +135,11 @@ func ItemUseHandle(input *methodData.PullClientMessageInput, msg *proto.Envelope
 		return
 	}
 
-	dataModel.UseItem(input.UserId, req.ItemId)
+	err = dataModel.UseItem(input.UserId, req.ItemId, req.Args)
+	if err != nil {
+		respMsg.ErrorMessage = err.Error()
+		return
+	}
 }
 
 func LoadAvatarHandle(input *methodData.PullClientMessageInput, msg *proto.Envelope) {

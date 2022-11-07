@@ -1,6 +1,10 @@
 package serviceMsgHandle
 
 import (
+	"game-message-core/proto"
+
+	"github.com/Meland-Inc/game-services/src/common/serviceLog"
+	message "github.com/Meland-Inc/game-services/src/global/web3Message"
 	land_model "github.com/Meland-Inc/game-services/src/services/main/landModel"
 )
 
@@ -13,61 +17,74 @@ func getMapLandRecord(mapId int32) (*land_model.MapLandDataRecord, error) {
 }
 
 func Web3MultiLandDataUpdateEventHandler(iMsg interface{}) {
-	// input, ok := iMsg.(*message.MultiLandDataUpdateEvent)
-	// if !ok {
-	// 	serviceLog.Error("iMsg to MultiLandDataUpdateEvent failed")
-	// 	return
-	// }
+	input, ok := iMsg.(*message.MultiLandDataUpdateEvent)
+	if !ok {
+		serviceLog.Error("iMsg to MultiLandDataUpdateEvent failed")
+		return
+	}
 
-	// mapRecord, err := getMapLandRecord(int32(input.MapId))
-	// if err != nil {
-	// 	serviceLog.Error("MultiLandDataUpdateEvent error: %v", err)
-	// 	return
-	// }
+	landGroup := make(map[int32][]*proto.LandData)
+	for _, land := range input.Lands {
+		mapId := int32(land.MapId)
+		pbLandData := message.ToProtoLandData(land)
+		if pbLandData == nil {
+			continue
+		}
+		if _, exist := landGroup[mapId]; exist {
+			landGroup[mapId] = append(landGroup[mapId], pbLandData)
+		} else {
+			landGroup[mapId] = []*proto.LandData{pbLandData}
+		}
+	}
 
-	// upLands := make([]*proto.LandData, len(input.Lands))
-	// for _, l := range input.Lands {
-	// 	upLands = append(upLands, message.ToProtoLandData(l))
-	// }
-	// mapRecord.MultiUpdateLandData(upLands)
+	for mapId, upLands := range landGroup {
+		mapRecord, err := getMapLandRecord(mapId)
+		if err != nil {
+			serviceLog.Error("MultiLandDataUpdateEvent error: %v", err)
+			continue
+		}
+		mapRecord.MultiUpdateLandData(upLands)
+	}
 }
 
-func Web3RecyclingHandler(iMsg interface{}) {
-	// input, ok := iMsg.(*message.RecyclingEvent)
-	// if !ok {
-	// 	serviceLog.Error("iMsg to RecyclingEvent failed")
-	// 	return
-	// }
+func Web3MultiRecyclingHandler(iMsg interface{}) {
+	input, ok := iMsg.(*message.MultiRecyclingEvent)
+	if !ok {
+		serviceLog.Error("iMsg to MultiRecyclingEvent failed")
+		return
+	}
 
-	// mapRecord, err := getMapLandRecord(int32(input.MapId))
-	// if err != nil {
-	// 	serviceLog.Error("RecyclingEvent error: %v", err)
-	// 	return
-	// }
+	for _, info := range input.RecyclingInfos {
+		mapRecord, err := getMapLandRecord(int32(info.MapId))
+		if err != nil {
+			serviceLog.Error("MultiRecyclingEvent error: %v", err)
+			return
+		}
 
-	// err = mapRecord.Recycling(cast.ToInt64(input.UserId), int64(input.BuildId))
-	// if err != nil {
-	// 	serviceLog.Error("RecyclingEvent error: %v", err)
-	// 	return
-	// }
+		err = mapRecord.OnReceiveRecyclingEvent(int64(info.BuildId))
+		if err != nil {
+			serviceLog.Error("MultiRecyclingEvent error: %v", err)
+		}
+	}
 }
 
-func Web3BuildUpdateHandler(iMsg interface{}) {
-	// input, ok := iMsg.(*message.BuildUpdateEvent)
-	// if !ok {
-	// 	serviceLog.Error("iMsg to BuildUpdateEvent failed")
-	// 	return
-	// }
+func Web3MultiBuildUpdateHandler(iMsg interface{}) {
+	input, ok := iMsg.(*message.MultiBuildUpdateEvent)
+	if !ok {
+		serviceLog.Error("iMsg to MultiBuildUpdateEvent failed")
+		return
+	}
 
-	// mapRecord, err := getMapLandRecord(int32(input.MapId))
-	// if err != nil {
-	// 	serviceLog.Error("BuildUpdateEvent error: %v", err)
-	// 	return
-	// }
+	for _, build := range input.BuildDatas {
+		mapRecord, err := getMapLandRecord(int32(build.MapId))
+		if err != nil {
+			serviceLog.Error("MultiBuildUpdateEvent error: %v", err)
+			continue
+		}
 
-	// err = mapRecord.UpdateNftBuildWeb3Data(input.BuildData)
-	// if err != nil {
-	// 	serviceLog.Error("BuildUpdateEvent error: %v", err)
-	// 	return
-	// }
+		err = mapRecord.UpdateNftBuildWeb3Data(build)
+		if err != nil {
+			serviceLog.Error("MultiBuildUpdateEvent error: %v", err)
+		}
+	}
 }

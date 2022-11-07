@@ -42,19 +42,19 @@ func initWeb3ServicesPubsubEventHandler() error {
 		return err
 	}
 
-	// if err := daprInvoke.AddTopicEventHandler(
-	// 	string(message.SubscriptionEventRecyclingEvent),
-	// 	Web3RecyclingEventHandler,
-	// ); err != nil {
-	// 	return err
-	// }
+	if err := daprInvoke.AddTopicEventHandler(
+		string(message.SubscriptionEventMultiRecyclingEvent),
+		Web3MultiRecyclingEventHandler,
+	); err != nil {
+		return err
+	}
 
-	// if err := daprInvoke.AddTopicEventHandler(
-	// 	string(message.SubscriptionEventBuildUpdateEvent),
-	// 	Web3BuildUpdateEventHandler,
-	// ); err != nil {
-	// 	return err
-	// }
+	if err := daprInvoke.AddTopicEventHandler(
+		string(message.SubscriptionEventMultiBuildUpdateEvent),
+		Web3MultiBuildUpdateEventHandler,
+	); err != nil {
+		return err
+	}
 
 	return nil
 }
