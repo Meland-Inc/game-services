@@ -19,7 +19,7 @@ func (ch *MsgChannel) onServiceMessage(input *ServiceMsgData) {
 	switch input.MsgId {
 	case string(grpc.SubscriptionEventUserEnterGame):
 		serviceMsgHandle.UserEnterGameHandle(input.MsgBody)
-	case string(grpc.UserActionLeaveGame):
+	case string(grpc.SubscriptionEventUserLeaveGame):
 		serviceMsgHandle.PlayerLeaveGameHandler(input.MsgBody)
 	case string(grpc.SubscriptionEventSavePlayerData):
 		serviceMsgHandle.SavePlayerDataHandler(input.MsgBody)

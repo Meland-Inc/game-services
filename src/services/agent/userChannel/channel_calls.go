@@ -11,6 +11,7 @@ import (
 	"github.com/Meland-Inc/game-services/src/common/daprInvoke"
 	"github.com/Meland-Inc/game-services/src/common/serviceLog"
 	"github.com/Meland-Inc/game-services/src/common/time_helper"
+	"github.com/Meland-Inc/game-services/src/global/grpcAPI/grpcPubsubEvent"
 	"github.com/Meland-Inc/game-services/src/global/serviceCnf"
 )
 
@@ -133,29 +134,8 @@ func (uc *UserChannel) callOtherServiceClientMsg(data []byte, msg *proto.Envelop
 }
 
 func (uc *UserChannel) callPlayerLeaveGame() {
-	input := &methodData.UserLeaveGameInput{
-		MsgVersion: time_helper.NowUTCMill(),
-		AgentAppId: serviceCnf.GetInstance().AppId,
-		UserId:     uc.owner,
-	}
-	inputBytes, err := json.Marshal(input)
+	err := grpcPubsubEvent.RPCPubsubEventLeaveGame(uc.owner)
 	if err != nil {
-		serviceLog.Error("Marshal player leave input failed err:+v", err)
-		return
-	}
-
-	serviceLog.Info("call player leave game: %+v", input)
-
-	leaveEventTarSerArr := []string{
-		string(grpc.GAME_SERVICE_APPID_CHAT),
-		uc.sceneServiceAppId,
-		string(grpc.GAME_SERVICE_APPID_TASK),
-		string(grpc.GAME_SERVICE_APPID_MAIN),
-	}
-	for _, serAppId := range leaveEventTarSerArr {
-		_, err = daprInvoke.InvokeMethod(serAppId, string(grpc.UserActionLeaveGame), inputBytes)
-		if err != nil {
-			serviceLog.Error("call [%s] UserActionLeaveGame failed err: %+v", serAppId, err)
-		}
+		serviceLog.Error("call [%s] UserLeaveGame failed err: %+v", serviceCnf.GetInstance().AppId, err)
 	}
 }
