@@ -14,7 +14,6 @@ func ItemGetResponse(
 	agent *userAgent.UserAgentData,
 	reqMsg *proto.Envelope,
 	errMsg string,
-	pbItems []*proto.Item,
 ) {
 	if agent == nil {
 		serviceLog.Warning("ItemGetResponse user [%d] agent data not found", input.UserId)
@@ -27,16 +26,14 @@ func ItemGetResponse(
 		serviceLog.Error(respMsg.ErrorMessage)
 	}
 	respMsg.Payload = &proto.Envelope_ItemGetResponse{
-		ItemGetResponse: &proto.ItemGetResponse{
-			Items: pbItems,
-		}}
+		ItemGetResponse: &proto.ItemGetResponse{},
+	}
 	ResponseClientMessage(agent, input, respMsg)
 }
 
-func ItemGetGroupingResponse(
+func BroadCaseInitUserItem(
 	input *methodData.PullClientMessageInput,
 	agent *userAgent.UserAgentData,
-	reqMsg *proto.Envelope,
 	pbItems []*proto.Item,
 ) {
 	if agent == nil {
@@ -44,17 +41,15 @@ func ItemGetGroupingResponse(
 		return
 	}
 
-	ItemGetResponse(input, agent, reqMsg, "", []*proto.Item{})
-
-	addRes := &proto.BroadCastItemAddResponse{}
+	initRes := &proto.BroadCastInitItemResponse{}
 	msg := &proto.Envelope{
-		Type: proto.EnvelopeType_BroadCastItemAdd,
-		Payload: &proto.Envelope_BroadCastItemAddResponse{
-			BroadCastItemAddResponse: addRes,
+		Type: proto.EnvelopeType_BroadCastInitItem,
+		Payload: &proto.Envelope_BroadCastInitItemResponse{
+			BroadCastInitItemResponse: initRes,
 		},
 	}
 
-	n := 8
+	n := 20 // 单个protoItem 长度350B 20个=7000B
 	itemLength := len(pbItems)
 	left := itemLength / n
 	if itemLength%n > 0 {
@@ -66,7 +61,7 @@ func ItemGetGroupingResponse(
 		if endIdx > itemLength {
 			endIdx = itemLength
 		}
-		addRes.Items = pbItems[beginIdx:endIdx]
+		initRes.Items = pbItems[beginIdx:endIdx]
 		ResponseClientMessage(agent, input, msg)
 	}
 }
@@ -75,19 +70,19 @@ func ItemGetHandle(input *methodData.PullClientMessageInput, msg *proto.Envelope
 	serviceLog.Info("main service userId[%v] get items ", input.UserId)
 	agent := GetOrStoreUserAgent(input)
 	if input.UserId < 1 {
-		ItemGetResponse(input, agent, msg, "item Get Invalid User ID", nil)
+		ItemGetResponse(input, agent, msg, "item Get Invalid User ID")
 		return
 	}
 
 	dataModel, err := playerModel.GetPlayerDataModel()
 	if err != nil {
-		ItemGetResponse(input, agent, msg, err.Error(), nil)
+		ItemGetResponse(input, agent, msg, err.Error())
 		return
 	}
 
 	playerItems, err := dataModel.GetPlayerItems(input.UserId)
 	if err != nil {
-		ItemGetResponse(input, agent, msg, err.Error(), nil)
+		ItemGetResponse(input, agent, msg, err.Error())
 		return
 	}
 
@@ -98,11 +93,8 @@ func ItemGetHandle(input *methodData.PullClientMessageInput, msg *proto.Envelope
 
 	serviceLog.Info("main service userId[%v] itemLength[%v]", input.UserId, len(pbItems))
 
-	if len(pbItems) < 8 {
-		ItemGetResponse(input, agent, msg, "", pbItems)
-	} else {
-		ItemGetGroupingResponse(input, agent, msg, pbItems)
-	}
+	BroadCaseInitUserItem(input, agent, pbItems)
+	ItemGetResponse(input, agent, msg, "")
 }
 
 func ItemUseHandle(input *methodData.PullClientMessageInput, msg *proto.Envelope) {
