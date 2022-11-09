@@ -60,7 +60,6 @@ func (sh *ServiceHeartModel) OnExit() error {
 func (sh *ServiceHeartModel) Send(cnf serviceCnf.ServiceConfig, online int32, curMs int64) error {
 	sh.updateHeartCD(curMs)
 	err := serviceRegister.RegisterService(cnf, online)
-	// serviceLog.Info("ServiceHeartModel send data: %+v, err: %v", cnf, err)
 	return err
 }
 

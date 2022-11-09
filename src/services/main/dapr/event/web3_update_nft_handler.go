@@ -14,8 +14,6 @@ import (
 )
 
 func Web3UpdateUserNftHandler(ctx context.Context, e *common.TopicEvent) (retry bool, err error) {
-	serviceLog.Info("Receive Web3UpdateUserNft nft: %v, :%s ", e.Data, e.DataContentType)
-
 	input := &message.UpdateUserNFT{}
 	err = grpcNetTool.UnmarshalGrpcTopicEvent(e, input)
 	if err != nil {
@@ -26,6 +24,8 @@ func Web3UpdateUserNftHandler(ctx context.Context, e *common.TopicEvent) (retry 
 	if input.Etag < int(serviceCnf.GetInstance().StartMs/1000) {
 		return
 	}
+
+	serviceLog.Info("Receive Web3UpdateUserNft: %+v", input)
 
 	userId := cast.ToInt64(input.UserId)
 	if userId < 1 {
@@ -42,18 +42,18 @@ func Web3UpdateUserNftHandler(ctx context.Context, e *common.TopicEvent) (retry 
 }
 
 func Web3MultiUpdateUserNftHandler(ctx context.Context, e *common.TopicEvent) (retry bool, err error) {
-	fmt.Printf("Receive Web3 MultiWeb3UpdateUserNft nft: %v, %s ", e.Data, e.DataContentType)
-
 	input := &message.MultiUpdateUserNFT{}
 	err = grpcNetTool.UnmarshalGrpcTopicEvent(e, input)
 	if err != nil {
-		serviceLog.Error("MultiWeb3UpdateUserNft UnmarshalEvent fail err: %v ", err)
-		return false, err
+		serviceLog.Error("MultiWeb3UpdateUserNft Unmarshal fail err: %v ", err)
+		return false, nil
 	}
 
 	if input.Etag < int(serviceCnf.GetInstance().StartMs/1000) {
 		return
 	}
+
+	fmt.Printf("Receive Web3 MultiWeb3UpdateUserNft: %+v", input)
 
 	userId := cast.ToInt64(input.UserId)
 	if userId < 1 {

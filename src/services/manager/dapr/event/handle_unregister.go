@@ -13,19 +13,19 @@ import (
 )
 
 func ServiceUnRegisterHandler(ctx context.Context, e *common.TopicEvent) (retry bool, err error) {
-	serviceLog.Info("Receive service UnRegister data: %v", e.Data)
-
 	input := &pubsubEventData.ServiceUnregisterEvent{}
 	err = grpcNetTool.UnmarshalGrpcTopicEvent(e, input)
 	if err != nil {
-		serviceLog.Error("ServiceUnregisterEvent UnmarshalEvent fail err: %v ", err)
-		return false, err
+		serviceLog.Error("ServiceUnregisterEvent Unmarshal fail err: %v", err)
+		return false, nil
 	}
 
 	// 抛弃过期事件
 	if input.MsgVersion < serviceCnf.GetInstance().StartMs {
 		return false, nil
 	}
+
+	serviceLog.Info("service UnRegister: %v", input)
 
 	service := controller.ServiceData{
 		AppId:       input.Service.AppId,

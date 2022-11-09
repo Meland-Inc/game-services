@@ -41,7 +41,7 @@ func AgentServiceHandler(w http.ResponseWriter, r *http.Request) {
 }
 func AllServicesHandler(w http.ResponseWriter, r *http.Request) {
 	services := controller.GetInstance().AllServices()
-	serviceLog.Info("received get serviceList remote addr: %v, resp: %+v", r.RemoteAddr, services)
+	serviceLog.Info("received all service remote addr: %v, resp: %+v", r.RemoteAddr, services)
 
 	for i := 0; i < len(services)-1; i++ {
 		for j := i + 1; j < len(services); j++ {

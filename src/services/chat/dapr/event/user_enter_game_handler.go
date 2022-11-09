@@ -16,8 +16,8 @@ func UserEnterGameEventHandler(ctx context.Context, e *common.TopicEvent) (retry
 	input := &pubsubEventData.UserEnterGameEvent{}
 	err = grpcNetTool.UnmarshalGrpcTopicEvent(e, input)
 	if err != nil {
-		serviceLog.Error("UserEnterGame UnmarshalEvent fail err: %v ", err)
-		return false, err
+		serviceLog.Error("UserEnterGame Unmarshal fail err: %v ", err)
+		return false, nil
 	}
 
 	// 抛弃过期事件

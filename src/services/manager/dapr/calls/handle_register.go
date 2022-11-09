@@ -12,7 +12,7 @@ import (
 )
 
 func RegisterServiceHandler(ctx context.Context, in *common.InvocationEvent) (*common.Content, error) {
-	serviceLog.Info("register data: %+v", string(in.Data))
+	serviceLog.Info("service register: %s", string(in.Data))
 
 	input := &methodData.ServiceRegisterInput{}
 	err := grpcNetTool.UnmarshalGrpcData(in.Data, input)
@@ -32,13 +32,7 @@ func RegisterServiceHandler(ctx context.Context, in *common.InvocationEvent) (*c
 		UpdateAt:    input.Service.UpdatedAt,
 	}
 
-	serviceLog.Info("received register service: %v", service)
 	controller.GetInstance().RegisterService(service)
-
-	output := &methodData.ServiceRegisterOutput{
-		Success: true,
-	}
-	// serviceLog.Info("register service res = %+v", output)
-
+	output := &methodData.ServiceRegisterOutput{Success: true}
 	return daprInvoke.MakeOutputContent(in, output)
 }

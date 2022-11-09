@@ -8,24 +8,24 @@ import (
 
 	"github.com/Meland-Inc/game-services/src/common/serviceLog"
 	"github.com/Meland-Inc/game-services/src/global/grpcAPI/grpcNetTool"
-	"github.com/Meland-Inc/game-services/src/services/chat/msgChannel"
+	"github.com/Meland-Inc/game-services/src/services/main/msgChannel"
 	"github.com/dapr/go-sdk/service/common"
 	"github.com/spf13/cast"
 )
 
-func SavePlayerDataEventHandler(ctx context.Context, e *common.TopicEvent) (retry bool, err error) {
-	serviceLog.Info("chat Receive SavePlayerDataEvent nft: %v", e.Data)
-
+func SavePlayerDataEventHandle(ctx context.Context, e *common.TopicEvent) (retry bool, err error) {
 	input := &pubsubEventData.SavePlayerEventData{}
 	err = grpcNetTool.UnmarshalGrpcTopicEvent(e, input)
 	if err != nil {
-		serviceLog.Error("chat SavePlayerDataEvent UnmarshalEvent fail err: %v ", err)
-		return false, err
+		serviceLog.Error("SavePlayerDataEvent Unmarshal fail err: %v ", err)
+		return false, nil
 	}
+
+	serviceLog.Info("Receive SavePlayerDataEvent: %+v", input)
 
 	userId := cast.ToInt64(input.UserId)
 	if userId < 1 {
-		serviceLog.Error("chat SavePlayerEvent invalid Data[%v]", input)
+		serviceLog.Error("SavePlayerEvent invalid Data[%v]", input)
 		return false, fmt.Errorf("SavePlayerEvent invalid Data [%v]", input)
 	}
 
