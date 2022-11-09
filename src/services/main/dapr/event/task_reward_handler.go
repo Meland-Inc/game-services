@@ -14,14 +14,14 @@ import (
 )
 
 func TaskRewardEventHandler(ctx context.Context, e *common.TopicEvent) (retry bool, err error) {
-	serviceLog.Info("Receive task reward Event nft: %v, :%s ", e.Data, e.DataContentType)
-
 	input := &pubsubEventData.UserTaskRewardEvent{}
 	err = grpcNetTool.UnmarshalGrpcTopicEvent(e, input)
 	if err != nil {
-		serviceLog.Error("UserTaskRewardEvent UnmarshalEvent fail err: %v ", err)
-		return false, err
+		serviceLog.Error("UserTaskRewardEvent Unmarshal fail err: %v ", err)
+		return false, nil
 	}
+
+	serviceLog.Info("Receive task reward Event: %+v", input)
 
 	userId := cast.ToInt64(input.UserId)
 	if userId < 1 {
