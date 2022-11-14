@@ -41,9 +41,33 @@ func NFTPbType(nft NFT) proto.NFTType {
 		return proto.NFTType_NFTTypeMaterial
 	}
 
-	if nft.IsPlaceable() {
-		return proto.NFTType_NFTTypePlaceable
+	return proto.NFTType_NFTTypeUnknown
+}
+
+func ToProtoNftData(nft NFT) *proto.NftData {
+	pbNft := &proto.NftData{
+		Network:    nft.Network,
+		TokenId:    nft.TokenId,
+		IsMelandAi: nft.IsMelandAI,
 	}
 
-	return proto.NFTType_NFTTypeUnknown
+	pbNft.Metadata = &proto.NftMetadata{
+		Name:            nft.Metadata.Name,
+		Description:     nft.Metadata.Description,
+		Image:           *nft.Metadata.Image,
+		BackGroundColor: *nft.Metadata.BackgroundColor,
+		Attributes:      []*proto.NftAttribute{},
+	}
+
+	for _, attr := range nft.Metadata.Attributes {
+		pbNft.Metadata.Attributes = append(
+			pbNft.Metadata.Attributes,
+			&proto.NftAttribute{
+				TraitType: attr.TraitType,
+				Value:     attr.Value,
+			},
+		)
+	}
+
+	return pbNft
 }

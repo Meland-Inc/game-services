@@ -1,7 +1,6 @@
 package playerModel
 
 import (
-	"encoding/json"
 	"game-message-core/proto"
 
 	message "github.com/Meland-Inc/game-services/src/global/web3Message"
@@ -11,17 +10,18 @@ import (
 // db table name player_items
 
 type Item struct {
-	Id        string                      `db:"id"`
-	Owner     int64                       `db:"owner"`
-	Cid       int32                       `db:"cid"`
-	Num       int32                       `db:"num"`
-	AvatarPos int32                       `db:"avatar_pos"`
-	Used      bool                        `db:"-"`
-	ItemType  proto.ItemType              `db:"-"`
-	Attribute *proto.AvatarAttribute      `db:"-"`
-	NFTType   proto.NFTType               `db:"-"`
-	NFTData   message.NFT                 `db:"-"`
-	TimeOut   message.NFTPlaceableTimeout `db:"-"`
+	Id           string                      `db:"id"`
+	Owner        int64                       `db:"owner"`
+	Cid          int32                       `db:"cid"`
+	Num          int32                       `db:"num"`
+	AvatarPos    int32                       `db:"avatar_pos"`
+	Used         bool                        `db:"-"`
+	ItemType     proto.ItemType              `db:"-"`
+	Attribute    *proto.AvatarAttribute      `db:"-"`
+	NFTType      proto.NFTType               `db:"-"`
+	NFTData      message.NFT                 `db:"-"`
+	TimeOut      message.NFTPlaceableTimeout `db:"-"`
+	ProtoNftData *proto.NftData              `db:"-"`
 }
 
 func (it *Item) ToNetItem() *proto.Item {
@@ -31,13 +31,10 @@ func (it *Item) ToNetItem() *proto.Item {
 		ObjectCid:     it.Cid,
 		Num:           it.Num,
 		UserId:        it.Owner,
-		Attribute:     it.Attribute,
 		AvatarPos:     proto.AvatarPosition(it.AvatarPos),
 		NftUsing:      it.Used,
 		NftTimeOutSec: int32(it.TimeOut.TimeoutSec),
-	}
-	if bs, err := json.Marshal(it.NFTData); err == nil {
-		pbIt.NftJsonData = string(bs)
+		NftData:       it.ProtoNftData,
 	}
 	return pbIt
 }
@@ -70,13 +67,14 @@ func (p *PlayerItems) DelItem(itemId string) {
 
 func NFTToItem(userId int64, nft message.NFT) *Item {
 	item := &Item{
-		Id:       nft.Id,
-		Owner:    userId,
-		Cid:      cast.ToInt32(nft.ItemId),
-		Num:      cast.ToInt32(nft.Amount),
-		ItemType: proto.ItemType_ItemTypeNFT,
-		NFTType:  message.NFTPbType(nft),
-		NFTData:  nft,
+		Id:           nft.Id,
+		Owner:        userId,
+		Cid:          cast.ToInt32(nft.ItemId),
+		Num:          cast.ToInt32(nft.Amount),
+		ItemType:     proto.ItemType_ItemTypeNFT,
+		NFTType:      message.NFTPbType(nft),
+		NFTData:      nft,
+		ProtoNftData: message.ToProtoNftData(nft),
 	}
 
 	switch item.NFTType {
