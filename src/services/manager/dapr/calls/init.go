@@ -9,14 +9,23 @@ import (
 
 func InitDaprCallHandle() (err error) {
 	serviceLog.Info(" InitDaprCallHandle ------ begin ------")
-	if daprInvoke.AddServiceInvocationHandler(
-		string(grpc.ManagerServiceActionRegister), RegisterServiceHandler,
+	if err = daprInvoke.AddServiceInvocationHandler(
+		string(grpc.ManagerServiceActionRegister),
+		RegisterServiceHandler,
 	); err != nil {
 		return err
 	}
 
-	if daprInvoke.AddServiceInvocationHandler(
-		string(grpc.ManagerServiceActionSelectService), SelectServiceHandler,
+	if err = daprInvoke.AddServiceInvocationHandler(
+		string(grpc.ManagerServiceActionSelectService),
+		SelectServiceHandler,
+	); err != nil {
+		return err
+	}
+
+	if err = daprInvoke.AddServiceInvocationHandler(
+		string(grpc.ManagerServiceActionMultiSelectService),
+		MultiSelectServiceHandler,
 	); err != nil {
 		return err
 	}
