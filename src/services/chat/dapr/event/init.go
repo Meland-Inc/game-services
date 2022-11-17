@@ -30,6 +30,13 @@ func initServiceGrpcPubsubEventHandle() error {
 	}
 
 	if err := daprInvoke.AddTopicEventHandler(
+		string(grpc.SubscriptionEventTickOutPlayer),
+		TickOutUserHandler,
+	); err != nil {
+		return err
+	}
+
+	if err := daprInvoke.AddTopicEventHandler(
 		string(grpc.SubscriptionEventSavePlayerData),
 		SavePlayerDataEventHandler,
 	); err != nil {
