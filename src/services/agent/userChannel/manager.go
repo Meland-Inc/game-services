@@ -79,3 +79,10 @@ func (mgr *UserChannelManager) RemoveUserChannel(channel *UserChannel) {
 	mgr.userChannelsById.Delete(channelId)
 	mgr.userChannelsByOwner.Delete(channel.GetOwner())
 }
+
+func (mgr *UserChannelManager) Range(f func(channel *UserChannel) bool) {
+	mgr.userChannelsById.Range(func(key, value interface{}) bool {
+		cha := value.(*UserChannel)
+		return f(cha)
+	})
+}

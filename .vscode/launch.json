@@ -26,7 +26,7 @@
                 "GAME_DB_DATABASE": "meland_game_data_dev",
                 "JWT_SECRET": "xL6U7kZ3uLe.KggPUgXCN9!4223",
                 //----------- service settings -----------------
-                "APP_ID": "game-service_main",
+                "APP_ID": "game-service-main",
                 "APP_PORT": "5300",
                 "DAPR_GRPC_PORT": "5350",
                 "DAPR_HTTP_PORT": "5325",

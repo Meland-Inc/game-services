@@ -134,6 +134,10 @@ func (uc *UserChannel) callOtherServiceClientMsg(data []byte, msg *proto.Envelop
 }
 
 func (uc *UserChannel) callPlayerLeaveGame() {
+	if uc.GetOwner() < 1 {
+		return
+	}
+
 	err := grpcPubsubEvent.RPCPubsubEventLeaveGame(uc.owner)
 	if err != nil {
 		serviceLog.Error("call [%s] UserLeaveGame failed err: %+v", serviceCnf.GetInstance().AppId, err)

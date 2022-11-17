@@ -80,17 +80,22 @@ func (uc *UserChannel) OnSessionReceivedData(s *session.Session, data []byte) {
 }
 
 func (uc *UserChannel) OnSessionClose(s *session.Session) {
-	serviceLog.Info("channel Id:[%s] user:[%d] closed", uc.id, uc.owner)
+	serviceLog.Debug("userChannel onClose Id:[%s] user:[%d] closed[%v]", uc.id, uc.owner, uc.isClosed)
+	if uc.isClosed {
+		return
+	}
 	uc.callPlayerLeaveGame()
 	GetInstance().RemoveUserChannel(uc)
 	uc.Stop()
 }
 
+// 主动调用不会触发玩家离线事件
 func (uc *UserChannel) Stop() {
 	if uc.isClosed {
 		return
 	}
 
+	uc.isClosed = true
 	for _, sh := range uc.stopChans {
 		stopDone := make(chan struct{}, 1)
 		sh <- stopDone
@@ -103,7 +108,6 @@ func (uc *UserChannel) Stop() {
 
 	uc.tcpSession.Stop()
 	uc.tcpSession = nil
-	uc.isClosed = true
 	uc.sceneServiceAppId = ""
 	uc.enterSceneService = false
 }

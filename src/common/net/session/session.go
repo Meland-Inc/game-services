@@ -107,7 +107,7 @@ func (s *Session) loop() {
 	defer func() {
 		err := recover()
 		if err != nil {
-			serviceLog.Error("session onSend err: ", err)
+			serviceLog.StackError("session onSend err: %+v", err)
 			go s.loop()
 		}
 	}()
@@ -116,8 +116,8 @@ func (s *Session) loop() {
 		select {
 		case msg := <-s.sendChan:
 			if err := s.send(msg); err != nil {
-				serviceLog.Warning("Stop session(%d)  by send message err :  %v", s.RemoteAddr(), err)
-				go s.Stop()
+				serviceLog.Warning("Stop session(%d)  by send message err :  %+v", s.RemoteAddr(), err)
+				s.Stop()
 			}
 
 		case stopFinished := <-s.stopChan:
@@ -148,7 +148,7 @@ func (s *Session) received() error {
 
 func (s *Session) send(data []byte) error {
 	if s.IsClosed() {
-		return fmt.Errorf("Session closed!! by sendChan")
+		return nil
 	}
 
 	bytes, err := s.parser.Encode(data)
