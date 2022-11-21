@@ -4,6 +4,19 @@ import (
 	"time"
 )
 
+var timeOffsetMs time.Duration = 0
+
+func SetTimeOffsetMs(offset int64) {
+	absValue := offset
+	if offset < 0 {
+		absValue = -absValue
+	}
+	if int64(timeOffsetMs) <= offset {
+		return
+	}
+	timeOffsetMs = time.Duration(offset)
+}
+
 type TimeTemplate string
 
 const (
@@ -46,24 +59,28 @@ func UnixHour(t time.Time) int64 {
 	return t.Unix() / 3600
 }
 
+func Now() time.Time {
+	return time.Now().Add(timeOffsetMs * time.Millisecond)
+}
+
 // 获取当前时间 精确到微秒
 func NowMicro() int64 {
-	return time.Now().UnixNano() / 1e3
+	return Now().UnixNano() / 1e3
 }
 
 // 获取当前时间 精确到毫秒
 func NowMill() int64 {
-	return time.Now().UnixNano() / 1e6
+	return Now().UnixNano() / 1e6
 }
 
 func NowSec() int64 {
-	return UnixSec(time.Now())
+	return UnixSec(Now())
 }
 
 // =========== CST 东八区时间================
 func NowCST() time.Time {
 	time.Local = time.FixedZone("CST", 3600*8)
-	return time.Now().Local()
+	return Now().Local()
 }
 
 // 获取CST当前时间 精确到微秒
@@ -81,11 +98,9 @@ func NowCSTSec() int64 {
 	return UnixSec(NowCST())
 }
 
-/// =========================================
-
 // =========== UTC 时间================
 func NowUTC() time.Time {
-	return time.Now().UTC()
+	return Now().UTC()
 }
 func NowUTCMicro() int64 {
 	return NowUTC().UnixNano() / 1e3

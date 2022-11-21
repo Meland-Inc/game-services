@@ -59,7 +59,10 @@ func (sh *ServiceHeartModel) OnExit() error {
 
 func (sh *ServiceHeartModel) Send(cnf serviceCnf.ServiceConfig, online int32, curMs int64) error {
 	sh.updateHeartCD(curMs)
-	err := serviceRegister.RegisterService(cnf, online)
+	offsetMs, err := serviceRegister.RegisterService(cnf, online)
+	if err == nil {
+		time_helper.SetTimeOffsetMs(offsetMs)
+	}
 	return err
 }
 

@@ -7,6 +7,7 @@ import (
 	base_data "game-message-core/grpc/baseData"
 	"game-message-core/grpc/methodData"
 	"game-message-core/grpc/pubsubEventData"
+	"time"
 
 	"github.com/Meland-Inc/game-services/src/common/daprInvoke"
 	"github.com/Meland-Inc/game-services/src/common/serviceLog"
@@ -30,14 +31,14 @@ func serviceRealInfo(
 	}
 }
 
-func RegisterService(cnf serviceCnf.ServiceConfig, online int32) error {
+func RegisterService(cnf serviceCnf.ServiceConfig, online int32) (offsetMs int64, err error) {
 	input := methodData.ServiceRegisterInput{
-		MsgVersion: time_helper.NowUTCMill(),
 		Service:    serviceRealInfo(cnf, online),
+		RegisterAt: time.Now().UTC().UnixMilli(),
 	}
 	inputBytes, err := json.Marshal(input)
 	if err != nil {
-		return err
+		return 0, err
 	}
 
 	bs, err := daprInvoke.InvokeMethod(
@@ -46,18 +47,23 @@ func RegisterService(cnf serviceCnf.ServiceConfig, online int32) error {
 		inputBytes,
 	)
 	if err != nil {
-		return err
+		return 0, err
 	}
+	resAt := time.Now().UTC().UnixMilli()
 
 	out := &methodData.ServiceRegisterOutput{}
 	err = json.Unmarshal(bs, out)
 	if err != nil {
-		return err
+		return 0, err
 	}
 	if !out.Success {
-		return fmt.Errorf("register service failed")
+		return 0, fmt.Errorf("register service failed")
 	}
-	return err
+	// serviceLog.Debug("[%v] register mgrAt[%v] selfAt[%v], resAt[%v], offsetMs[%v]",
+	// 	cnf.AppId, out.ManagerAt, out.RegisterAt, resAt,
+	// 	(out.ManagerAt-out.RegisterAt)-((resAt-input.RegisterAt)/2),
+	// )
+	return (out.ManagerAt - out.RegisterAt) - ((resAt - input.RegisterAt) / 2), nil
 }
 
 func UnRegisterService(cnf serviceCnf.ServiceConfig, online int32) error {

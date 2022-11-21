@@ -56,11 +56,12 @@ func (s *Service) run() {
 }
 
 func (s *Service) registerService() {
-	err := serviceRegister.RegisterService(*s.serviceCnf, 0)
+	offsetMs, err := serviceRegister.RegisterService(*s.serviceCnf, 0)
 	serviceLog.Info("registerService ------ end ----------data: %+v, err: %v", *s.serviceCnf, err)
 	if err != nil {
 		panic(err)
 	}
+	time_helper.SetTimeOffsetMs(offsetMs)
 }
 
 func (s *Service) onTick(curMs int64) {
