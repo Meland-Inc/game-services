@@ -41,14 +41,15 @@ func getPlayerAgent(input *methodData.PullClientMessageInput) *userAgent.UserAge
 	agent, exist := agentModel.GetUserAgent(input.UserId)
 	if !exist {
 		agent = &userAgent.UserAgentData{
-			AgentAppId: input.AgentAppId,
-			SocketId:   input.SocketId,
-			UserId:     input.UserId,
-			LoginAt:    time_helper.NowUTCMill(),
+			AgentAppId:          input.AgentAppId,
+			SocketId:            input.SocketId,
+			InSceneServiceAppId: input.SceneServiceId,
+			UserId:              input.UserId,
+			LoginAt:             time_helper.NowUTCMill(),
 		}
-		agentModel.AddUserAgentRecord(input.UserId, input.AgentAppId, input.SocketId)
+		agentModel.AddUserAgentRecord(input.UserId, input.AgentAppId, input.SocketId, input.SceneServiceId)
 	} else {
-		agent.TryUpdate(input.UserId, input.AgentAppId, input.SocketId)
+		agent.TryUpdate(input.UserId, input.AgentAppId, input.SocketId, input.SceneServiceId)
 	}
 
 	return agent
@@ -58,9 +59,9 @@ func GetOrStoreUserAgent(input *methodData.PullClientMessageInput) *userAgent.Us
 	agentModel := userAgent.GetUserAgentModel()
 	agent, exist := agentModel.GetUserAgent(input.UserId)
 	if !exist {
-		agent, _ = agentModel.AddUserAgentRecord(input.UserId, input.AgentAppId, input.SocketId)
+		agent, _ = agentModel.AddUserAgentRecord(input.UserId, input.AgentAppId, input.SocketId, input.SceneServiceId)
 	} else {
-		agent.TryUpdate(input.UserId, input.AgentAppId, input.SocketId)
+		agent.TryUpdate(input.UserId, input.AgentAppId, input.SocketId, input.SceneServiceId)
 	}
 	return agent
 }

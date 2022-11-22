@@ -17,8 +17,13 @@ func UserEnterGameHandle(iMsg interface{}) {
 	agentModel := userAgent.GetUserAgentModel()
 	agent, exist := agentModel.GetUserAgent(input.UserId)
 	if !exist {
-		agentModel.AddUserAgentRecord(input.UserId, input.AgentAppId, input.UserSocketId)
+		agentModel.AddUserAgentRecord(
+			input.UserId,
+			input.AgentAppId,
+			input.UserSocketId,
+			input.SceneServiceAppId,
+		)
 	} else {
-		agent.TryUpdate(input.UserId, input.AgentAppId, input.UserSocketId)
+		agent.TryUpdate(input.UserId, input.AgentAppId, input.UserSocketId, input.SceneServiceAppId)
 	}
 }
