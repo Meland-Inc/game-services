@@ -9,6 +9,7 @@ import (
 	"github.com/Meland-Inc/game-services/src/common/daprInvoke"
 	"github.com/Meland-Inc/game-services/src/common/serviceLog"
 	"github.com/Meland-Inc/game-services/src/global/grpcAPI/grpcNetTool"
+	"github.com/Meland-Inc/game-services/src/global/grpcAPI/grpcPubsubEvent"
 	"github.com/Meland-Inc/game-services/src/services/agent/userChannel"
 	"github.com/dapr/go-sdk/service/common"
 )
@@ -21,6 +22,16 @@ func ignoreMsgLog(msgType proto.EnvelopeType) bool {
 		return true
 	}
 	return false
+}
+
+func getUserChannel(userId int64, socketId string) *userChannel.UserChannel {
+	var userCh *userChannel.UserChannel
+	if socketId != "" {
+		userCh = userChannel.GetInstance().UserChannelById(socketId)
+	} else if userId > 0 {
+		userCh = userChannel.GetInstance().UserChannelByOwner(userId)
+	}
+	return userCh
 }
 
 func BroadCastToClientHandler(ctx context.Context, in *common.InvocationEvent) (*common.Content, error) {
@@ -36,14 +47,12 @@ func BroadCastToClientHandler(ctx context.Context, in *common.InvocationEvent) (
 		serviceLog.Info("BroadCastToClient user[%d] msg[%+v], err:%+v", input.UserId, resMsg.Type, err)
 	}
 
-	var userCh *userChannel.UserChannel
-	if input.SocketId != "" {
-		userCh = userChannel.GetInstance().UserChannelById(input.SocketId)
-	} else if input.UserId > 0 {
-		userCh = userChannel.GetInstance().UserChannelByOwner(input.UserId)
-	}
+	userCh := getUserChannel(input.UserId, input.SocketId)
 	if userCh == nil {
 		serviceLog.Error("BroadCastToClient userCh not found  userId[%d], socketId[%v]", input.UserId, input.SocketId)
+		if input.UserId > 0 {
+			grpcPubsubEvent.RPCPubsubEventLeaveGame(input.UserId)
+		}
 		return nil, nil
 	}
 
@@ -66,11 +75,12 @@ func MultipleBroadCastToClientHandler(ctx context.Context, in *common.Invocation
 		serviceLog.Info("MultipleBroadCastToClient Users:%v, msg[%+v], err:%+v", input.UserList, resMsg.Type, err)
 	}
 	for _, userId := range input.UserList {
-		userCh := userChannel.GetInstance().UserChannelByOwner(userId)
+		userCh := getUserChannel(userId, "")
 		if userCh != nil {
 			userCh.SendToUser(proto.EnvelopeType(input.MsgId), input.MsgBody)
 		} else {
 			serviceLog.Warning("UserChannel [%d] not found", userId)
+			grpcPubsubEvent.RPCPubsubEventLeaveGame(userId)
 		}
 	}
 
