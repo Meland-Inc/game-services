@@ -8,24 +8,24 @@ import (
 	"github.com/Meland-Inc/game-services/src/services/task/taskModel"
 )
 
-func PlayerUseItemHandler(iMsg interface{}) {
-	input, ok := iMsg.(*pubsubEventData.UserUseNFTEvent)
+func UserLevelUpgradeHandler(iMsg interface{}) {
+	input, ok := iMsg.(*pubsubEventData.UserLevelUpgradeEvent)
 	if !ok {
-		serviceLog.Error("iMsg to UserUseNFTEvent failed")
+		serviceLog.Error("iMsg to userLevelUpgrade failed")
 		return
 	}
 
 	taskModel, err := taskModel.GetTaskModel()
 	if err != nil {
-		serviceLog.Error("UserUseNFTEvent taskModel not found")
+		serviceLog.Error("userLevelUpgrade taskModel not found")
 		return
 	}
 
-	if err := taskModel.UseItemHandler(
+	if err := taskModel.UserLevelHandler(
 		input.UserId,
 		proto.TaskListType_TaskListTypeUnknown,
-		&proto.TaskOptionItem{ItemCid: input.Cid, Num: input.Num},
+		input.Level,
 	); err != nil {
-		serviceLog.Error("task use item handler err:%+v", err)
+		serviceLog.Error("task user level handler err:%+v", err)
 	}
 }

@@ -75,6 +75,8 @@ func initDB(mgr *ConfigDataManager) (err error) {
 	password := os.Getenv("GAME_CONFIG_DB_PASS")
 	dbName := os.Getenv("GAME_CONFIG_DB_DATABASE")
 
+	serviceLog.Info("game config DB url:[%+s] DbName:[%s]", host, dbName)
+
 	mgr.configDb, err = gormDB.InitGormDB(host, port, user, password, dbName, xlsxTable.TableModels())
 	return err
 }

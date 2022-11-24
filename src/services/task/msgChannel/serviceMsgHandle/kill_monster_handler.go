@@ -21,12 +21,23 @@ func KillMonsterHandler(iMsg interface{}) {
 		return
 	}
 
-	taskModel.UpGradeTaskProgress(
-		input.UserId, proto.TaskListType_TaskListTypeDaily,
-		nil, nil, nil, input.MonsterCid, 0, 0, 0,
-	)
-	taskModel.UpGradeTaskProgress(
-		input.UserId, proto.TaskListType_TaskListTypeRewarded,
-		nil, nil, nil, input.MonsterCid, 0, 0, 0,
-	)
+	if err := taskModel.KillMonsterHandler(
+		input.UserId,
+		proto.TaskListType_TaskListTypeUnknown,
+		&proto.TaskOptionKillMonster{MonCid: input.MonsterCid, Num: 1},
+	); err != nil {
+		serviceLog.Error("task killMon handler err:%+v", err)
+	}
+
+	if len(input.DropList) > 0 {
+		pickItems := []*proto.TaskOptionItem{}
+		for _, drop := range input.DropList {
+			pickItems = append(pickItems, &proto.TaskOptionItem{ItemCid: drop.Cid, Num: drop.Num})
+		}
+		if err := taskModel.GetItemHandler(
+			input.UserId, proto.TaskListType_TaskListTypeUnknown, pickItems,
+		); err != nil {
+			serviceLog.Error("task get item handler err:%+v", err)
+		}
+	}
 }

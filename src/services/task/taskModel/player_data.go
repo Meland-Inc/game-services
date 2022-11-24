@@ -8,12 +8,24 @@ import (
 	"github.com/Meland-Inc/game-services/src/global/gameDB"
 	dbData "github.com/Meland-Inc/game-services/src/global/gameDB/data"
 	"github.com/Meland-Inc/game-services/src/global/grpcAPI/grpcInvoke"
+	"gorm.io/gorm"
 )
 
 func (p *TaskModel) getPlayerSceneData(userId int64) (*dbData.PlayerSceneData, error) {
 	data := &dbData.PlayerSceneData{}
 	err := gameDB.GetGameDB().Where("user_id = ?", userId).First(data).Error
 	return data, err
+}
+
+func (p *TaskModel) getPlayerSlotData(userId int64) (*dbData.ItemSlot, error) {
+	playerSlot := &dbData.ItemSlot{}
+	err := gameDB.GetGameDB().Where("user_id = ?", userId).First(playerSlot).Error
+	if err != nil && err == gorm.ErrRecordNotFound {
+		playerSlot = &dbData.ItemSlot{UserId: userId}
+		playerSlot.InitSlotList()
+		err = nil
+	}
+	return playerSlot, err
 }
 
 func (p *TaskModel) takeUserNft(userId int64, items []*proto.TaskOptionItem) error {

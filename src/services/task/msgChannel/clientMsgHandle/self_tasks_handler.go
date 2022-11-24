@@ -39,6 +39,5 @@ func SelfTasksHandler(input *methodData.PullClientMessageInput, msg *proto.Envel
 		return
 	}
 
-	tasks.ToProtoData()
 	res.Tasks = tasks.ToProtoData()
 }
