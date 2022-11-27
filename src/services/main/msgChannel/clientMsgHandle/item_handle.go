@@ -49,7 +49,7 @@ func BroadCaseInitUserItem(
 		},
 	}
 
-	n := 20 // 单个protoItem 长度350B 20个=7000B
+	n := 12 // 单个protoItem 长度350B 20个=7000B
 	itemLength := len(pbItems)
 	left := itemLength / n
 	if itemLength%n > 0 {
