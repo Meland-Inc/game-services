@@ -88,23 +88,30 @@ func (p *UserAgentModel) AllOnlineUserIds() []int64 {
 	return userIds
 }
 
-func (p *UserAgentModel) AddUserAgentRecord(userId int64, agentAppId, socketId string) (*UserAgentData, error) {
+func (p *UserAgentModel) AddUserAgentRecord(
+	userId int64,
+	agentAppId, socketId, sceneAppId string,
+) (*UserAgentData, error) {
 	if userId == 0 || agentAppId == "" || socketId == "" {
 		return nil, fmt.Errorf("user agent data is invalid")
 	}
 
 	agentData := &UserAgentData{
-		AgentAppId: agentAppId,
-		SocketId:   socketId,
-		UserId:     userId,
-		LoginAt:    time_helper.NowUTCMill(),
+		AgentAppId:          agentAppId,
+		SocketId:            socketId,
+		InSceneServiceAppId: sceneAppId,
+		UserId:              userId,
+		LoginAt:             time_helper.NowUTCMill(),
 	}
 	p.record.Store(userId, agentData)
 	return agentData, nil
 }
 
-func (p *UserAgentModel) CheckAndAddUserAgentRecord(userId int64, agentAppId, socketId string) (*UserAgentData, error) {
-	return p.AddUserAgentRecord(userId, agentAppId, socketId)
+func (p *UserAgentModel) CheckAndAddUserAgentRecord(
+	userId int64,
+	agentAppId, socketId, sceneAppId string,
+) (*UserAgentData, error) {
+	return p.AddUserAgentRecord(userId, agentAppId, socketId, sceneAppId)
 }
 
 func (p *UserAgentModel) RemoveUserAgentRecord(userId int64) {

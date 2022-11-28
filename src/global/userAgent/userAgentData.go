@@ -15,7 +15,7 @@ type UserAgentData struct {
 	LoginAt             int64  `json:"loginAt"`
 }
 
-func (p *UserAgentData) TryUpdate(userId int64, agentAppId, socketId string) {
+func (p *UserAgentData) TryUpdate(userId int64, agentAppId, socketId, sceneAppId string) {
 	if p.UserId == 0 && userId > 0 {
 		p.UserId = userId
 	}
@@ -25,6 +25,9 @@ func (p *UserAgentData) TryUpdate(userId int64, agentAppId, socketId string) {
 	}
 	if agentAppId != "" && agentAppId != p.AgentAppId {
 		p.AgentAppId = agentAppId
+	}
+	if sceneAppId != "" && sceneAppId != p.InSceneServiceAppId {
+		p.InSceneServiceAppId = sceneAppId
 	}
 }
 

@@ -22,7 +22,11 @@ func UserEnterGameHandle(iMsg interface{}) {
 		agent.AgentAppId = input.AgentAppId
 		agent.InMapId = input.MapId
 	} else {
-		agent, _ = agentModel.AddUserAgentRecord(input.UserId, input.AgentAppId, input.UserSocketId)
-		agent.InSceneServiceAppId = input.SceneServiceAppId
+		agent, _ = agentModel.AddUserAgentRecord(
+			input.UserId,
+			input.AgentAppId,
+			input.UserSocketId,
+			input.SceneServiceAppId,
+		)
 	}
 }
