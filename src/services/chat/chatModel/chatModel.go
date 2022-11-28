@@ -47,6 +47,7 @@ func (p *ChatModel) OnInit(modelMgr *component.ModelManager) error {
 }
 
 func (p *ChatModel) OnStart() error {
+	p.onStart()
 	return nil
 }
 
