@@ -18,4 +18,7 @@ const (
 
 	// land  model
 	MODEL_NAME_LAND = "MainServiceLandModel"
+
+	// login  model
+	MODEL_NAME_LOGIN = "MainServiceLoginModel"
 )
