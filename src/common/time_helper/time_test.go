@@ -6,6 +6,11 @@ import (
 )
 
 func Test_times(t *testing.T) {
-	t.Log(time.Now())
-	t.Log(NowCST())
+	var timeOffset int64 = 100
+
+	tm := time.Now()
+	t.Log(tm)
+	tma := tm.Add(time.Duration(timeOffset) * time.Millisecond)
+	t.Log(tma)
+	t.Log(tm.UTC())
 }
