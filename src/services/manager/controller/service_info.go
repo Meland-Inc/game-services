@@ -10,15 +10,17 @@ import (
 const SERVICE_TIME_OUT_MS int64 = 1000 * 5 // 10 seconds is services timeout
 
 type ServiceData struct {
-	AppId       string            `json:"appId"`
-	ServiceType proto.ServiceType `json:"serviceType"`
-	Host        string            `json:"host"`
-	Port        int32             `json:"port"`
-	MapId       int32             `json:"mapId"`
-	Online      int32             `json:"online"`
-	MaxOnline   int32             `json:"maxOnline"`
-	CreateAt    int64             `json:"createdAt"`
-	UpdateAt    int64             `json:"updatedAt"`
+	AppId           string                    `json:"appId"`
+	ServiceType     proto.ServiceType         `json:"serviceType"`
+	SceneSerSubType proto.SceneServiceSubType `json:"sceneSerSubType"`
+	HomeOwner       int64                     `json:"homeOwner"`
+	Host            string                    `json:"host"`
+	Port            int32                     `json:"port"`
+	MapId           int32                     `json:"mapId"`
+	Online          int32                     `json:"online"`
+	MaxOnline       int32                     `json:"maxOnline"`
+	CreateAt        int64                     `json:"createdAt"`
+	UpdateAt        int64                     `json:"updatedAt"`
 }
 
 type ServiceRecord struct {

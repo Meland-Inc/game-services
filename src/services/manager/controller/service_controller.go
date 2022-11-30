@@ -40,10 +40,10 @@ func (this *ServiceController) serviceRecordByType(sType proto.ServiceType) (*Se
 }
 
 func (this *ServiceController) RegisterService(service ServiceData) {
-	if service.CreateAt == 0 {
-		service.CreateAt = time_helper.NowUTCMill()
-	}
 	service.UpdateAt = time_helper.NowUTCMill()
+	if service.CreateAt == 0 {
+		service.CreateAt = service.UpdateAt
+	}
 
 	record, ok := this.serviceRecordByType(service.ServiceType)
 	if !ok {

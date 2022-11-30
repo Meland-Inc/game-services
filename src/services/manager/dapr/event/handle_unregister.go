@@ -28,15 +28,17 @@ func ServiceUnRegisterHandler(ctx context.Context, e *common.TopicEvent) (retry 
 	serviceLog.Info("service UnRegister: %v", input)
 
 	service := controller.ServiceData{
-		AppId:       input.Service.AppId,
-		ServiceType: input.Service.ServiceType,
-		Host:        input.Service.Host,
-		Port:        input.Service.Port,
-		MapId:       input.Service.MapId,
-		Online:      input.Service.Online,
-		MaxOnline:   input.Service.MaxOnline,
-		CreateAt:    input.Service.CreatedAt,
-		UpdateAt:    input.Service.UpdatedAt,
+		AppId:           input.Service.AppId,
+		ServiceType:     input.Service.ServiceType,
+		SceneSerSubType: input.Service.SceneSerSubType,
+		HomeOwner:       input.Service.Owner,
+		Host:            input.Service.Host,
+		Port:            input.Service.Port,
+		MapId:           input.Service.MapId,
+		Online:          input.Service.Online,
+		MaxOnline:       input.Service.MaxOnline,
+		CreateAt:        input.Service.CreatedAt,
+		UpdateAt:        input.Service.UpdatedAt,
 	}
 	controller.GetInstance().DestroyService(service)
 	return false, nil
