@@ -31,7 +31,7 @@ func ServiceUnRegisterHandler(ctx context.Context, e *common.TopicEvent) (retry 
 		AppId:           input.Service.AppId,
 		ServiceType:     input.Service.ServiceType,
 		SceneSerSubType: input.Service.SceneSerSubType,
-		HomeOwner:       input.Service.Owner,
+		OwnerId:         input.Service.Owner,
 		Host:            input.Service.Host,
 		Port:            input.Service.Port,
 		MapId:           input.Service.MapId,
