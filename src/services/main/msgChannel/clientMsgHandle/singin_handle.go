@@ -49,7 +49,7 @@ func SingInHandler(input *methodData.PullClientMessageInput, msg *proto.Envelope
 		return
 	}
 
-	sceneAppId, err := getSceneAppId(req.SceneServiceAppId, playerData.MapId)
+	sceneAppId, err := getSceneAppId(req.SceneServiceAppId, playerData.MapId, userId)
 	if err != nil {
 		respMsg.ErrorMessage = err.Error()
 		return
@@ -108,12 +108,17 @@ func responseSingInMessage(agentAppId, UserSocketId string, msg *proto.Envelope)
 	return err
 }
 
-func getSceneAppId(clientPushSceneAppId string, mapId int32) (string, error) {
+func getSceneAppId(clientPushSceneAppId string, mapId int32, userId int64) (string, error) {
 	if serviceCnf.GetInstance().IsDevelop && clientPushSceneAppId != "" {
 		return clientPushSceneAppId, nil
 	}
 
-	serviceOut, err := grpcInvoke.RPCSelectService(proto.ServiceType_ServiceTypeScene, mapId)
+	serviceOut, err := grpcInvoke.RPCSelectService(
+		proto.ServiceType_ServiceTypeScene,
+		proto.SceneServiceSubType_World,
+		0,
+		mapId,
+	)
 	serviceLog.Debug("getSceneAppId output = %+v", serviceOut)
 	if err != nil {
 		return "", err
@@ -121,7 +126,7 @@ func getSceneAppId(clientPushSceneAppId string, mapId int32) (string, error) {
 	if serviceOut.ErrorCode > 0 {
 		return "", fmt.Errorf(serviceOut.ErrorMessage)
 	}
-	return serviceOut.ServiceAppId, nil
+	return serviceOut.Service.AppId, nil
 }
 
 func getPlayerData(userId int64) (*proto.Player, error) {
