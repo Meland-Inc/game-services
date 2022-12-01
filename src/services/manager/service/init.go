@@ -10,6 +10,7 @@ import (
 	"github.com/Meland-Inc/game-services/src/common/serviceLog"
 	"github.com/Meland-Inc/game-services/src/common/time_helper"
 	"github.com/Meland-Inc/game-services/src/global/serviceCnf"
+	"github.com/Meland-Inc/game-services/src/services/manager/controller"
 	mgrDaprService "github.com/Meland-Inc/game-services/src/services/manager/dapr"
 	"github.com/Meland-Inc/game-services/src/services/manager/httpSer"
 )
@@ -19,10 +20,21 @@ func (s *Service) init() error {
 		return err
 	}
 	serviceLog.Init(s.serviceCnf.AppId, true)
-
 	s.initOsSignal()
 
-	return s.initServiceModels()
+	if err := s.initDapr(); err != nil {
+		return err
+	}
+
+	if err := s.initServiceModels(); err != nil {
+		return err
+	}
+
+	if err := s.initHttpService(); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (s *Service) initServiceCnf() error {
@@ -37,22 +49,6 @@ func (s *Service) initServiceCnf() error {
 
 	if sc.AppId == "" {
 		return fmt.Errorf("server app id is empty")
-	}
-	return nil
-}
-
-func (s *Service) initServiceModels() error {
-	// if err := s.modelMgr.AddModel(model); err != nil {
-	// 	serviceLog.Error("init model XXX fail,err: %v", err)
-	// 	return err
-	// }
-
-	if err := s.initHttpService(); err != nil {
-		return err
-	}
-
-	if err := s.initDapr(); err != nil {
-		return err
 	}
 	return nil
 }
@@ -76,4 +72,21 @@ func (s *Service) initHttpService() error {
 		return err
 	}
 	return nil
+}
+
+func (s *Service) initServiceModels() error {
+	if err := s.initControllerModel(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *Service) initControllerModel() error {
+	ctrlModel := controller.NewControllerModel()
+	err := s.modelMgr.AddModel(ctrlModel)
+	if err != nil {
+		serviceLog.Error("init controller model fail, err: %v", err)
+	}
+	return err
 }

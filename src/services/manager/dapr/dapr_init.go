@@ -27,6 +27,12 @@ func initDaprService() (err error) {
 	if err = mgrDaprCalls.InitDaprCallHandle(); err != nil {
 		return err
 	}
+
+	if err := initDaprClient(); err != nil {
+		serviceLog.Error("initDaprClient fail err:%v", err)
+		panic(err)
+	}
+
 	return err
 }
 
@@ -34,15 +40,11 @@ func Run(errChan chan error) {
 	go func() {
 		errChan <- daprInvoke.Start()
 	}()
-
-	if err := initDaprClient(); err != nil {
-		serviceLog.Error("initDaprClient fail err:%v", err)
-		panic(err)
-	}
 }
 
 func initDaprClient() error {
-	time.Sleep(time.Millisecond * 300) //300Ms wait dapr link over
+	time.Sleep(time.Millisecond * 500) //300Ms wait dapr link over
+
 	grpcPort := os.Getenv("DAPR_GRPC_PORT")
 	serviceLog.Info("dapr grpc port: [%s]", grpcPort)
 	return daprInvoke.InitClient(grpcPort)

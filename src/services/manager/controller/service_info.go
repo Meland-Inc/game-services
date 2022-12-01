@@ -67,7 +67,7 @@ func (sr *ServiceRecord) RemoveServiceRecord(appId string) {
 
 	delete(sr.Services, appId)
 	if service.SceneSerSubType != proto.SceneServiceSubType_Home &&
-		service.SceneSerSubType == proto.SceneServiceSubType_Dungeon {
+		service.SceneSerSubType != proto.SceneServiceSubType_Dungeon {
 		sr.statusRecord.RemoveServiceStatusRecord(appId)
 	}
 }
@@ -76,7 +76,7 @@ func (sr *ServiceRecord) AddServiceRecord(service ServiceData) bool {
 	sr.Services[service.AppId] = service
 
 	if service.SceneSerSubType != proto.SceneServiceSubType_Home &&
-		service.SceneSerSubType == proto.SceneServiceSubType_Dungeon {
+		service.SceneSerSubType != proto.SceneServiceSubType_Dungeon {
 		sr.statusRecord.AddServiceStatusRecord(service.AppId, service.Online, service.MaxOnline)
 	}
 	return true

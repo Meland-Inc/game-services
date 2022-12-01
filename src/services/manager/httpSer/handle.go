@@ -20,7 +20,13 @@ func AgentServiceHandler(w http.ResponseWriter, r *http.Request) {
 	serviceLog.Info("received get agentService remote addr:  %s", r.RemoteAddr)
 	resp := httpData.AgentServiceResp{}
 
-	if service, exist := controller.GetInstance().GetAliveServiceByType(
+	ctrlModel, err := controller.GetControllerModel()
+	if err != nil {
+		serviceLog.Error(err.Error())
+		return
+	}
+
+	if service, exist := ctrlModel.GetAliveServiceByType(
 		proto.ServiceType_ServiceTypeAgent, proto.SceneServiceSubType_UnknownSubType, 0, 0,
 	); !exist {
 		resp.ErrorCode = 6000 // TODO: need use global error code
@@ -42,8 +48,15 @@ func AgentServiceHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Write(byteArr)
 }
+
 func AllServicesHandler(w http.ResponseWriter, r *http.Request) {
-	services := controller.GetInstance().AllServices()
+	ctrlModel, err := controller.GetControllerModel()
+	if err != nil {
+		serviceLog.Error(err.Error())
+		return
+	}
+
+	services := ctrlModel.AllServices()
 	serviceLog.Info("received all service remote addr: %v, resp: %+v", r.RemoteAddr, services)
 
 	for i := 0; i < len(services)-1; i++ {
