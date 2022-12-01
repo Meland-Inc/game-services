@@ -2,32 +2,12 @@ package controller
 
 import (
 	"game-message-core/proto"
-	"sync"
 
 	"github.com/Meland-Inc/game-services/src/common/serviceLog"
 	"github.com/Meland-Inc/game-services/src/common/time_helper"
 )
 
-var controller *ServiceController
-
-func GetInstance() *ServiceController {
-	if controller == nil {
-		NewServiceController()
-	}
-	return controller
-}
-
-func NewServiceController() *ServiceController {
-	controller = &ServiceController{}
-	return controller
-}
-
-type ServiceController struct {
-	controller         sync.Map
-	startingPrivateSer sync.Map // { ownerId = *ServiceData} home service and Dungeon service
-}
-
-func (this *ServiceController) serviceRecordByType(sType proto.ServiceType) (*ServiceRecord, bool) {
+func (this *ControllerModel) serviceRecordByType(sType proto.ServiceType) (*ServiceRecord, bool) {
 	iRecord, exist := this.controller.Load(sType)
 	if !exist {
 		return nil, false
@@ -40,7 +20,7 @@ func (this *ServiceController) serviceRecordByType(sType proto.ServiceType) (*Se
 	return record, true
 }
 
-func (this *ServiceController) RegisterService(service ServiceData) {
+func (this *ControllerModel) RegisterService(service ServiceData) {
 	service.UpdateAt = time_helper.NowUTCMill()
 	if service.CreateAt == 0 {
 		service.CreateAt = service.UpdateAt
@@ -54,7 +34,7 @@ func (this *ServiceController) RegisterService(service ServiceData) {
 	record.UpdateOrAddServiceRecord(service)
 }
 
-func (this *ServiceController) DestroyService(service ServiceData) {
+func (this *ControllerModel) DestroyService(service ServiceData) {
 	record, ok := this.serviceRecordByType(service.ServiceType)
 	if !ok {
 		return
@@ -62,7 +42,7 @@ func (this *ServiceController) DestroyService(service ServiceData) {
 	record.RemoveServiceRecord(service.AppId)
 }
 
-func (this *ServiceController) GetAliveServiceByType(
+func (this *ControllerModel) GetAliveServiceByType(
 	sType proto.ServiceType,
 	sceneSubType proto.SceneServiceSubType,
 	mapId int32,
@@ -75,7 +55,7 @@ func (this *ServiceController) GetAliveServiceByType(
 	return record.GetAliveService(mapId, sceneSubType, ownerId)
 }
 
-func (this *ServiceController) AllServices() (services []ServiceData) {
+func (this *ControllerModel) AllServices() (services []ServiceData) {
 	this.controller.Range(func(key, value interface{}) bool {
 		if record, ok := value.(*ServiceRecord); ok {
 			for _, s := range record.Services {
@@ -87,7 +67,7 @@ func (this *ServiceController) AllServices() (services []ServiceData) {
 	return services
 }
 
-func (this *ServiceController) PrintAllServices() {
+func (this *ControllerModel) PrintAllServices() {
 	this.controller.Range(func(key, value interface{}) bool {
 		if record, ok := value.(*ServiceRecord); ok {
 			for appId, s := range record.Services {

@@ -2,6 +2,9 @@ package component
 
 const (
 	// service heart model
+	MODEL_NAME_SERVICE_CONTROLLER = "ServiceControllerModel"
+
+	// service heart model
 	MODEL_NAME_HEART = "ServiceHeartModel"
 
 	// user 当前所在 agent 记录

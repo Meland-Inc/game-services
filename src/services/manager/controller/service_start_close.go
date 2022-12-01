@@ -7,16 +7,16 @@ import (
 	"github.com/Meland-Inc/game-services/src/common/time_helper"
 )
 
-func (this *ServiceController) AddStartingService(ser *ServiceData) {
+func (this *ControllerModel) AddStartingService(ser *ServiceData) {
 	this.startingPrivateSer.Store(ser.OwnerId, ser)
 }
 
-func (this *ServiceController) RemoveStartingService(serOwner int64) {
+func (this *ControllerModel) RemoveStartingService(serOwner int64) {
 	this.startingPrivateSer.Delete(serOwner)
 }
 
 // 因为启动需要等待消息回复，外部调用时最好使用 异步调用
-func (this *ServiceController) startPrivateSceneService(
+func (this *ControllerModel) startPrivateSceneService(
 	subType proto.SceneServiceSubType, ownerId int64, mapId int32,
 ) (*ServiceData, error) {
 	if mapId < 1 || ownerId < 1 {
@@ -67,7 +67,7 @@ func (this *ServiceController) startPrivateSceneService(
 }
 
 // 关闭私有(家园|副本)
-func (this *ServiceController) closePrivateSceneService(ser *ServiceData) error {
+func (this *ControllerModel) closePrivateSceneService(ser *ServiceData) error {
 	if ser == nil {
 		return fmt.Errorf("closed service is null")
 	}
