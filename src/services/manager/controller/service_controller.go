@@ -23,7 +23,8 @@ func NewServiceController() *ServiceController {
 }
 
 type ServiceController struct {
-	controller sync.Map
+	controller         sync.Map
+	startingPrivateSer sync.Map // { ownerId = *ServiceData} home service and Dungeon service
 }
 
 func (this *ServiceController) serviceRecordByType(sType proto.ServiceType) (*ServiceRecord, bool) {
