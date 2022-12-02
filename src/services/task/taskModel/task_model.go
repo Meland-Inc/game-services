@@ -63,3 +63,9 @@ func (p *TaskModel) OnStop() error {
 func (p *TaskModel) OnExit() error {
 	return nil
 }
+
+func (p *TaskModel) EventCall(env *component.ModelEventReq) *component.ModelEventResult {
+	return nil
+}
+func (p *TaskModel) EventCallNoReturn(env *component.ModelEventReq)    {}
+func (p *TaskModel) OnEvent(env *component.ModelEventReq, curMs int64) {}

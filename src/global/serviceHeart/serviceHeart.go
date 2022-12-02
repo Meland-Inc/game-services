@@ -57,6 +57,10 @@ func (sh *ServiceHeartModel) OnExit() error {
 	return nil
 }
 
+func (sh *ServiceHeartModel) EventCall(env *component.ModelEventReq) *component.ModelEventResult {return nil}
+func (sh *ServiceHeartModel) EventCallNoReturn(env *component.ModelEventReq) {}
+func (sh *ServiceHeartModel) OnEvent(env *component.ModelEventReq, curMs int64) {}
+
 func (sh *ServiceHeartModel) Send(cnf serviceCnf.ServiceConfig, online int32, curMs int64) error {
 	sh.updateHeartCD(curMs)
 	offsetMs, err := serviceRegister.RegisterService(cnf, online)

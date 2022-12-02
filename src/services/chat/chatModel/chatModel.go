@@ -63,3 +63,9 @@ func (p *ChatModel) OnStop() error {
 func (p *ChatModel) OnExit() error {
 	return nil
 }
+
+func (p *ChatModel) EventCall(env *component.ModelEventReq) *component.ModelEventResult {
+	return nil
+}
+func (p *ChatModel) EventCallNoReturn(env *component.ModelEventReq)    {}
+func (p *ChatModel) OnEvent(env *component.ModelEventReq, curMs int64) {}

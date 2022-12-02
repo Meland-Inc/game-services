@@ -62,6 +62,12 @@ func (p *UserAgentModel) OnExit() error {
 	return nil
 }
 
+func (p *UserAgentModel) EventCall(env *component.ModelEventReq) *component.ModelEventResult {
+	return nil
+}
+func (p *UserAgentModel) EventCallNoReturn(env *component.ModelEventReq)    {}
+func (p *UserAgentModel) OnEvent(env *component.ModelEventReq, curMs int64) {}
+
 func (p *UserAgentModel) GetUserAgent(userId int64) (*UserAgentData, bool) {
 	iAgent, exist := p.record.Load(userId)
 	if !exist {

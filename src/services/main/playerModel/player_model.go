@@ -57,6 +57,11 @@ func (p *PlayerDataModel) OnStop() error {
 func (p *PlayerDataModel) OnExit() error {
 	return nil
 }
+func (p *PlayerDataModel) EventCall(env *component.ModelEventReq) *component.ModelEventResult {
+	return nil
+}
+func (p *PlayerDataModel) EventCallNoReturn(env *component.ModelEventReq)    {}
+func (p *PlayerDataModel) OnEvent(env *component.ModelEventReq, curMs int64) {}
 
 func (p *PlayerDataModel) tick() error {
 	return nil

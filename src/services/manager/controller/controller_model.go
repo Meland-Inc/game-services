@@ -3,17 +3,14 @@ package controller
 import (
 	"fmt"
 	"sync"
-	"time"
 
-	"github.com/Meland-Inc/game-services/src/common/serviceLog"
 	"github.com/Meland-Inc/game-services/src/global/component"
 )
 
 type ControllerModel struct {
-	modelMgr  *component.ModelManager
-	modelName string
-
-	eventChan chan *component.ModelEvent
+	modelMgr   *component.ModelManager
+	modelName  string
+	modelEvent *component.ModelEvent
 
 	controller         sync.Map
 	startingPrivateSer sync.Map // { ownerId = *ServiceData} home service and Dungeon service
@@ -29,9 +26,9 @@ func GetControllerModel() (*ControllerModel, error) {
 }
 
 func NewControllerModel() *ControllerModel {
-	return &ControllerModel{
-		eventChan: make(chan *component.ModelEvent, 3000),
-	}
+	model := &ControllerModel{}
+	model.modelEvent = component.NewModelEvent(model)
+	return model
 }
 
 func (p *ControllerModel) Name() string {
@@ -56,7 +53,7 @@ func (p *ControllerModel) OnStart() (err error) {
 }
 
 func (p *ControllerModel) OnTick(curMs int64) error {
-	p.eventTick(curMs)
+	p.modelEvent.ReadEvent(curMs)
 	return nil
 }
 
@@ -69,53 +66,10 @@ func (p *ControllerModel) OnExit() error {
 	return nil
 }
 
-func (p *ControllerModel) eventCallImpl(env *component.ModelEvent, mustReturn bool) *component.ModelEventResult {
-	if len(p.eventChan) > 200 {
-		serviceLog.Warning("ControllerModel event lenMsg(%d)>200", len(p.eventChan))
-	}
-
-	env.SetMustReturn(mustReturn)
-	var outCh chan *component.ModelEventResult = nil
-	if env.MustReturn() {
-		env.SetResultChan(make(chan *component.ModelEventResult, 1))
-		outCh = env.GetResultChan()
-	}
-
-	p.eventChan <- env
-
-	if env.MustReturn() {
-		select {
-		case <-time.After(time.Second * 5):
-			result := &component.ModelEventResult{
-				Err: fmt.Errorf("ControllerModel event timeout. msgType(%v),  msg: %+v", env.EventType, env.Msg),
-			}
-			serviceLog.Error(result.Err.Error())
-			return result
-
-		case retMsg := <-env.GetResultChan():
-			// 数据回写给外部调用者的channel
-			if nil != outCh {
-				outCh <- retMsg
-			}
-			return retMsg
-		}
-	}
-	return nil
+func (p *ControllerModel) EventCall(env *component.ModelEventReq) *component.ModelEventResult {
+	return p.modelEvent.EventCall(env)
 }
 
-func (p *ControllerModel) EventCall(env *component.ModelEvent) *component.ModelEventResult {
-	return p.eventCallImpl(env, true)
-}
-
-func (p *ControllerModel) EventCallNoReturn(env *component.ModelEvent) {
-	p.eventCallImpl(env, false)
-}
-
-func (p *ControllerModel) eventTick(curMs int64) {
-	select {
-	case e := <-p.eventChan:
-		p.onEvent(e, curMs)
-	default:
-		break
-	}
+func (p *ControllerModel) EventCallNoReturn(env *component.ModelEventReq) {
+	p.modelEvent.EventCallNoReturn(env)
 }
