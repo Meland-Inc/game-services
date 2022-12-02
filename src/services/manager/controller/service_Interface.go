@@ -4,7 +4,6 @@ import (
 	"game-message-core/proto"
 
 	"github.com/Meland-Inc/game-services/src/common/serviceLog"
-	"github.com/Meland-Inc/game-services/src/common/time_helper"
 )
 
 func (this *ControllerModel) serviceRecordByType(sType proto.ServiceType) (*ServiceRecord, bool) {
@@ -21,11 +20,6 @@ func (this *ControllerModel) serviceRecordByType(sType proto.ServiceType) (*Serv
 }
 
 func (this *ControllerModel) RegisterService(service ServiceData) {
-	service.UpdateAt = time_helper.NowUTCMill()
-	if service.CreateAt == 0 {
-		service.CreateAt = service.UpdateAt
-	}
-
 	record, ok := this.serviceRecordByType(service.ServiceType)
 	if !ok {
 		record = NewServiceRecord(service.ServiceType)
@@ -65,6 +59,15 @@ func (this *ControllerModel) AllServices() (services []ServiceData) {
 		return true
 	})
 	return services
+}
+
+func (this *ControllerModel) RemoveTimeOutSer(curMs int64) {
+	this.controller.Range(func(key, value interface{}) bool {
+		if record, ok := value.(*ServiceRecord); ok {
+			record.checkAndRemoveTimeoutSer(curMs)
+		}
+		return true
+	})
 }
 
 func (this *ControllerModel) PrintAllServices() {

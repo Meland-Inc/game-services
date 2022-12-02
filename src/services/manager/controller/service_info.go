@@ -8,20 +8,24 @@ import (
 	"github.com/Meland-Inc/game-services/src/common/time_helper"
 )
 
-const SERVICE_TIME_OUT_MS int64 = 1000 * 5 // 10 seconds is services timeout
+const (
+	SER_HEART_TIMEOUT_MS int64 = 1000 * 5
+	SER_USER_TIMEOUT_MS  int64 = 1000 * 60 * 3 // user leave service 3 minutes, close user private service
+)
 
 type ServiceData struct {
-	AppId           string                    `json:"appId"`
-	ServiceType     proto.ServiceType         `json:"serviceType"`
-	SceneSerSubType proto.SceneServiceSubType `json:"sceneSerSubType"`
-	OwnerId         int64                     `json:"ownerId"`
-	Host            string                    `json:"host"`
-	Port            int32                     `json:"port"`
-	MapId           int32                     `json:"mapId"`
-	Online          int32                     `json:"online"`
-	MaxOnline       int32                     `json:"maxOnline"`
-	CreateAt        int64                     `json:"createdAt"`
-	UpdateAt        int64                     `json:"updatedAt"`
+	AppId            string                    `json:"appId"`
+	ServiceType      proto.ServiceType         `json:"serviceType"`
+	SceneSerSubType  proto.SceneServiceSubType `json:"sceneSerSubType"`
+	OwnerId          int64                     `json:"ownerId"`
+	Host             string                    `json:"host"`
+	Port             int32                     `json:"port"`
+	MapId            int32                     `json:"mapId"`
+	Online           int32                     `json:"online"`
+	MaxOnline        int32                     `json:"maxOnline"`
+	CreateAt         int64                     `json:"createdAt"`
+	UpdateAt         int64                     `json:"updatedAt"`
+	UserLastOnlineAt int64                     `json:"userLastOnlineAt"`
 }
 
 func (s *ServiceData) ToGrpcService() base_data.ServiceData {
@@ -54,32 +58,53 @@ func NewServiceRecord(serviceType proto.ServiceType) *ServiceRecord {
 	}
 }
 
-func (sr *ServiceRecord) checkAlive(s ServiceData) bool {
+func IsUserPrivateSer(ser ServiceData) bool {
+	if ser.ServiceType != proto.ServiceType_ServiceTypeScene {
+		return false
+	}
+	if ser.SceneSerSubType == proto.SceneServiceSubType_Home ||
+		ser.SceneSerSubType == proto.SceneServiceSubType_Dungeon {
+		return true
+	}
+	return true
+}
+
+func CheckAlive(ser ServiceData) bool {
 	nowMs := time_helper.NowUTCMill()
-	return nowMs < s.UpdateAt+SERVICE_TIME_OUT_MS
+
+	if IsUserPrivateSer(ser) {
+		// 非常开服务存活检测
+		return nowMs < ser.UserLastOnlineAt+SER_USER_TIMEOUT_MS
+	} else {
+		return nowMs < ser.UpdateAt+SER_HEART_TIMEOUT_MS
+	}
 }
 
 func (sr *ServiceRecord) RemoveServiceRecord(appId string) {
-	service, exist := sr.Services[appId]
+	ser, exist := sr.Services[appId]
 	if !exist {
 		return
 	}
 
 	delete(sr.Services, appId)
-	if service.SceneSerSubType != proto.SceneServiceSubType_Home &&
-		service.SceneSerSubType != proto.SceneServiceSubType_Dungeon {
+	if !IsUserPrivateSer(ser) {
 		sr.statusRecord.RemoveServiceStatusRecord(appId)
 	}
 }
 
-func (sr *ServiceRecord) AddServiceRecord(service ServiceData) bool {
-	sr.Services[service.AppId] = service
+func (sr *ServiceRecord) AddServiceRecord(service ServiceData) {
+	service.UpdateAt = time_helper.NowUTCMill()
+	if service.CreateAt == 0 {
+		service.CreateAt = service.UpdateAt
+	}
+	if service.Online > 0 {
+		service.UserLastOnlineAt = service.UpdateAt
+	}
 
-	if service.SceneSerSubType != proto.SceneServiceSubType_Home &&
-		service.SceneSerSubType != proto.SceneServiceSubType_Dungeon {
+	sr.Services[service.AppId] = service
+	if !IsUserPrivateSer(service) {
 		sr.statusRecord.AddServiceStatusRecord(service.AppId, service.Online, service.MaxOnline)
 	}
-	return true
 }
 
 func (sr *ServiceRecord) UpdateOrAddServiceRecord(service ServiceData) {
@@ -119,11 +144,6 @@ func (sr *ServiceRecord) getPublicAliveService(mapId int32) (s *ServiceData, exi
 			if service.ServiceType == proto.ServiceType_ServiceTypeScene && service.MapId != mapId {
 				continue
 			}
-			if !sr.checkAlive(service) {
-				serviceLog.Info("remove time service [%v][%v]", service.AppId, service.ServiceType)
-				sr.RemoveServiceRecord(appId)
-				continue
-			}
 			return &service, true
 		}
 		return nil, false
@@ -160,21 +180,9 @@ func (sr *ServiceRecord) getPrivateAliveService(
 
 	invalidServices := []string{}
 	for _, service := range sr.Services {
-		if mapId != service.MapId {
-			continue
-		}
-		if service.SceneSerSubType != sceneSubType {
-			continue
-		}
-		if service.OwnerId != ownerId {
-			continue
-		}
-		if !sr.checkAlive(service) {
-			serviceLog.Info(
-				"remove time service[%v][%v][%v][%v]",
-				service.AppId, service.ServiceType, service.SceneSerSubType, service.OwnerId,
-			)
-			invalidServices = append(invalidServices, service.AppId)
+		if mapId != service.MapId ||
+			service.SceneSerSubType != sceneSubType ||
+			service.OwnerId != ownerId {
 			continue
 		}
 		s, exist = &service, true
@@ -186,4 +194,20 @@ func (sr *ServiceRecord) getPrivateAliveService(
 	}
 
 	return
+}
+
+func (sr *ServiceRecord) checkAndRemoveTimeoutSer(curMs int64) {
+	timeOutSerArr := []ServiceData{}
+	for _, service := range sr.Services {
+		if !CheckAlive(service) {
+			timeOutSerArr = append(timeOutSerArr, service)
+		}
+	}
+	for _, ser := range timeOutSerArr {
+		serviceLog.Debug(
+			"remove time service[%v][%v][%v][%v]",
+			ser.AppId, ser.ServiceType, ser.SceneSerSubType, ser.OwnerId,
+		)
+		sr.RemoveServiceRecord(ser.AppId)
+	}
 }
