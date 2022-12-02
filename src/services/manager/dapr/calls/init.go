@@ -36,7 +36,7 @@ func InitDaprCallHandle() (err error) {
 func makeCallHandler(name string) (string, func(ctx context.Context, in *common.InvocationEvent) (*common.Content, error)) {
 	return name, func(ctx context.Context, in *common.InvocationEvent) (*common.Content, error) {
 		ctrlModel, _ := controller.GetControllerModel()
-		env := &component.ModelEvent{
+		env := &component.ModelEventReq{
 			EventType: name,
 			Msg:       in.Data,
 		}

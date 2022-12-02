@@ -29,7 +29,7 @@ func makePubsubEventHandler(name string) (
 	return name, func(ctx context.Context, e *common.TopicEvent) (retry bool, err error) {
 		serviceLog.Info("UnRegister service [%s] env:%v", name, e.Data.(string))
 		ctrlModel, _ := controller.GetControllerModel()
-		ctrlModel.EventCallNoReturn(&component.ModelEvent{
+		ctrlModel.EventCallNoReturn(&component.ModelEventReq{
 			EventType: name,
 			Msg:       e,
 		})

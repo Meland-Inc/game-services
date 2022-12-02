@@ -14,7 +14,7 @@ import (
 	"github.com/dapr/go-sdk/service/common"
 )
 
-func (p *ControllerModel) onEvent(env *component.ModelEvent, curMs int64) {
+func (p *ControllerModel) OnEvent(env *component.ModelEventReq, curMs int64) {
 	defer func() {
 		err := recover()
 		if err != nil {
@@ -36,7 +36,7 @@ func (p *ControllerModel) onEvent(env *component.ModelEvent, curMs int64) {
 
 }
 
-func (p *ControllerModel) UnregisterServiceEvent(env *component.ModelEvent, curMs int64) {
+func (p *ControllerModel) UnregisterServiceEvent(env *component.ModelEventReq, curMs int64) {
 	msg, ok := env.Msg.(*common.TopicEvent)
 	serviceLog.Info("service Unregister : %s, [%v]", msg, ok)
 	if !ok {
@@ -72,7 +72,7 @@ func (p *ControllerModel) UnregisterServiceEvent(env *component.ModelEvent, curM
 	p.DestroyService(service)
 }
 
-func (p *ControllerModel) RegisterServiceHandler(env *component.ModelEvent, curMs int64) {
+func (p *ControllerModel) RegisterServiceHandler(env *component.ModelEventReq, curMs int64) {
 	msg, ok := env.Msg.([]byte)
 	serviceLog.Info("service register : %s, [%v]", msg, ok)
 	if !ok {
@@ -115,7 +115,7 @@ func (p *ControllerModel) RegisterServiceHandler(env *component.ModelEvent, curM
 
 }
 
-func (p *ControllerModel) SelectServiceHandler(env *component.ModelEvent, curMs int64) {
+func (p *ControllerModel) SelectServiceHandler(env *component.ModelEventReq, curMs int64) {
 	msg, ok := env.Msg.([]byte)
 	serviceLog.Info("select service: %s, [%v]", msg, ok)
 	if !ok {
@@ -149,7 +149,7 @@ func (p *ControllerModel) SelectServiceHandler(env *component.ModelEvent, curMs 
 	}
 }
 
-func (p *ControllerModel) MultiSelectServiceHandler(env *component.ModelEvent, curMs int64) {
+func (p *ControllerModel) MultiSelectServiceHandler(env *component.ModelEventReq, curMs int64) {
 	msg, ok := env.Msg.([]byte)
 	serviceLog.Info("multi service register: %s, [%v]", msg, ok)
 	if !ok {

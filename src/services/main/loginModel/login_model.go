@@ -57,3 +57,9 @@ func (p *LoginModel) OnStop() error {
 func (p *LoginModel) OnExit() error {
 	return nil
 }
+
+func (p *LoginModel) EventCall(env *component.ModelEventReq) *component.ModelEventResult {
+	return nil
+}
+func (p *LoginModel) EventCallNoReturn(env *component.ModelEventReq)    {}
+func (p *LoginModel) OnEvent(env *component.ModelEventReq, curMs int64) {}
