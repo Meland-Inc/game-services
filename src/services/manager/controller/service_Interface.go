@@ -61,7 +61,7 @@ func (this *ControllerModel) AllServices() (services []ServiceData) {
 	return services
 }
 
-func (this *ControllerModel) RemoveTimeOutSer(curMs int64) {
+func (this *ControllerModel) checkAndRemoveTimeOutSer(curMs int64) {
 	this.controller.Range(func(key, value interface{}) bool {
 		if record, ok := value.(*ServiceRecord); ok {
 			record.checkAndRemoveTimeoutSer(curMs)

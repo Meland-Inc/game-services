@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"game-message-core/proto"
 
+	"github.com/Meland-Inc/game-services/src/common/serviceLog"
 	"github.com/Meland-Inc/game-services/src/common/time_helper"
 )
 
@@ -16,7 +17,7 @@ func (this *ControllerModel) RemoveStartingService(serOwner int64) {
 }
 
 // 因为启动需要等待消息回复，外部调用时最好使用 异步调用
-func (this *ControllerModel) startPrivateSceneService(
+func (this *ControllerModel) startUserPrivateService(
 	subType proto.SceneServiceSubType, ownerId int64, mapId int32,
 ) (*ServiceData, error) {
 	if mapId < 1 || ownerId < 1 {
@@ -67,11 +68,8 @@ func (this *ControllerModel) startPrivateSceneService(
 }
 
 // 关闭私有(家园|副本)
-func (this *ControllerModel) closePrivateSceneService(ser *ServiceData) error {
-	if ser == nil {
-		return fmt.Errorf("closed service is null")
-	}
-
+func closeUserPrivateService(ser ServiceData) error {
+	serviceLog.Info("close user private ser %+v", ser.AppId, ser.SceneSerSubType)
 	//// TODO ... CALL close service and wait start res
 	// output, err := rpcCallCloseSceneService(ser.AppId)
 	// if err != nil {
