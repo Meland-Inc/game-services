@@ -3,13 +3,13 @@ package controller
 import (
 	"fmt"
 	"sync"
+	"time"
 
 	"github.com/Meland-Inc/game-services/src/global/component"
 )
 
 type ControllerModel struct {
-	modelMgr   *component.ModelManager
-	modelName  string
+	component.ModelBase
 	modelEvent *component.ModelEvent
 
 	controller         sync.Map
@@ -26,25 +26,18 @@ func GetControllerModel() (*ControllerModel, error) {
 }
 
 func NewControllerModel() *ControllerModel {
-	model := &ControllerModel{}
-	model.modelEvent = component.NewModelEvent(model)
-	return model
-}
-
-func (p *ControllerModel) Name() string {
-	return p.modelName
-}
-
-func (p *ControllerModel) ModelMgr() *component.ModelManager {
-	return p.modelMgr
+	p := &ControllerModel{}
+	p.modelEvent = component.NewModelEvent(p)
+	p.InitBaseModel(p, component.MODEL_NAME_SERVICE_CONTROLLER)
+	return p
 }
 
 func (p *ControllerModel) OnInit(modelMgr *component.ModelManager) error {
 	if modelMgr == nil {
 		return fmt.Errorf("Controller model init service model manager is nil")
 	}
-	p.modelMgr = modelMgr
-	p.modelName = component.MODEL_NAME_SERVICE_CONTROLLER
+	p.ModelBase.OnInit(modelMgr)
+
 	return nil
 }
 
@@ -52,13 +45,13 @@ func (p *ControllerModel) OnStart() (err error) {
 	return nil
 }
 
-func (p *ControllerModel) OnTick(curMs int64) error {
-	p.modelEvent.ReadEvent(curMs)
-	return nil
+func (p *ControllerModel) OnTick(utc time.Time) {
+	p.ModelBase.OnTick(utc)
+	p.modelEvent.ReadEvent(utc.UnixMilli())
 }
 
 func (p *ControllerModel) OnStop() error {
-	p.modelMgr = nil
+	p.ModelBase.OnStop()
 	return nil
 }
 
@@ -73,3 +66,8 @@ func (p *ControllerModel) EventCall(env *component.ModelEventReq) *component.Mod
 func (p *ControllerModel) EventCallNoReturn(env *component.ModelEventReq) {
 	p.modelEvent.EventCallNoReturn(env)
 }
+
+func (p *ControllerModel) Secondly(utc time.Time) {}
+func (p *ControllerModel) Minutely(utc time.Time) {}
+func (p *ControllerModel) Hourly(utc time.Time)   {}
+func (p *ControllerModel) Daily(utc time.Time)    {}

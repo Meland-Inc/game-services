@@ -1,6 +1,8 @@
 package component
 
 import (
+	"time"
+
 	"github.com/Meland-Inc/game-services/src/application"
 	"github.com/Meland-Inc/game-services/src/common/serviceLog"
 )
@@ -34,6 +36,7 @@ func (mgr *ModelManager) GetModel(modelName string) (ModelInterface, bool) {
 }
 
 func (mgr *ModelManager) AddModel(model ModelInterface) error {
+	serviceLog.Debug("addModel [%v]", model.Name())
 	if err := model.OnInit(mgr); err != nil {
 		return err
 	}
@@ -50,14 +53,14 @@ func (mgr *ModelManager) StartModel() error {
 	return nil
 }
 
-func (mgr *ModelManager) TickModel(curMs int64) {
+func (mgr *ModelManager) TickModel(utc time.Time) {
 	for _, m := range mgr.models {
 		defer func() {
 			if err := recover(); err != nil {
 				serviceLog.Error("model [%v] panic: %+v", m.Name(), err)
 			}
 		}()
-		m.OnTick(curMs)
+		m.OnTick(utc)
 	}
 }
 

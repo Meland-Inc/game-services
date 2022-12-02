@@ -38,7 +38,7 @@ func (s *Service) run() {
 		for {
 			select {
 			case <-t.C:
-				s.onTick(time_helper.NowUTCMill())
+				s.onTick(time_helper.NowUTC())
 
 			case stopFinished := <-s.stopChan:
 				s.OnExit()
@@ -57,6 +57,6 @@ func (s *Service) run() {
 	serviceLog.Error(err.Error())
 }
 
-func (s *Service) onTick(curMs int64) {
-	s.modelMgr.TickModel(curMs)
+func (s *Service) onTick(utc time.Time) {
+	s.modelMgr.TickModel(utc)
 }
