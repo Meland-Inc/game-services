@@ -37,11 +37,6 @@ func (p *ControllerModel) OnInit(modelMgr *component.ModelManager) error {
 		return fmt.Errorf("Controller model init service model manager is nil")
 	}
 	p.ModelBase.OnInit(modelMgr)
-
-	return nil
-}
-
-func (p *ControllerModel) OnStart() (err error) {
 	return nil
 }
 
@@ -55,10 +50,6 @@ func (p *ControllerModel) OnStop() error {
 	return nil
 }
 
-func (p *ControllerModel) OnExit() error {
-	return nil
-}
-
 func (p *ControllerModel) EventCall(env *component.ModelEventReq) *component.ModelEventResult {
 	return p.modelEvent.EventCall(env)
 }
@@ -67,7 +58,9 @@ func (p *ControllerModel) EventCallNoReturn(env *component.ModelEventReq) {
 	p.modelEvent.EventCallNoReturn(env)
 }
 
-func (p *ControllerModel) Secondly(utc time.Time) {}
+func (p *ControllerModel) Secondly(utc time.Time) {
+	p.checkAndRemoveTimeOutSer(utc.UnixMilli())
+}
 func (p *ControllerModel) Minutely(utc time.Time) {}
 func (p *ControllerModel) Hourly(utc time.Time)   {}
 func (p *ControllerModel) Daily(utc time.Time)    {}

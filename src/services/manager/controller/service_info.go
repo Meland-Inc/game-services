@@ -209,5 +209,8 @@ func (sr *ServiceRecord) checkAndRemoveTimeoutSer(curMs int64) {
 			ser.AppId, ser.ServiceType, ser.SceneSerSubType, ser.OwnerId,
 		)
 		sr.RemoveServiceRecord(ser.AppId)
+		if IsUserPrivateSer(ser) {
+			closeUserPrivateService(ser)
+		}
 	}
 }
