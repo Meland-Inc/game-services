@@ -24,4 +24,7 @@ const (
 
 	// login  model
 	MODEL_NAME_LOGIN = "MainServiceLoginModel"
+
+	// login  model
+	MODEL_NAME_HOME = "MainServiceUserHomeModel"
 )
