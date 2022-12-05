@@ -74,7 +74,6 @@ func initServiceGrpcPubsubEventHandle() error {
 		makePubsubEventHandler(
 			string(grpc.SubscriptionEventUserEnterGame), component.MODEL_NAME_PLAYER_DATA,
 		),
-		// UserEnterGameEventHandler,
 	); err != nil {
 		return err
 	}
@@ -83,7 +82,6 @@ func initServiceGrpcPubsubEventHandle() error {
 		makePubsubEventHandler(
 			string(grpc.SubscriptionEventUserLeaveGame), component.MODEL_NAME_PLAYER_DATA,
 		),
-		// UserLeaveGameHandler,
 	); err != nil {
 		return err
 	}
@@ -92,7 +90,6 @@ func initServiceGrpcPubsubEventHandle() error {
 		makePubsubEventHandler(
 			string(grpc.SubscriptionEventSavePlayerData), component.MODEL_NAME_PLAYER_DATA,
 		),
-		// SavePlayerDataEventHandle,
 	); err != nil {
 		return err
 	}
@@ -101,7 +98,6 @@ func initServiceGrpcPubsubEventHandle() error {
 		makePubsubEventHandler(
 			string(grpc.SubscriptionEventKillMonster), component.MODEL_NAME_PLAYER_DATA,
 		),
-		// PlayerKillMonsterEventHandle,
 	); err != nil {
 		return err
 	}
@@ -110,7 +106,6 @@ func initServiceGrpcPubsubEventHandle() error {
 		makePubsubEventHandler(
 			string(grpc.SubscriptionEventPlayerDeath), component.MODEL_NAME_PLAYER_DATA,
 		),
-		// PlayerDeathEventHandle,
 	); err != nil {
 		return err
 	}
@@ -119,7 +114,6 @@ func initServiceGrpcPubsubEventHandle() error {
 		makePubsubEventHandler(
 			string(grpc.SubscriptionEventUserTaskReward), component.MODEL_NAME_PLAYER_DATA,
 		),
-		// TaskRewardEventHandler,
 	); err != nil {
 		return err
 	}
