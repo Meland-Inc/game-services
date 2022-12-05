@@ -1,9 +1,14 @@
 package daprEvent
 
 import (
+	"context"
+
 	"game-message-core/grpc"
 
+	"github.com/Meland-Inc/game-services/src/common/serviceLog"
+	"github.com/Meland-Inc/game-services/src/global/component"
 	message "github.com/Meland-Inc/game-services/src/global/web3Message"
+	"github.com/dapr/go-sdk/service/common"
 
 	"github.com/Meland-Inc/game-services/src/common/daprInvoke"
 )
@@ -22,36 +27,41 @@ func InitDaprPubsubEvent() (err error) {
 
 func initWeb3ServicesPubsubEventHandler() error {
 	if err := daprInvoke.AddTopicEventHandler(
-		string(message.SubscriptionEventUpdateUserNFT),
-		Web3UpdateUserNftHandler,
+		makePubsubEventHandler(
+			string(message.SubscriptionEventUpdateUserNFT), component.MODEL_NAME_PLAYER_DATA,
+		),
 	); err != nil {
 		return err
 	}
 
 	if err := daprInvoke.AddTopicEventHandler(
-		string(message.SubscriptionEventMultiUpdateUserNFT),
-		Web3MultiUpdateUserNftHandler,
+		makePubsubEventHandler(
+			string(message.SubscriptionEventMultiUpdateUserNFT), component.MODEL_NAME_PLAYER_DATA,
+		),
 	); err != nil {
 		return err
 	}
 
 	if err := daprInvoke.AddTopicEventHandler(
-		string(message.SubscriptionEventMultiLandDataUpdateEvent),
-		Web3MultiLandDataUpdateEventHandler,
+		makePubsubEventHandler(
+			string(message.SubscriptionEventMultiLandDataUpdateEvent), component.MODEL_NAME_LAND,
+		),
 	); err != nil {
 		return err
 	}
 
 	if err := daprInvoke.AddTopicEventHandler(
-		string(message.SubscriptionEventMultiRecyclingEvent),
-		Web3MultiRecyclingEventHandler,
+		makePubsubEventHandler(
+			string(message.SubscriptionEventMultiRecyclingEvent), component.MODEL_NAME_LAND,
+		),
 	); err != nil {
 		return err
 	}
 
 	if err := daprInvoke.AddTopicEventHandler(
-		string(message.SubscriptionEventMultiBuildUpdateEvent),
-		Web3MultiBuildUpdateEventHandler,
+		makePubsubEventHandler(
+			string(message.SubscriptionEventMultiBuildUpdateEvent), component.MODEL_NAME_LAND,
+		),
 	); err != nil {
 		return err
 	}
@@ -61,46 +71,77 @@ func initWeb3ServicesPubsubEventHandler() error {
 
 func initServiceGrpcPubsubEventHandle() error {
 	if err := daprInvoke.AddTopicEventHandler(
-		string(grpc.SubscriptionEventUserEnterGame),
-		UserEnterGameEventHandler,
+		makePubsubEventHandler(
+			string(grpc.SubscriptionEventUserEnterGame), component.MODEL_NAME_PLAYER_DATA,
+		),
+		// UserEnterGameEventHandler,
 	); err != nil {
 		return err
 	}
 
 	if err := daprInvoke.AddTopicEventHandler(
-		string(grpc.SubscriptionEventUserLeaveGame),
-		UserLeaveGameHandler,
+		makePubsubEventHandler(
+			string(grpc.SubscriptionEventUserLeaveGame), component.MODEL_NAME_PLAYER_DATA,
+		),
+		// UserLeaveGameHandler,
 	); err != nil {
 		return err
 	}
 
 	if err := daprInvoke.AddTopicEventHandler(
-		string(grpc.SubscriptionEventSavePlayerData),
-		SavePlayerDataEventHandle,
+		makePubsubEventHandler(
+			string(grpc.SubscriptionEventSavePlayerData), component.MODEL_NAME_PLAYER_DATA,
+		),
+		// SavePlayerDataEventHandle,
 	); err != nil {
 		return err
 	}
 
 	if err := daprInvoke.AddTopicEventHandler(
-		string(grpc.SubscriptionEventKillMonster),
-		PlayerKillMonsterEventHandle,
+		makePubsubEventHandler(
+			string(grpc.SubscriptionEventKillMonster), component.MODEL_NAME_PLAYER_DATA,
+		),
+		// PlayerKillMonsterEventHandle,
 	); err != nil {
 		return err
 	}
 
 	if err := daprInvoke.AddTopicEventHandler(
-		string(grpc.SubscriptionEventPlayerDeath),
-		PlayerDeathEventHandle,
+		makePubsubEventHandler(
+			string(grpc.SubscriptionEventPlayerDeath), component.MODEL_NAME_PLAYER_DATA,
+		),
+		// PlayerDeathEventHandle,
 	); err != nil {
 		return err
 	}
 
 	if err := daprInvoke.AddTopicEventHandler(
-		string(grpc.SubscriptionEventUserTaskReward),
-		TaskRewardEventHandler,
+		makePubsubEventHandler(
+			string(grpc.SubscriptionEventUserTaskReward), component.MODEL_NAME_PLAYER_DATA,
+		),
+		// TaskRewardEventHandler,
 	); err != nil {
 		return err
 	}
 
 	return nil
+}
+
+func makePubsubEventHandler(name string, modelName string) (
+	string, func(ctx context.Context, e *common.TopicEvent) (retry bool, err error),
+) {
+	return name, func(ctx context.Context, e *common.TopicEvent) (retry bool, err error) {
+		serviceLog.Info("pubsub event[%s][%s] data:%v", name, modelName, e.Data.(string))
+		model, exist := component.GetInstance().GetModel(modelName)
+		if !exist {
+			serviceLog.Error("model [%s] not found", modelName)
+			return false, nil
+		}
+
+		model.EventCallNoReturn(&component.ModelEventReq{
+			EventType: name,
+			Msg:       e,
+		})
+		return false, nil
+	}
 }

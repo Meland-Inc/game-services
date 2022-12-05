@@ -1,27 +1,66 @@
-package clientMsgHandle
+package land_model
 
 import (
 	"game-message-core/grpc/methodData"
 	"game-message-core/proto"
+	"game-message-core/protoTool"
 
 	"github.com/Meland-Inc/game-services/src/common/serviceLog"
+	"github.com/Meland-Inc/game-services/src/global/component"
 	"github.com/Meland-Inc/game-services/src/global/grpcAPI/grpcInvoke"
+	"github.com/Meland-Inc/game-services/src/global/grpcAPI/grpcNetTool"
 	"github.com/Meland-Inc/game-services/src/global/userAgent"
-	land_model "github.com/Meland-Inc/game-services/src/services/main/landModel"
 )
 
-func getMapLandRecordByUser(userId int64) (*land_model.MapLandDataRecord, error) {
-	dataModel, err := land_model.GetLandModel()
-	if err != nil {
-		return nil, err
+func (p *LandModel) clientMsgHandler(env *component.ModelEventReq, curMs int64) {
+	bs, ok := env.Msg.([]byte)
+	serviceLog.Info("service register : %s, [%v]", bs, ok)
+	if !ok {
+		serviceLog.Error("service register to string failed: %v", bs)
+		return
 	}
-	return dataModel.GetMapLandRecordByUser(userId)
+
+	serviceLog.Info("main service received clientPbMsg data: %v", string(bs))
+
+	input := &methodData.PullClientMessageInput{}
+	err := grpcNetTool.UnmarshalGrpcData(bs, input)
+	if err != nil {
+		serviceLog.Error("client msg input Unmarshal error: %v", err)
+		return
+	}
+
+	agent := userAgent.GetOrStoreUserAgent(input)
+
+	msg, err := protoTool.UnMarshalToEnvelope(input.MsgBody)
+	if err != nil {
+		serviceLog.Error("Unmarshal Envelope fail err: %+v", err)
+		return
+	}
+
+	switch proto.EnvelopeType(input.MsgId) {
+	case proto.EnvelopeType_QueryLands:
+		p.QueryLandsHandler(agent, input, msg)
+	case proto.EnvelopeType_Build:
+		p.BuildHandler(agent, input, msg)
+	case proto.EnvelopeType_Recycling:
+		p.RecyclingHandler(agent, input, msg)
+	case proto.EnvelopeType_MintBattery:
+		p.MintBatteryHandler(agent, input, msg)
+	case proto.EnvelopeType_Charged:
+		p.ChargedHandler(agent, input, msg)
+	case proto.EnvelopeType_Harvest:
+		p.HarvestHandler(agent, input, msg)
+	case proto.EnvelopeType_Collection:
+		p.CollectionHandler(agent, input, msg)
+	case proto.EnvelopeType_SelfNftBuilds:
+		p.SelfNftBuildsHandler(agent, input, msg)
+
+	}
+
 }
 
-func queryLandsGroupingResponse(
-	input *methodData.PullClientMessageInput,
-	agent *userAgent.UserAgentData,
-	lands []*proto.LandData,
+func (p *LandModel) queryLandsGroupingResponse(
+	input *methodData.PullClientMessageInput, agent *userAgent.UserAgentData, lands []*proto.LandData,
 ) {
 	if agent == nil {
 		serviceLog.Warning("ItemGetGroupingResponse user [%d] agent data not found", input.UserId)
@@ -49,20 +88,21 @@ func queryLandsGroupingResponse(
 			endIdx = landLength
 		}
 		addRes.Lands = lands[beginIdx:endIdx]
-		ResponseClientMessage(agent, input, msg)
+		userAgent.ResponseClientMessage(agent, input, msg)
 	}
 }
 
-func QueryLandsHandler(input *methodData.PullClientMessageInput, msg *proto.Envelope) {
-	agent := GetOrStoreUserAgent(input)
+func (p *LandModel) QueryLandsHandler(
+	agent *userAgent.UserAgentData, input *methodData.PullClientMessageInput, msg *proto.Envelope,
+) {
 	res := &proto.QueryLandsResponse{}
-	respMsg := makeResponseMsg(msg)
+	respMsg := userAgent.MakeResponseMsg(msg)
 	defer func() {
 		if respMsg.ErrorMessage != "" {
 			respMsg.ErrorCode = 22001 // TODO: USE PROTO ERROR CODE
 		}
 		respMsg.Payload = &proto.Envelope_QueryLandsResponse{QueryLandsResponse: res}
-		ResponseClientMessage(agent, input, respMsg)
+		userAgent.ResponseClientMessage(agent, input, respMsg)
 	}()
 
 	if input.UserId < 1 {
@@ -70,7 +110,7 @@ func QueryLandsHandler(input *methodData.PullClientMessageInput, msg *proto.Enve
 		return
 	}
 
-	mapLandRecord, err := getMapLandRecordByUser(input.UserId)
+	mapLandRecord, err := p.GetMapLandRecordByUser(input.UserId)
 	if err != nil {
 		respMsg.ErrorMessage = err.Error()
 		return
@@ -81,21 +121,21 @@ func QueryLandsHandler(input *methodData.PullClientMessageInput, msg *proto.Enve
 		respMsg.ErrorMessage = err.Error()
 		return
 	}
-
-	queryLandsGroupingResponse(input, agent, lands)
+	p.queryLandsGroupingResponse(input, agent, lands)
 }
 
-func BuildHandler(input *methodData.PullClientMessageInput, msg *proto.Envelope) {
-	agent := GetOrStoreUserAgent(input)
+func (p *LandModel) BuildHandler(
+	agent *userAgent.UserAgentData, input *methodData.PullClientMessageInput, msg *proto.Envelope,
+) {
 	res := &proto.BuildResponse{}
-	respMsg := makeResponseMsg(msg)
+	respMsg := userAgent.MakeResponseMsg(msg)
 	defer func() {
 		if respMsg.ErrorMessage != "" {
 			respMsg.ErrorCode = 22003 // TODO: USE PROTO ERROR CODE
 			serviceLog.Error(respMsg.ErrorMessage)
 		}
 		respMsg.Payload = &proto.Envelope_BuildResponse{BuildResponse: res}
-		ResponseClientMessage(agent, input, respMsg)
+		userAgent.ResponseClientMessage(agent, input, respMsg)
 	}()
 
 	if input.UserId < 1 {
@@ -109,7 +149,7 @@ func BuildHandler(input *methodData.PullClientMessageInput, msg *proto.Envelope)
 		return
 	}
 
-	mapLandRecord, err := getMapLandRecordByUser(input.UserId)
+	mapLandRecord, err := p.GetMapLandRecordByUser(input.UserId)
 	if err != nil {
 		respMsg.ErrorMessage = err.Error()
 		return
@@ -123,16 +163,18 @@ func BuildHandler(input *methodData.PullClientMessageInput, msg *proto.Envelope)
 	res.Build = build.ToProtoData()
 }
 
-func RecyclingHandler(input *methodData.PullClientMessageInput, msg *proto.Envelope) {
-	agent := GetOrStoreUserAgent(input)
+func (p *LandModel) RecyclingHandler(
+	agent *userAgent.UserAgentData, input *methodData.PullClientMessageInput, msg *proto.Envelope,
+) {
+
 	res := &proto.RecyclingResponse{}
-	respMsg := makeResponseMsg(msg)
+	respMsg := userAgent.MakeResponseMsg(msg)
 	defer func() {
 		if respMsg.ErrorMessage != "" {
 			respMsg.ErrorCode = 22004 // TODO: USE PROTO ERROR CODE
 		}
 		respMsg.Payload = &proto.Envelope_RecyclingResponse{RecyclingResponse: res}
-		ResponseClientMessage(agent, input, respMsg)
+		userAgent.ResponseClientMessage(agent, input, respMsg)
 	}()
 
 	if input.UserId < 1 {
@@ -146,7 +188,7 @@ func RecyclingHandler(input *methodData.PullClientMessageInput, msg *proto.Envel
 		return
 	}
 
-	mapLandRecord, err := getMapLandRecordByUser(input.UserId)
+	mapLandRecord, err := p.GetMapLandRecordByUser(input.UserId)
 	if err != nil {
 		respMsg.ErrorMessage = err.Error()
 		return
@@ -159,16 +201,17 @@ func RecyclingHandler(input *methodData.PullClientMessageInput, msg *proto.Envel
 	}
 }
 
-func MintBatteryHandler(input *methodData.PullClientMessageInput, msg *proto.Envelope) {
-	agent := GetOrStoreUserAgent(input)
+func (p *LandModel) MintBatteryHandler(
+	agent *userAgent.UserAgentData, input *methodData.PullClientMessageInput, msg *proto.Envelope,
+) {
 	res := &proto.MintBatteryResponse{}
-	respMsg := makeResponseMsg(msg)
+	respMsg := userAgent.MakeResponseMsg(msg)
 	defer func() {
 		if respMsg.ErrorMessage != "" {
 			respMsg.ErrorCode = 22009 // TODO: USE PROTO ERROR CODE
 		}
 		respMsg.Payload = &proto.Envelope_MintBatteryResponse{MintBatteryResponse: res}
-		ResponseClientMessage(agent, input, respMsg)
+		userAgent.ResponseClientMessage(agent, input, respMsg)
 	}()
 
 	if input.UserId < 1 {
@@ -187,16 +230,17 @@ func MintBatteryHandler(input *methodData.PullClientMessageInput, msg *proto.Env
 	}
 }
 
-func ChargedHandler(input *methodData.PullClientMessageInput, msg *proto.Envelope) {
-	agent := GetOrStoreUserAgent(input)
+func (p *LandModel) ChargedHandler(
+	agent *userAgent.UserAgentData, input *methodData.PullClientMessageInput, msg *proto.Envelope,
+) {
 	res := &proto.ChargedResponse{}
-	respMsg := makeResponseMsg(msg)
+	respMsg := userAgent.MakeResponseMsg(msg)
 	defer func() {
 		if respMsg.ErrorMessage != "" {
 			respMsg.ErrorCode = 22005 // TODO: USE PROTO ERROR CODE
 		}
 		respMsg.Payload = &proto.Envelope_ChargedResponse{ChargedResponse: res}
-		ResponseClientMessage(agent, input, respMsg)
+		userAgent.ResponseClientMessage(agent, input, respMsg)
 	}()
 
 	if input.UserId < 1 {
@@ -210,7 +254,7 @@ func ChargedHandler(input *methodData.PullClientMessageInput, msg *proto.Envelop
 		return
 	}
 
-	mapLandRecord, err := getMapLandRecordByUser(input.UserId)
+	mapLandRecord, err := p.GetMapLandRecordByUser(input.UserId)
 	if err != nil {
 		respMsg.ErrorMessage = err.Error()
 		return
@@ -223,16 +267,17 @@ func ChargedHandler(input *methodData.PullClientMessageInput, msg *proto.Envelop
 	}
 }
 
-func HarvestHandler(input *methodData.PullClientMessageInput, msg *proto.Envelope) {
-	agent := GetOrStoreUserAgent(input)
+func (p *LandModel) HarvestHandler(
+	agent *userAgent.UserAgentData, input *methodData.PullClientMessageInput, msg *proto.Envelope,
+) {
 	res := &proto.HarvestResponse{}
-	respMsg := makeResponseMsg(msg)
+	respMsg := userAgent.MakeResponseMsg(msg)
 	defer func() {
 		if respMsg.ErrorMessage != "" {
 			respMsg.ErrorCode = 22006 // TODO: USE PROTO ERROR CODE
 		}
 		respMsg.Payload = &proto.Envelope_HarvestResponse{HarvestResponse: res}
-		ResponseClientMessage(agent, input, respMsg)
+		userAgent.ResponseClientMessage(agent, input, respMsg)
 	}()
 
 	if input.UserId < 1 {
@@ -246,7 +291,7 @@ func HarvestHandler(input *methodData.PullClientMessageInput, msg *proto.Envelop
 		return
 	}
 
-	mapLandRecord, err := getMapLandRecordByUser(input.UserId)
+	mapLandRecord, err := p.GetMapLandRecordByUser(input.UserId)
 	if err != nil {
 		respMsg.ErrorMessage = err.Error()
 		return
@@ -259,16 +304,17 @@ func HarvestHandler(input *methodData.PullClientMessageInput, msg *proto.Envelop
 	}
 }
 
-func CollectionHandler(input *methodData.PullClientMessageInput, msg *proto.Envelope) {
-	agent := GetOrStoreUserAgent(input)
+func (p *LandModel) CollectionHandler(
+	agent *userAgent.UserAgentData, input *methodData.PullClientMessageInput, msg *proto.Envelope,
+) {
 	res := &proto.CollectionResponse{}
-	respMsg := makeResponseMsg(msg)
+	respMsg := userAgent.MakeResponseMsg(msg)
 	defer func() {
 		if respMsg.ErrorMessage != "" {
 			respMsg.ErrorCode = 22007 // TODO: USE PROTO ERROR CODE
 		}
 		respMsg.Payload = &proto.Envelope_CollectionResponse{CollectionResponse: res}
-		ResponseClientMessage(agent, input, respMsg)
+		userAgent.ResponseClientMessage(agent, input, respMsg)
 	}()
 
 	if input.UserId < 1 {
@@ -282,7 +328,7 @@ func CollectionHandler(input *methodData.PullClientMessageInput, msg *proto.Enve
 		return
 	}
 
-	mapLandRecord, err := getMapLandRecordByUser(input.UserId)
+	mapLandRecord, err := p.GetMapLandRecordByUser(input.UserId)
 	if err != nil {
 		respMsg.ErrorMessage = err.Error()
 		return
@@ -295,16 +341,17 @@ func CollectionHandler(input *methodData.PullClientMessageInput, msg *proto.Enve
 	}
 }
 
-func SelfNftBuildsHandler(input *methodData.PullClientMessageInput, msg *proto.Envelope) {
-	agent := GetOrStoreUserAgent(input)
+func (p *LandModel) SelfNftBuildsHandler(
+	agent *userAgent.UserAgentData, input *methodData.PullClientMessageInput, msg *proto.Envelope,
+) {
 	res := &proto.SelfNftBuildsResponse{}
-	respMsg := makeResponseMsg(msg)
+	respMsg := userAgent.MakeResponseMsg(msg)
 	defer func() {
 		if respMsg.ErrorMessage != "" {
 			respMsg.ErrorCode = 22008 // TODO: USE PROTO ERROR CODE
 		}
 		respMsg.Payload = &proto.Envelope_SelfNftBuildsResponse{SelfNftBuildsResponse: res}
-		ResponseClientMessage(agent, input, respMsg)
+		userAgent.ResponseClientMessage(agent, input, respMsg)
 	}()
 
 	if input.UserId < 1 {
@@ -312,7 +359,7 @@ func SelfNftBuildsHandler(input *methodData.PullClientMessageInput, msg *proto.E
 		return
 	}
 
-	mapLandRecord, err := getMapLandRecordByUser(input.UserId)
+	mapLandRecord, err := p.GetMapLandRecordByUser(input.UserId)
 	if err != nil {
 		respMsg.ErrorMessage = err.Error()
 		return
