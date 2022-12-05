@@ -31,7 +31,7 @@ func (s *Service) run() {
 	s.registerService()
 
 	go func() {
-		t := time.NewTicker(5 * time.Millisecond)
+		t := time.NewTicker(1 * time.Millisecond)
 
 		for {
 			select {

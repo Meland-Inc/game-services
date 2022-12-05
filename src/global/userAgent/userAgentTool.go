@@ -1,4 +1,4 @@
-package clientMsgHandle
+package userAgent
 
 import (
 	"game-message-core/grpc/methodData"
@@ -7,11 +7,10 @@ import (
 	"github.com/Meland-Inc/game-services/src/common/serviceLog"
 	"github.com/Meland-Inc/game-services/src/common/time_helper"
 	"github.com/Meland-Inc/game-services/src/global/serviceCnf"
-	"github.com/Meland-Inc/game-services/src/global/userAgent"
 )
 
 func ResponseClientMessage(
-	agent *userAgent.UserAgentData,
+	agent *UserAgentData,
 	input *methodData.PullClientMessageInput,
 	respMsg *proto.Envelope,
 ) {
@@ -28,18 +27,18 @@ func ResponseClientMessage(
 	agent.SendToPlayer(serviceCnf.GetInstance().AppId, respMsg)
 }
 
-func makeResponseMsg(msg *proto.Envelope) *proto.Envelope {
+func MakeResponseMsg(msg *proto.Envelope) *proto.Envelope {
 	return &proto.Envelope{
 		Type:  msg.Type,
 		SeqId: msg.SeqId,
 	}
 }
 
-func getPlayerAgent(input *methodData.PullClientMessageInput) *userAgent.UserAgentData {
-	agentModel := userAgent.GetUserAgentModel()
+func getPlayerAgent(input *methodData.PullClientMessageInput) *UserAgentData {
+	agentModel := GetUserAgentModel()
 	agent, exist := agentModel.GetUserAgent(input.UserId)
 	if !exist {
-		agent = &userAgent.UserAgentData{
+		agent = &UserAgentData{
 			AgentAppId:          input.AgentAppId,
 			SocketId:            input.SocketId,
 			InSceneServiceAppId: input.SceneServiceId,
@@ -54,8 +53,8 @@ func getPlayerAgent(input *methodData.PullClientMessageInput) *userAgent.UserAge
 	return agent
 }
 
-func GetOrStoreUserAgent(input *methodData.PullClientMessageInput) *userAgent.UserAgentData {
-	agentModel := userAgent.GetUserAgentModel()
+func GetOrStoreUserAgent(input *methodData.PullClientMessageInput) *UserAgentData {
+	agentModel := GetUserAgentModel()
 	agent, exist := agentModel.GetUserAgent(input.UserId)
 	if !exist {
 		agent, _ = agentModel.AddUserAgentRecord(

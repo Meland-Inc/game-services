@@ -2,20 +2,27 @@ package playerModel
 
 import (
 	"fmt"
-	"game-message-core/proto"
 	"time"
 
 	"github.com/Meland-Inc/game-services/src/common/shardCache"
 	"github.com/Meland-Inc/game-services/src/global/component"
-	"github.com/Meland-Inc/game-services/src/global/gameDB"
-	dbData "github.com/Meland-Inc/game-services/src/global/gameDB/data"
 )
 
 type PlayerDataModel struct {
 	component.ModelBase
+	modelEvent *component.ModelEvent
 
 	cache    *shardCache.ShardedCache
 	cacheTTL time.Duration
+}
+
+func GetPlayerDataModel() (*PlayerDataModel, error) {
+	iPlayerModel, exist := component.GetInstance().GetModel(component.MODEL_NAME_PLAYER_DATA)
+	if !exist {
+		return nil, fmt.Errorf("player data model not found")
+	}
+	dataModel, _ := iPlayerModel.(*PlayerDataModel)
+	return dataModel, nil
 }
 
 func NewPlayerModel() *PlayerDataModel {
@@ -24,6 +31,7 @@ func NewPlayerModel() *PlayerDataModel {
 		cache:    shardCache.NewSharded(shardCache.NoExpiration, time.Duration(60)*time.Second, 2^4),
 	}
 	p.InitBaseModel(p, component.MODEL_NAME_PLAYER_DATA)
+	p.modelEvent = component.NewModelEvent(p)
 	return p
 }
 
@@ -41,13 +49,15 @@ func (p *PlayerDataModel) OnStart() error {
 
 func (p *PlayerDataModel) OnTick(utc time.Time) {
 	p.ModelBase.OnTick(utc)
+	p.modelEvent.ReadEvent(utc.UnixMilli())
 }
 
 func (p *PlayerDataModel) EventCall(env *component.ModelEventReq) *component.ModelEventResult {
-	return nil
+	return p.modelEvent.EventCall(env)
 }
-func (p *PlayerDataModel) EventCallNoReturn(env *component.ModelEventReq)    {}
-func (p *PlayerDataModel) OnEvent(env *component.ModelEventReq, curMs int64) {}
+func (p *PlayerDataModel) EventCallNoReturn(env *component.ModelEventReq) {
+	p.modelEvent.EventCallNoReturn(env)
+}
 
 func (p *PlayerDataModel) Secondly(utc time.Time) {}
 
@@ -56,29 +66,3 @@ func (p *PlayerDataModel) Minutely(utc time.Time) {}
 func (p *PlayerDataModel) Hourly(utc time.Time) {}
 
 func (p *PlayerDataModel) Daily(utc time.Time) {}
-
-func (p *PlayerDataModel) GetPlayerBaseData(userId int64) (*dbData.PlayerBaseData, error) {
-	baseData := &dbData.PlayerBaseData{}
-	err := gameDB.GetGameDB().Where("user_id = ?", userId).First(baseData).Error
-	return baseData, err
-}
-
-func (p *PlayerDataModel) PlayerAllData(userId int64) (
-	baseData *dbData.PlayerBaseData,
-	sceneData *dbData.PlayerSceneData,
-	avatars []*Item,
-	profile *proto.EntityProfile,
-	err error,
-) {
-	if baseData, err = p.GetPlayerBaseData(userId); err != nil {
-		return
-	}
-	if sceneData, err = p.GetPlayerSceneData(userId); err != nil {
-		return
-	}
-	if avatars, err = p.UsingAvatars(userId); err != nil {
-		return
-	}
-	profile, err = p.GetPlayerProfile(userId)
-	return
-}

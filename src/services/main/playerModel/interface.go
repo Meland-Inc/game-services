@@ -4,17 +4,58 @@ import (
 	"fmt"
 	"game-message-core/proto"
 
-	"github.com/Meland-Inc/game-services/src/global/component"
 	"github.com/Meland-Inc/game-services/src/global/configData"
+	"github.com/Meland-Inc/game-services/src/global/gameDB"
+	dbData "github.com/Meland-Inc/game-services/src/global/gameDB/data"
 )
 
-func GetPlayerDataModel() (*PlayerDataModel, error) {
-	iPlayerModel, exist := component.GetInstance().GetModel(component.MODEL_NAME_PLAYER_DATA)
-	if !exist {
-		return nil, fmt.Errorf("player data model not found")
+func (p *PlayerDataModel) GetPlayerBaseData(userId int64) (*dbData.PlayerBaseData, error) {
+	baseData := &dbData.PlayerBaseData{}
+	err := gameDB.GetGameDB().Where("user_id = ?", userId).First(baseData).Error
+	return baseData, err
+}
+
+func (p *PlayerDataModel) PlayerAllData(userId int64) (
+	baseData *dbData.PlayerBaseData,
+	sceneData *dbData.PlayerSceneData,
+	avatars []*Item,
+	profile *proto.EntityProfile,
+	err error,
+) {
+	if baseData, err = p.GetPlayerBaseData(userId); err != nil {
+		return
 	}
-	dataModel, _ := iPlayerModel.(*PlayerDataModel)
-	return dataModel, nil
+	if sceneData, err = p.GetPlayerSceneData(userId); err != nil {
+		return
+	}
+	if avatars, err = p.UsingAvatars(userId); err != nil {
+		return
+	}
+	profile, err = p.GetPlayerProfile(userId)
+	return
+}
+
+func (p *PlayerDataModel) PlayerProtoData(userId int64) (*proto.Player, error) {
+	baseData, sceneData, avatars, profile, err := p.PlayerAllData(userId)
+	if err != nil {
+		return nil, err
+	}
+
+	pos := &proto.Vector3{X: sceneData.X, Y: sceneData.Y, Z: sceneData.Z}
+	dir := &proto.Vector3{X: sceneData.DirX, Y: sceneData.DirY, Z: sceneData.DirZ}
+	player := &proto.Player{
+		BaseData: baseData.ToNetPlayerBaseData(),
+		Profile:  profile,
+		Active:   sceneData.Hp > 0,
+		MapId:    sceneData.MapId,
+		Position: pos,
+		Dir:      dir,
+	}
+	for _, avatar := range avatars {
+		player.Avatars = append(player.Avatars, avatar.ToNetPlayerAvatar())
+	}
+
+	return player, nil
 }
 
 func (p *PlayerDataModel) OnPlayerDeath(

@@ -11,6 +11,7 @@ import (
 
 type LandModel struct {
 	component.ModelBase
+	modelEvent *component.ModelEvent
 
 	mapList          []int32
 	mapLandRecordMgr sync.Map
@@ -27,7 +28,9 @@ func GetLandModel() (*LandModel, error) {
 }
 
 func NewLandModel() *LandModel {
-	return &LandModel{mapList: []int32{10001}}
+	p := &LandModel{mapList: []int32{10001}}
+	p.modelEvent = component.NewModelEvent(p)
+	return p
 }
 
 func (p *LandModel) OnInit(modelMgr *component.ModelManager) error {
@@ -59,16 +62,15 @@ func (p *LandModel) OnStart() (err error) {
 }
 
 func (p *LandModel) OnTick(utc time.Time) {
+	p.ModelBase.OnTick(utc)
+	p.modelEvent.ReadEvent(utc.UnixMilli())
 }
 
 func (p *LandModel) EventCall(env *component.ModelEventReq) *component.ModelEventResult {
-	return nil
+	return p.modelEvent.EventCall(env)
 }
-func (p *LandModel) EventCallNoReturn(env *component.ModelEventReq)    {}
-func (p *LandModel) OnEvent(env *component.ModelEventReq, curMs int64) {}
-
-func (p *LandModel) tick() error {
-	return nil
+func (p *LandModel) EventCallNoReturn(env *component.ModelEventReq) {
+	p.modelEvent.EventCallNoReturn(env)
 }
 
 func (p *LandModel) Secondly(utc time.Time) {}

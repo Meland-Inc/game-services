@@ -7,6 +7,7 @@ import (
 	"os"
 
 	"github.com/golang-jwt/jwt/v4"
+	"github.com/spf13/cast"
 )
 
 var (
@@ -53,4 +54,12 @@ func CheckDefaultAuth(token string) (string, error) {
 		return "", err
 	}
 	return u.Id, nil
+}
+
+func GetUserIdByToken(token string) (int64, error) {
+	userIdStr, err := CheckDefaultAuth(token)
+	if err != nil {
+		return 0, err
+	}
+	return cast.ToInt64(userIdStr), nil
 }
