@@ -26,43 +26,33 @@ func InitDaprPubsubEvent() (err error) {
 }
 
 func initWeb3ServicesPubsubEventHandler() error {
-	if err := daprInvoke.AddTopicEventHandler(
-		makePubsubEventHandler(
-			string(message.SubscriptionEventUpdateUserNFT), component.MODEL_NAME_PLAYER_DATA,
-		),
-	); err != nil {
+	if err := daprInvoke.AddTopicEventHandler(makePubsubEventHandler(
+		string(message.SubscriptionEventUpdateUserNFT), component.MODEL_NAME_PLAYER_DATA,
+	)); err != nil {
 		return err
 	}
 
-	if err := daprInvoke.AddTopicEventHandler(
-		makePubsubEventHandler(
-			string(message.SubscriptionEventMultiUpdateUserNFT), component.MODEL_NAME_PLAYER_DATA,
-		),
-	); err != nil {
+	if err := daprInvoke.AddTopicEventHandler(makePubsubEventHandler(
+		string(message.SubscriptionEventMultiUpdateUserNFT), component.MODEL_NAME_PLAYER_DATA,
+	)); err != nil {
 		return err
 	}
 
-	if err := daprInvoke.AddTopicEventHandler(
-		makePubsubEventHandler(
-			string(message.SubscriptionEventMultiLandDataUpdateEvent), component.MODEL_NAME_LAND,
-		),
-	); err != nil {
+	if err := daprInvoke.AddTopicEventHandler(makePubsubEventHandler(
+		string(message.SubscriptionEventMultiLandDataUpdateEvent), component.MODEL_NAME_LAND,
+	)); err != nil {
 		return err
 	}
 
-	if err := daprInvoke.AddTopicEventHandler(
-		makePubsubEventHandler(
-			string(message.SubscriptionEventMultiRecyclingEvent), component.MODEL_NAME_LAND,
-		),
-	); err != nil {
+	if err := daprInvoke.AddTopicEventHandler(makePubsubEventHandler(
+		string(message.SubscriptionEventMultiRecyclingEvent), component.MODEL_NAME_LAND,
+	)); err != nil {
 		return err
 	}
 
-	if err := daprInvoke.AddTopicEventHandler(
-		makePubsubEventHandler(
-			string(message.SubscriptionEventMultiBuildUpdateEvent), component.MODEL_NAME_LAND,
-		),
-	); err != nil {
+	if err := daprInvoke.AddTopicEventHandler(makePubsubEventHandler(
+		string(message.SubscriptionEventMultiBuildUpdateEvent), component.MODEL_NAME_LAND,
+	)); err != nil {
 		return err
 	}
 
@@ -70,51 +60,45 @@ func initWeb3ServicesPubsubEventHandler() error {
 }
 
 func initServiceGrpcPubsubEventHandle() error {
-	if err := daprInvoke.AddTopicEventHandler(
-		makePubsubEventHandler(
-			string(grpc.SubscriptionEventUserEnterGame), component.MODEL_NAME_PLAYER_DATA,
-		),
-	); err != nil {
+	if err := daprInvoke.AddTopicEventHandler(makePubsubEventHandler(
+		string(grpc.SubscriptionEventUserEnterGame), component.MODEL_NAME_PLAYER_DATA,
+	)); err != nil {
 		return err
 	}
 
-	if err := daprInvoke.AddTopicEventHandler(
-		makePubsubEventHandler(
-			string(grpc.SubscriptionEventUserLeaveGame), component.MODEL_NAME_PLAYER_DATA,
-		),
-	); err != nil {
+	if err := daprInvoke.AddTopicEventHandler(makePubsubEventHandler(
+		string(grpc.SubscriptionEventUserLeaveGame), component.MODEL_NAME_PLAYER_DATA,
+	)); err != nil {
 		return err
 	}
 
-	if err := daprInvoke.AddTopicEventHandler(
-		makePubsubEventHandler(
-			string(grpc.SubscriptionEventSavePlayerData), component.MODEL_NAME_PLAYER_DATA,
-		),
-	); err != nil {
+	if err := daprInvoke.AddTopicEventHandler(makePubsubEventHandler(
+		string(grpc.SubscriptionEventSavePlayerData), component.MODEL_NAME_PLAYER_DATA,
+	)); err != nil {
 		return err
 	}
 
-	if err := daprInvoke.AddTopicEventHandler(
-		makePubsubEventHandler(
-			string(grpc.SubscriptionEventKillMonster), component.MODEL_NAME_PLAYER_DATA,
-		),
-	); err != nil {
+	if err := daprInvoke.AddTopicEventHandler(makePubsubEventHandler(
+		string(grpc.SubscriptionEventKillMonster), component.MODEL_NAME_PLAYER_DATA,
+	)); err != nil {
 		return err
 	}
 
-	if err := daprInvoke.AddTopicEventHandler(
-		makePubsubEventHandler(
-			string(grpc.SubscriptionEventPlayerDeath), component.MODEL_NAME_PLAYER_DATA,
-		),
-	); err != nil {
+	if err := daprInvoke.AddTopicEventHandler(makePubsubEventHandler(
+		string(grpc.SubscriptionEventPlayerDeath), component.MODEL_NAME_PLAYER_DATA,
+	)); err != nil {
 		return err
 	}
 
-	if err := daprInvoke.AddTopicEventHandler(
-		makePubsubEventHandler(
-			string(grpc.SubscriptionEventUserTaskReward), component.MODEL_NAME_PLAYER_DATA,
-		),
-	); err != nil {
+	if err := daprInvoke.AddTopicEventHandler(makePubsubEventHandler(
+		string(grpc.SubscriptionEventUserTaskReward), component.MODEL_NAME_PLAYER_DATA,
+	)); err != nil {
+		return err
+	}
+
+	if err := daprInvoke.AddTopicEventHandler(makePubsubEventHandler(
+		string(grpc.SubscriptionEventSaveHomeData), component.MODEL_NAME_HOME,
+	)); err != nil {
 		return err
 	}
 
