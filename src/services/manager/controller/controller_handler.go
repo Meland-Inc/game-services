@@ -38,7 +38,6 @@ func (p *ControllerModel) OnEvent(env *component.ModelEventReq, curMs int64) {
 
 func (p *ControllerModel) UnregisterServiceEvent(env *component.ModelEventReq, curMs int64) {
 	msg, ok := env.Msg.(*common.TopicEvent)
-	serviceLog.Info("service Unregister : %s, [%v]", msg, ok)
 	if !ok {
 		serviceLog.Error("service Unregister to string failed: %v", msg)
 		return
@@ -56,6 +55,7 @@ func (p *ControllerModel) UnregisterServiceEvent(env *component.ModelEventReq, c
 	}
 
 	serviceLog.Info("service UnRegister: %v", input)
+
 	service := ServiceData{
 		AppId:           input.Service.AppId,
 		ServiceType:     input.Service.ServiceType,

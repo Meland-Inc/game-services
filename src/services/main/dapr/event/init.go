@@ -109,7 +109,7 @@ func makePubsubEventHandler(name string, modelName string) (
 	string, func(ctx context.Context, e *common.TopicEvent) (retry bool, err error),
 ) {
 	return name, func(ctx context.Context, e *common.TopicEvent) (retry bool, err error) {
-		serviceLog.Info("pubsub event[%s][%s] data:%v", name, modelName, e.Data.(string))
+		serviceLog.Info("pubsub event[%s] [%s] data:%v", name, modelName, e.Data)
 		model, exist := component.GetInstance().GetModel(modelName)
 		if !exist {
 			serviceLog.Error("model [%s] not found", modelName)
