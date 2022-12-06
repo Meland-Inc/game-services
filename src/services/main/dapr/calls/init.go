@@ -32,41 +32,37 @@ func initClientMsgCallHandle() error {
 }
 
 func initServiceGrpcCallHandle() error {
-	if err := daprInvoke.AddServiceInvocationHandler(
-		makeServiceCallHandler(
-			string(message.GameDataServiceActionDeductUserExp), component.MODEL_NAME_PLAYER_DATA,
-		),
-	); err != nil {
+	if err := daprInvoke.AddServiceInvocationHandler(makeServiceCallHandler(
+		string(message.GameDataServiceActionDeductUserExp), component.MODEL_NAME_PLAYER_DATA,
+	)); err != nil {
 		return err
 	}
-	if err := daprInvoke.AddServiceInvocationHandler(
-		makeServiceCallHandler(
-			string(message.GameDataServiceActionGetPlayerInfoByUserId), component.MODEL_NAME_PLAYER_DATA,
-		),
-	); err != nil {
+	if err := daprInvoke.AddServiceInvocationHandler(makeServiceCallHandler(
+		string(message.GameDataServiceActionGetPlayerInfoByUserId), component.MODEL_NAME_PLAYER_DATA,
+	)); err != nil {
 		return err
 	}
-	if err := daprInvoke.AddServiceInvocationHandler(
-		makeServiceCallHandler(
-			string(grpc.UserActionGetUserData), component.MODEL_NAME_PLAYER_DATA,
-		),
-	); err != nil {
+	if err := daprInvoke.AddServiceInvocationHandler(makeServiceCallHandler(
+		string(grpc.UserActionGetUserData), component.MODEL_NAME_PLAYER_DATA,
+	)); err != nil {
 		return err
 	}
 
-	if err := daprInvoke.AddServiceInvocationHandler(
-		makeServiceCallHandler(
-			string(grpc.MainServiceActionTakeNFT), component.MODEL_NAME_PLAYER_DATA,
-		),
-	); err != nil {
+	if err := daprInvoke.AddServiceInvocationHandler(makeServiceCallHandler(
+		string(grpc.MainServiceActionTakeNFT), component.MODEL_NAME_PLAYER_DATA,
+	)); err != nil {
 		return err
 	}
 
-	if err := daprInvoke.AddServiceInvocationHandler(
-		makeServiceCallHandler(
-			string(grpc.MainServiceActionGetAllBuild), component.MODEL_NAME_LAND,
-		),
-	); err != nil {
+	if err := daprInvoke.AddServiceInvocationHandler(makeServiceCallHandler(
+		string(grpc.MainServiceActionGetAllBuild), component.MODEL_NAME_LAND,
+	)); err != nil {
+		return err
+	}
+
+	if err := daprInvoke.AddServiceInvocationHandler(makeServiceCallHandler(
+		string(grpc.MainServiceActionGetHomeData), component.MODEL_NAME_HOME,
+	)); err != nil {
 		return err
 	}
 
