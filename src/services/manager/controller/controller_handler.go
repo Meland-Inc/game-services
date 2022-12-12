@@ -5,11 +5,13 @@ import (
 	"game-message-core/grpc"
 	"game-message-core/grpc/methodData"
 	"game-message-core/grpc/pubsubEventData"
+	"time"
 
 	"github.com/Meland-Inc/game-services/src/common/serviceLog"
 	"github.com/Meland-Inc/game-services/src/common/time_helper"
 	"github.com/Meland-Inc/game-services/src/global/component"
 	"github.com/Meland-Inc/game-services/src/global/grpcAPI/grpcNetTool"
+	"github.com/Meland-Inc/game-services/src/global/grpcAPI/grpcPubsubEvent"
 	"github.com/Meland-Inc/game-services/src/global/serviceCnf"
 	"github.com/dapr/go-sdk/service/common"
 )
@@ -29,6 +31,8 @@ func (p *ControllerModel) OnEvent(env *component.ModelEventReq, curMs int64) {
 		p.SelectServiceHandler(env, curMs)
 	case string(grpc.ManagerServiceActionMultiSelectService):
 		p.MultiSelectServiceHandler(env, curMs)
+	case string(grpc.ManagerServiceActionStartService):
+		p.StartServiceHandler(env, curMs)
 
 	case string(grpc.SubscriptionEventServiceUnregister):
 		p.UnregisterServiceEvent(env, curMs)
@@ -108,11 +112,21 @@ func (p *ControllerModel) RegisterServiceHandler(env *component.ModelEventReq, c
 		CreateAt:        input.Service.CreatedAt,
 		UpdateAt:        input.Service.UpdatedAt,
 	}
+	_, exist := p.GetAliveServiceByType(service.ServiceType, service.SceneSerSubType, service.MapId, service.OwnerId)
 	// serviceLog.Debug("register service success %+v", service)
 	p.RegisterService(service)
 	output.Success = true
 	output.RegisterAt = input.RegisterAt
 
+	// 玩家私有的服务 && 第一次注册时 发布启动完成事件
+	if !exist && IsUserPrivateSer(service) {
+		go func() {
+			// 延时50MS 通知服务启动完成 以保证 grpc output消息先到达
+			time.Sleep(time.Millisecond * 50)
+			grpcSerData := service.ToGrpcService()
+			grpcPubsubEvent.RPCPubsubEventServiceStarted(grpcSerData)
+		}()
+	}
 }
 
 func (p *ControllerModel) SelectServiceHandler(env *component.ModelEventReq, curMs int64) {
@@ -185,5 +199,46 @@ func (p *ControllerModel) MultiSelectServiceHandler(env *component.ModelEventReq
 			continue
 		}
 		output.Services = append(output.Services, s.ToGrpcService())
+	}
+}
+
+func (p *ControllerModel) StartServiceHandler(env *component.ModelEventReq, curMs int64) {
+	msg, ok := env.Msg.([]byte)
+	serviceLog.Info("start service : %s, [%v]", msg, ok)
+	if !ok {
+		serviceLog.Error("start service msg to string failed: %v", msg)
+		return
+	}
+
+	output := &methodData.StartServiceOutput{Success: true}
+	result := &component.ModelEventResult{}
+	defer func() {
+		result.SetResult(output)
+		env.WriteResult(result)
+	}()
+
+	input := &methodData.StartServiceInput{}
+	err := grpcNetTool.UnmarshalGrpcData(msg, input)
+	if err != nil {
+		output.ErrMsg = err.Error()
+		output.Success = false
+		return
+	}
+
+	ser, exist := p.GetAliveServiceByType(input.ServiceType, input.SceneSerSubType, input.MapId, input.OwnerId)
+	if exist { // 服务已启动
+		go func() {
+			// 延时200MS 通知服务启动完成 以保证 grpc output消息先到达
+			time.Sleep(time.Millisecond * 100)
+			grpcPubsubEvent.RPCPubsubEventServiceStarted(ser.ToGrpcService())
+		}()
+	} else {
+		if _, err = p.startUserPrivateService(
+			input.ServiceType, input.SceneSerSubType,
+			input.MapId, input.OwnerId,
+		); err != nil {
+			output.Success = false
+			output.ErrMsg = err.Error()
+		}
 	}
 }
