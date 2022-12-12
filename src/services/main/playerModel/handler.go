@@ -47,6 +47,10 @@ func (p *PlayerDataModel) OnEvent(env *component.ModelEventReq, curMs int64) {
 		p.GRPCPlayerDeathEvent(env, curMs)
 	case string(grpc.SubscriptionEventUserTaskReward):
 		p.GRPCUserTaskRewardEvent(env, curMs)
+
+	case string(grpc.SubscriptionEventUserChangeService):
+		p.GRPCUserChangeServiceEvent(env, curMs)
+
 	}
 
 }

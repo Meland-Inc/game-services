@@ -16,6 +16,9 @@ func (ch *MsgChannel) onServiceMessage(input *ServiceMsgData) {
 	serviceLog.Info("received service[%v] message: %v", input.MsgId, input.MsgBody)
 
 	switch input.MsgId {
+	case string(grpc.SubscriptionEventUserChangeService):
+		serviceMsgHandle.UserChangeServiceHandler(input.MsgBody)
+
 	case string(grpc.SubscriptionEventUserEnterGame):
 		serviceMsgHandle.UserEnterGameHandle(input.MsgBody)
 

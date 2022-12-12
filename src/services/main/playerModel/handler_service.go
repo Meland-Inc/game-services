@@ -135,6 +135,41 @@ func (p *PlayerDataModel) GRPCTakeUserNftHandler(env *component.ModelEventReq, c
 
 // -------------------- pubsub event -----------------------
 
+func (p *PlayerDataModel) GRPCUserChangeServiceEvent(env *component.ModelEventReq, curMs int64) {
+	msg, ok := env.Msg.(*common.TopicEvent)
+	serviceLog.Info("UserChangeServiceEvent : %s, [%v]", msg, ok)
+	if !ok {
+		serviceLog.Error("UserChangeServiceEvent to TopicEvent failed: %v", msg)
+		return
+	}
+
+	input := &pubsubEventData.UserChangeServiceEvent{}
+	err := grpcNetTool.UnmarshalGrpcTopicEvent(msg, input)
+	if err != nil {
+		serviceLog.Error("UserChangeServiceEvent UnmarshalEvent fail err: %v ", err)
+		return
+	}
+
+	if input.MsgVersion < serviceCnf.GetInstance().StartMs {
+		return
+	}
+
+	serviceLog.Info("Receive UserChangeServiceEvent: %+v", input)
+
+	agentModel := userAgent.GetUserAgentModel()
+	agent, exist := agentModel.GetUserAgent(input.UserId)
+	if exist {
+		agent.TryUpdate(agent.UserId, agent.AgentAppId, agent.SocketId, input.ToService.AppId)
+	} else {
+		agent, _ = agentModel.AddUserAgentRecord(
+			input.UserId,
+			input.UserAgentAppId,
+			input.UserSocketId,
+			input.ToService.AppId,
+		)
+	}
+}
+
 func (p *PlayerDataModel) GRPCUserEnterGameEvent(env *component.ModelEventReq, curMs int64) {
 	msg, ok := env.Msg.(*common.TopicEvent)
 	serviceLog.Info("UserEnterGameEvent : %s, [%v]", msg, ok)
