@@ -28,6 +28,11 @@ func InitDaprCallHandle() (err error) {
 	); err != nil {
 		return err
 	}
+	if err = daprInvoke.AddServiceInvocationHandler(
+		makeCallHandler(string(grpc.ManagerServiceActionStartService)),
+	); err != nil {
+		return err
+	}
 
 	serviceLog.Info(" InitDaprCallHandle ------ end ------")
 	return nil
