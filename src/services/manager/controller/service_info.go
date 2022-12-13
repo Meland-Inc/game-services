@@ -66,7 +66,7 @@ func IsUserPrivateSer(ser ServiceData) bool {
 		ser.SceneSerSubType == proto.SceneServiceSubType_Dungeon {
 		return true
 	}
-	return true
+	return false
 }
 
 func CheckAlive(ser ServiceData) bool {

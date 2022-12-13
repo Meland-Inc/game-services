@@ -20,9 +20,9 @@ import (
 
 func (p *PlayerDataModel) clientMsgHandler(env *component.ModelEventReq, curMs int64) {
 	bs, ok := env.Msg.([]byte)
-	serviceLog.Info("service register : %s, [%v]", bs, ok)
+	serviceLog.Info("client msg: %s, [%v]", bs, ok)
 	if !ok {
-		serviceLog.Error("service register to string failed: %v", bs)
+		serviceLog.Error("client msg to string failed: %v", bs)
 		return
 	}
 

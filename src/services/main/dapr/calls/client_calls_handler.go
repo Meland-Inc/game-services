@@ -2,6 +2,7 @@ package daprCalls
 
 import (
 	"context"
+	"fmt"
 
 	"game-message-core/grpc/methodData"
 	"game-message-core/proto"
@@ -10,7 +11,6 @@ import (
 	"github.com/Meland-Inc/game-services/src/common/serviceLog"
 	"github.com/Meland-Inc/game-services/src/global/component"
 	"github.com/Meland-Inc/game-services/src/global/grpcAPI/grpcNetTool"
-	land_model "github.com/Meland-Inc/game-services/src/services/main/landModel"
 	"github.com/dapr/go-sdk/service/common"
 )
 
@@ -24,20 +24,20 @@ func makeClientMsgHandler(name string) (string, func(ctx context.Context, in *co
 
 		serviceLog.Info("main service received clientPbMsg data: %v", proto.EnvelopeType(input.MsgId))
 
-		err = onReceiveClientMessage(name, proto.EnvelopeType(input.MsgId), in)
-
 		out := &methodData.PullClientMessageOutput{Success: true}
+		err = onReceiveClientMessage(name, proto.EnvelopeType(input.MsgId), in)
 		if err != nil {
+			out.Success = false
 			out.ErrMsg = err.Error()
 		}
 		return daprInvoke.MakeOutputContent(in, out)
 	}
 }
 
-func clientMsgCall(name string, modelName string, in *common.InvocationEvent) error {
-	model, err := land_model.GetLandModel()
-	if err != nil {
-		return err
+func clientMsgCall(modelName string, name string, in *common.InvocationEvent) error {
+	model, exist := component.GetInstance().GetModel(modelName)
+	if !exist {
+		return fmt.Errorf("%s  model not found", modelName)
 	}
 
 	model.EventCallNoReturn(&component.ModelEventReq{
@@ -57,7 +57,7 @@ func onReceiveClientMessage(name string, msgType proto.EnvelopeType, in *common.
 		proto.EnvelopeType_Harvest,
 		proto.EnvelopeType_Collection,
 		proto.EnvelopeType_SelfNftBuilds:
-		return clientMsgCall(name, component.MODEL_NAME_LAND, in)
+		return clientMsgCall(component.MODEL_NAME_LAND, name, in)
 
 	case proto.EnvelopeType_SigninPlayer,
 		proto.EnvelopeType_ItemGet,
@@ -67,7 +67,7 @@ func onReceiveClientMessage(name string, msgType proto.EnvelopeType, in *common.
 		proto.EnvelopeType_GetItemSlot,
 		proto.EnvelopeType_UpgradeItemSlot,
 		proto.EnvelopeType_UpgradePlayerLevel:
-		return clientMsgCall(name, component.MODEL_NAME_PLAYER_DATA, in)
+		return clientMsgCall(component.MODEL_NAME_PLAYER_DATA, name, in)
 	}
 	return nil
 }
