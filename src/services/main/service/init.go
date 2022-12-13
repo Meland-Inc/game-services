@@ -12,9 +12,10 @@ import (
 	configData "github.com/Meland-Inc/game-services/src/global/configData"
 	gameDb "github.com/Meland-Inc/game-services/src/global/gameDB"
 	"github.com/Meland-Inc/game-services/src/global/serviceCnf"
+	"github.com/Meland-Inc/game-services/src/global/serviceHeart"
 	"github.com/Meland-Inc/game-services/src/global/userAgent"
 	mainDaprService "github.com/Meland-Inc/game-services/src/services/main/dapr"
-	mainHeart "github.com/Meland-Inc/game-services/src/services/main/heart"
+	"github.com/Meland-Inc/game-services/src/services/main/home_model"
 	land_model "github.com/Meland-Inc/game-services/src/services/main/landModel"
 	login_model "github.com/Meland-Inc/game-services/src/services/main/loginModel"
 	"github.com/Meland-Inc/game-services/src/services/main/playerModel"
@@ -35,11 +36,11 @@ func (s *Service) init() error {
 		return err
 	}
 
-	if err := s.initServiceModels(); err != nil {
+	if err := s.initDapr(); err != nil {
 		return err
 	}
 
-	if err := s.initDapr(); err != nil {
+	if err := s.initServiceModels(); err != nil {
 		return err
 	}
 
@@ -95,6 +96,10 @@ func (s *Service) initServiceModels() error {
 		return err
 	}
 
+	if err := s.initHomeModel(); err != nil {
+		return err
+	}
+
 	if err := s.initLandModel(); err != nil {
 		return err
 	}
@@ -103,7 +108,7 @@ func (s *Service) initServiceModels() error {
 }
 
 func (s *Service) initHeartModel() error {
-	heartModel := mainHeart.NewMainHeart(s.serviceCnf)
+	heartModel := serviceHeart.NewServiceHeartModel(s.serviceCnf)
 	err := s.modelMgr.AddModel(heartModel)
 	if err != nil {
 		serviceLog.Error("init service heart model fail, err: %v", err)
@@ -143,6 +148,15 @@ func (s *Service) initLoginModel() error {
 	err := s.modelMgr.AddModel(m)
 	if err != nil {
 		serviceLog.Error("init login  model fail, err: %v", err)
+	}
+	return err
+}
+
+func (s *Service) initHomeModel() error {
+	m := home_model.NewHomeModel()
+	err := s.modelMgr.AddModel(m)
+	if err != nil {
+		serviceLog.Error("init home data model fail, err: %v", err)
 	}
 	return err
 }

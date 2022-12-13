@@ -12,8 +12,8 @@ import (
 	"github.com/Meland-Inc/game-services/src/global/configData"
 	gameDb "github.com/Meland-Inc/game-services/src/global/gameDB"
 	"github.com/Meland-Inc/game-services/src/global/serviceCnf"
+	"github.com/Meland-Inc/game-services/src/global/serviceHeart"
 	accountDaprService "github.com/Meland-Inc/game-services/src/services/account/dapr"
-	accountHeart "github.com/Meland-Inc/game-services/src/services/account/heart"
 )
 
 func (s *Service) init() error {
@@ -62,7 +62,7 @@ func (s *Service) initServiceModels() error {
 }
 
 func (s *Service) initHeartModel() error {
-	heartModel := accountHeart.NewAccountHeart(s.serviceCnf)
+	heartModel := serviceHeart.NewServiceHeartModel(s.serviceCnf)
 	err := s.modelMgr.AddModel(heartModel)
 	if err != nil {
 		serviceLog.Error("init agent heart model fail, err: %v", err)

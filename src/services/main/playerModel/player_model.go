@@ -2,42 +2,44 @@ package playerModel
 
 import (
 	"fmt"
-	"game-message-core/proto"
 	"time"
 
 	"github.com/Meland-Inc/game-services/src/common/shardCache"
 	"github.com/Meland-Inc/game-services/src/global/component"
-	"github.com/Meland-Inc/game-services/src/global/gameDB"
-	dbData "github.com/Meland-Inc/game-services/src/global/gameDB/data"
 )
 
 type PlayerDataModel struct {
-	modelMgr  *component.ModelManager
-	modelName string
-	cache     *shardCache.ShardedCache
-	cacheTTL  time.Duration
+	component.ModelBase
+	modelEvent *component.ModelEvent
+
+	cache    *shardCache.ShardedCache
+	cacheTTL time.Duration
+}
+
+func GetPlayerDataModel() (*PlayerDataModel, error) {
+	iPlayerModel, exist := component.GetInstance().GetModel(component.MODEL_NAME_PLAYER_DATA)
+	if !exist {
+		return nil, fmt.Errorf("player data model not found")
+	}
+	dataModel, _ := iPlayerModel.(*PlayerDataModel)
+	return dataModel, nil
 }
 
 func NewPlayerModel() *PlayerDataModel {
-	return &PlayerDataModel{}
-}
-
-func (p *PlayerDataModel) Name() string {
-	return p.modelName
-}
-
-func (p *PlayerDataModel) ModelMgr() *component.ModelManager {
-	return p.modelMgr
+	p := &PlayerDataModel{
+		cacheTTL: time.Duration(10) * time.Minute,
+		cache:    shardCache.NewSharded(shardCache.NoExpiration, time.Duration(60)*time.Second, 2^4),
+	}
+	p.InitBaseModel(p, component.MODEL_NAME_PLAYER_DATA)
+	p.modelEvent = component.NewModelEvent(p)
+	return p
 }
 
 func (p *PlayerDataModel) OnInit(modelMgr *component.ModelManager) error {
 	if modelMgr == nil {
 		return fmt.Errorf("player model init service model manager is nil")
 	}
-	p.modelMgr = modelMgr
-	p.modelName = component.MODEL_NAME_PLAYER_DATA
-	p.cacheTTL = time.Duration(10) * time.Minute
-	p.cache = shardCache.NewSharded(shardCache.NoExpiration, time.Duration(60)*time.Second, 2^4)
+	p.ModelBase.OnInit(modelMgr)
 	return nil
 }
 
@@ -45,45 +47,22 @@ func (p *PlayerDataModel) OnStart() error {
 	return nil
 }
 
-func (p *PlayerDataModel) OnTick(curMs int64) error {
-	return p.tick()
+func (p *PlayerDataModel) OnTick(utc time.Time) {
+	p.ModelBase.OnTick(utc)
+	p.modelEvent.ReadEvent(utc.UnixMilli())
 }
 
-func (p *PlayerDataModel) OnStop() error {
-	p.modelMgr = nil
-	return nil
+func (p *PlayerDataModel) EventCall(env *component.ModelEventReq) *component.ModelEventResult {
+	return p.modelEvent.EventCall(env)
+}
+func (p *PlayerDataModel) EventCallNoReturn(env *component.ModelEventReq) {
+	p.modelEvent.EventCallNoReturn(env)
 }
 
-func (p *PlayerDataModel) OnExit() error {
-	return nil
-}
+func (p *PlayerDataModel) Secondly(utc time.Time) {}
 
-func (p *PlayerDataModel) tick() error {
-	return nil
-}
+func (p *PlayerDataModel) Minutely(utc time.Time) {}
 
-func (p *PlayerDataModel) GetPlayerBaseData(userId int64) (*dbData.PlayerBaseData, error) {
-	baseData := &dbData.PlayerBaseData{}
-	err := gameDB.GetGameDB().Where("user_id = ?", userId).First(baseData).Error
-	return baseData, err
-}
+func (p *PlayerDataModel) Hourly(utc time.Time) {}
 
-func (p *PlayerDataModel) PlayerAllData(userId int64) (
-	baseData *dbData.PlayerBaseData,
-	sceneData *dbData.PlayerSceneData,
-	avatars []*Item,
-	profile *proto.EntityProfile,
-	err error,
-) {
-	if baseData, err = p.GetPlayerBaseData(userId); err != nil {
-		return
-	}
-	if sceneData, err = p.GetPlayerSceneData(userId); err != nil {
-		return
-	}
-	if avatars, err = p.UsingAvatars(userId); err != nil {
-		return
-	}
-	profile, err = p.GetPlayerProfile(userId)
-	return
-}
+func (p *PlayerDataModel) Daily(utc time.Time) {}

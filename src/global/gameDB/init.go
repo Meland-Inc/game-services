@@ -24,6 +24,7 @@ func getDbTableModels() []interface{} {
 		dbData.PlayerTask{},
 		dbData.NftBuild{},
 		dbData.LoginData{},
+		dbData.HomeData{},
 	}
 }
 

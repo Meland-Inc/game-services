@@ -3,19 +3,21 @@ package userAgent
 import (
 	"fmt"
 	"sync"
+	"time"
 
 	"github.com/Meland-Inc/game-services/src/common/time_helper"
 	"github.com/Meland-Inc/game-services/src/global/component"
 )
 
 type UserAgentModel struct {
-	modelMgr  *component.ModelManager
-	modelName string
-	record    sync.Map
+	component.ModelBase
+	record sync.Map
 }
 
 func NewUserAgentModel() *UserAgentModel {
-	return &UserAgentModel{}
+	p := &UserAgentModel{}
+	p.InitBaseModel(p, component.MODEL_NAME_USER_AGENT)
+	return p
 }
 
 func GetUserAgentModel() *UserAgentModel {
@@ -27,40 +29,30 @@ func GetUserAgentModel() *UserAgentModel {
 	return agentModel
 }
 
-func (p *UserAgentModel) Name() string {
-	return p.modelName
-}
-
-func (p *UserAgentModel) ModelMgr() *component.ModelManager {
-	return p.modelMgr
-}
-
 func (p *UserAgentModel) OnInit(modelMgr *component.ModelManager) error {
 	if modelMgr == nil {
 		return fmt.Errorf("service model manager is nil")
 	}
-	p.modelMgr = modelMgr
-	p.modelName = component.MODEL_NAME_USER_AGENT
-	return nil
-}
-
-func (p *UserAgentModel) OnStart() error {
-	return nil
-}
-
-func (p *UserAgentModel) OnTick(curMs int64) error {
+	p.ModelBase.OnInit(modelMgr)
 	return nil
 }
 
 func (p *UserAgentModel) OnStop() error {
+	p.ModelBase.OnStop()
 	p.record = sync.Map{}
-	p.modelMgr = nil
 	return nil
 }
 
-func (p *UserAgentModel) OnExit() error {
+func (p *UserAgentModel) EventCall(env *component.ModelEventReq) *component.ModelEventResult {
 	return nil
 }
+func (p *UserAgentModel) EventCallNoReturn(env *component.ModelEventReq)    {}
+func (p *UserAgentModel) OnEvent(env *component.ModelEventReq, curMs int64) {}
+
+func (p *UserAgentModel) Secondly(utc time.Time) {}
+func (p *UserAgentModel) Minutely(utc time.Time) {}
+func (p *UserAgentModel) Hourly(utc time.Time)   {}
+func (p *UserAgentModel) Daily(utc time.Time)    {}
 
 func (p *UserAgentModel) GetUserAgent(userId int64) (*UserAgentData, bool) {
 	iAgent, exist := p.record.Load(userId)

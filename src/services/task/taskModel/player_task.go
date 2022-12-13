@@ -5,7 +5,6 @@ import (
 	"game-message-core/proto"
 
 	"github.com/Meland-Inc/game-services/src/common/serviceLog"
-	"github.com/Meland-Inc/game-services/src/common/time_helper"
 	"github.com/Meland-Inc/game-services/src/global/gameDB"
 	dbData "github.com/Meland-Inc/game-services/src/global/gameDB/data"
 	"gorm.io/gorm"
@@ -156,14 +155,5 @@ func (p *TaskModel) updatePlayerTaskList(userId int64, taskList *dbData.TaskList
 		return err
 	}
 	p.broadCastUpdateTaskListInfo(userId, proto.TaskListType(taskList.TaskListType), taskList)
-	return nil
-}
-
-func (p *TaskModel) taskTick(curMs int64) error {
-	now := time_helper.NowUTC()
-	if now.Hour() != 0 || now.Minute() != 0 {
-		return nil
-	}
-	p.checkAndResetPlayerTask(now)
 	return nil
 }

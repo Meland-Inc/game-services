@@ -34,6 +34,7 @@ type ConfigDataManager struct {
 	dropCnf      map[int32]xlsxTable.DropTableRow
 	chatCnf      map[proto.ChatChannelType]xlsxTable.ChatTableRow
 	gameValueCnf map[int32]xlsxTable.GameValueTable
+	sceneAreaCnf map[int32]xlsxTable.SceneAreaRow
 }
 
 func Init() error {
@@ -65,6 +66,7 @@ func (mgr *ConfigDataManager) registerLoadFunctions() {
 		LoadFunc{"drop", mgr.initDrop},
 		LoadFunc{"chat", mgr.initChatCnf},
 		LoadFunc{"gameValue", mgr.initGameValue},
+		LoadFunc{"SceneArea", mgr.initSceneArea},
 	}
 }
 
