@@ -36,7 +36,7 @@ func (mgr *ModelManager) GetModel(modelName string) (ModelInterface, bool) {
 }
 
 func (mgr *ModelManager) AddModel(model ModelInterface) error {
-	serviceLog.Debug("addModel [%v]", model.Name())
+	serviceLog.Info("addModel [%v]", model.Name())
 	if err := model.OnInit(mgr); err != nil {
 		return err
 	}

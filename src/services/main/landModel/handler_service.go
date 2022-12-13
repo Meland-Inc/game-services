@@ -10,15 +10,19 @@ import (
 
 func (p *LandModel) GRPCGetAllBuildHandler(env *component.ModelEventReq, curMs int64) {
 	inputBs, ok := env.Msg.([]byte)
-	serviceLog.Debug("received service GetAllBuild : %s, [%v]", inputBs, ok)
+	serviceLog.Debug("received GetAllBuild : %s, [%v]", inputBs, ok)
 	if !ok {
 		serviceLog.Error("service GetAllBuild to string failed: %s", inputBs)
 		return
 	}
 
-	output := &methodData.MainServiceActionGetAllBuildOutput{}
+	output := &methodData.MainServiceActionGetAllBuildOutput{Success: true}
 	result := &component.ModelEventResult{}
 	defer func() {
+		if output.ErrMsg != "" {
+			output.Success = false
+		}
+		serviceLog.Debug("GetAllBuild output = %+v", output)
 		result.SetResult(output)
 		env.WriteResult(result)
 	}()
@@ -26,13 +30,13 @@ func (p *LandModel) GRPCGetAllBuildHandler(env *component.ModelEventReq, curMs i
 	input := &methodData.MainServiceActionGetAllBuildInput{}
 	err := grpcNetTool.UnmarshalGrpcData(inputBs, input)
 	if err != nil {
-		result.Err = err
+		output.ErrMsg = err.Error()
 		return
 	}
 
 	mapRecord, err := p.GetMapLandRecord(input.MapId)
 	if err != nil {
-		result.Err = err
+		output.ErrMsg = err.Error()
 		return
 	}
 

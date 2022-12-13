@@ -29,6 +29,7 @@ func GetLandModel() (*LandModel, error) {
 
 func NewLandModel() *LandModel {
 	p := &LandModel{mapList: []int32{10001}}
+	p.InitBaseModel(p, component.MODEL_NAME_LAND)
 	p.modelEvent = component.NewModelEvent(p)
 	return p
 }
@@ -38,7 +39,7 @@ func (p *LandModel) OnInit(modelMgr *component.ModelManager) error {
 		return fmt.Errorf("land model init service model manager is nil")
 	}
 	p.ModelBase.OnInit(modelMgr)
-	p.InitBaseModel(p, component.MODEL_NAME_LAND)
+
 	for _, mapId := range p.mapList {
 		mapRecord := NewMapLandDataRecord(mapId)
 		p.mapLandRecordMgr.Store(mapId, mapRecord)

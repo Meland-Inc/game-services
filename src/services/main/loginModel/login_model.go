@@ -21,7 +21,9 @@ func GetLoginModel() (*LoginModel, error) {
 }
 
 func NewLoginModel() *LoginModel {
-	return &LoginModel{}
+	p := &LoginModel{}
+	p.InitBaseModel(p, component.MODEL_NAME_LOGIN)
+	return p
 }
 
 func (p *LoginModel) OnInit(modelMgr *component.ModelManager) error {
@@ -29,7 +31,7 @@ func (p *LoginModel) OnInit(modelMgr *component.ModelManager) error {
 		return fmt.Errorf("login model init service model manager is nil")
 	}
 	p.ModelBase.OnInit(modelMgr)
-	p.InitBaseModel(p, component.MODEL_NAME_LOGIN)
+
 	return nil
 }
 
