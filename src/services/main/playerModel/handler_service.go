@@ -26,9 +26,12 @@ func (p *PlayerDataModel) GRPCGetUserDataHandler(env *component.ModelEventReq, c
 		return
 	}
 
-	output := &methodData.GetUserDataOutput{}
+	output := &methodData.GetUserDataOutput{Success: true}
 	result := &component.ModelEventResult{}
 	defer func() {
+		if output.ErrMsg != "" {
+			output.Success = false
+		}
 		result.SetResult(output)
 		env.WriteResult(result)
 	}()
@@ -36,13 +39,13 @@ func (p *PlayerDataModel) GRPCGetUserDataHandler(env *component.ModelEventReq, c
 	input := &methodData.GetUserDataInput{}
 	err := grpcNetTool.UnmarshalGrpcData(inputBs, input)
 	if err != nil {
-		result.Err = err
+		output.ErrMsg = err.Error()
 		return
 	}
 
 	baseData, sceneData, avatars, profile, err := p.PlayerAllData(input.UserId)
 	if err != nil {
-		result.Err = err
+		output.ErrMsg = err.Error()
 		return
 	}
 
@@ -77,9 +80,12 @@ func (p *PlayerDataModel) GRPCTakeUserNftHandler(env *component.ModelEventReq, c
 		return
 	}
 
-	output := &methodData.MainServiceActionTakeNftOutput{}
+	output := &methodData.MainServiceActionTakeNftOutput{Success: true}
 	result := &component.ModelEventResult{}
 	defer func() {
+		if output.FailedMsg != "" {
+			output.Success = false
+		}
 		result.SetResult(output)
 		env.WriteResult(result)
 	}()
@@ -87,17 +93,17 @@ func (p *PlayerDataModel) GRPCTakeUserNftHandler(env *component.ModelEventReq, c
 	input := &methodData.MainServiceActionTakeNftInput{}
 	err := grpcNetTool.UnmarshalGrpcData(inputBs, input)
 	if err != nil {
-		result.Err = err
+		output.FailedMsg = err.Error()
 		return
 	}
 	if input.UserId < 1 {
-		result.Err = fmt.Errorf("invalid user id: %d", input.UserId)
+		output.FailedMsg = fmt.Sprintf("invalid user id: %d", input.UserId)
 		return
 	}
 
 	playerItem, err := p.GetPlayerItems(input.UserId)
 	if err != nil {
-		result.Err = err
+		output.FailedMsg = err.Error()
 		return
 	}
 
@@ -116,7 +122,7 @@ func (p *PlayerDataModel) GRPCTakeUserNftHandler(env *component.ModelEventReq, c
 			}
 		}
 		if giveCount > 0 {
-			result.Err = fmt.Errorf("not fund NFT %+v", tn)
+			output.FailedMsg = fmt.Sprintf("not fund NFT %+v", tn)
 			return
 		}
 	}

@@ -19,9 +19,13 @@ func (p *HomeModel) GRPCGetHomeDataHandler(env *component.ModelEventReq, curMs i
 		return
 	}
 
-	output := &methodData.MainServiceActionGetHomeDataOutput{}
+	output := &methodData.MainServiceActionGetHomeDataOutput{Success: true}
 	result := &component.ModelEventResult{}
 	defer func() {
+		if output.ErrMsg != "" {
+			output.Success = false
+		}
+		serviceLog.Debug("getHomeData output = %+v", output)
 		result.SetResult(output)
 		env.WriteResult(result)
 	}()
@@ -29,13 +33,12 @@ func (p *HomeModel) GRPCGetHomeDataHandler(env *component.ModelEventReq, curMs i
 	input := &methodData.MainServiceActionGetHomeDataInput{}
 	err := grpcNetTool.UnmarshalGrpcData(inputBs, input)
 	if err != nil {
-		result.Err = err
+		output.ErrMsg = err.Error()
 		return
 	}
 
 	homeData, err := p.GetUserHomeData(input.UserId)
 	if err != nil {
-		output.Success = false
 		output.ErrMsg = err.Error()
 		return
 	}
