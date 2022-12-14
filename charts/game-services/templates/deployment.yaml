@@ -19,6 +19,10 @@ spec:
         dapr.io/app-id: {{ .Values.dapr.appId | default .Chart.Name | quote }}
         dapr.io/app-port: {{ .Values.dapr.containerPort | quote }}
         dapr.io/app-protocol: {{ .Values.dapr.protocol | quote }}
+        dapr.io/sidecar-cpu-limit: "1"
+        dapr.io/sidecar-cpu-request: "100m"
+        dapr.io/sidecar-memory-limit: "200Mi"
+        dapr.io/sidecar-memory-request: "30Mi"
         {{- end }}
     spec:
       imagePullSecrets:
