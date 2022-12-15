@@ -16,6 +16,12 @@ func InitDaprPubsubEvent() (err error) {
 
 func initServiceGrpcPubsubEventHandle() error {
 	if err := daprInvoke.AddTopicEventHandler(
+		string(grpc.SubscriptionEventUserChangeService),
+		UserChangeServiceHandler,
+	); err != nil {
+		return err
+	}
+	if err := daprInvoke.AddTopicEventHandler(
 		string(grpc.SubscriptionEventUserEnterGame),
 		UserEnterGameEventHandler,
 	); err != nil {

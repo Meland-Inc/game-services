@@ -102,6 +102,12 @@ func initServiceGrpcPubsubEventHandle() error {
 		return err
 	}
 
+	if err := daprInvoke.AddTopicEventHandler(makePubsubEventHandler(
+		string(grpc.SubscriptionEventUserChangeService), component.MODEL_NAME_PLAYER_DATA,
+	)); err != nil {
+		return err
+	}
+
 	return nil
 }
 
