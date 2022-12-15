@@ -78,7 +78,7 @@ func (p *ControllerModel) UnregisterServiceEvent(env *component.ModelEventReq, c
 
 func (p *ControllerModel) RegisterServiceHandler(env *component.ModelEventReq, curMs int64) {
 	msg, ok := env.Msg.([]byte)
-	serviceLog.Info("service register : %s, [%v]", msg, ok)
+	// serviceLog.Info("service register : %s, [%v]", msg, ok)
 	if !ok {
 		serviceLog.Error("service register to string failed: %v", msg)
 		return
@@ -204,7 +204,7 @@ func (p *ControllerModel) MultiSelectServiceHandler(env *component.ModelEventReq
 
 func (p *ControllerModel) StartServiceHandler(env *component.ModelEventReq, curMs int64) {
 	msg, ok := env.Msg.([]byte)
-	serviceLog.Info("start service : %s, [%v]", msg, ok)
+	serviceLog.Info("received --start service : %s, [%v]", msg, ok)
 	if !ok {
 		serviceLog.Error("start service msg to string failed: %v", msg)
 		return
@@ -226,6 +226,7 @@ func (p *ControllerModel) StartServiceHandler(env *component.ModelEventReq, curM
 	}
 
 	ser, exist := p.GetAliveServiceByType(input.ServiceType, input.SceneSerSubType, input.MapId, input.OwnerId)
+	serviceLog.Debug("start service exist[%v] ser = %+v", exist, ser)
 	if exist { // 服务已启动
 		go func() {
 			// 延时200MS 通知服务启动完成 以保证 grpc output消息先到达

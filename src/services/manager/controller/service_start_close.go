@@ -35,7 +35,7 @@ func (this *ControllerModel) startUserPrivateService(
 	*/
 
 	iSer, exist := this.startingPrivateSer.Load(ownerId)
-	if !exist {
+	if exist {
 		return iSer.(*ServiceData), nil
 	}
 
