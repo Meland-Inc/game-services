@@ -30,6 +30,7 @@ func UserChangeServiceHandler(ctx context.Context, e *common.TopicEvent) (retry 
 	userAgent := userChannel.GetInstance().UserChannelByOwner(input.UserId)
 	if userAgent != nil {
 		userAgent.SetSceneService(input.ToService.AppId)
+		serviceLog.Debug("user change scene service new data = %v", userAgent.GetSceneService())
 	}
 
 	return false, nil
