@@ -139,7 +139,7 @@ func (p *ChatModel) OnUpdatePlayerData(env *pubsubEventData.SavePlayerEventData)
 
 	newData := NewPlayerChatData(
 		playerChatData.UserId, playerChatData.Name, playerChatData.RoleIcon,
-		env.MapId, env.PosX, env.PosY, env.PosZ,
+		env.FormService.MapId, env.PosX, env.PosY, env.PosZ,
 		playerChatData.SceneServiceAppId,
 		playerChatData.AgentAppId,
 		playerChatData.UserSocketId,

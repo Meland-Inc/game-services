@@ -265,7 +265,7 @@ func (p *PlayerDataModel) GRPCSavePlayerDataEvent(env *component.ModelEventReq, 
 	}
 	if err = p.UpPlayerSceneData(
 		input.UserId, input.CurHP, sceneData.Level, sceneData.Exp,
-		input.MapId, input.PosX, input.PosY, input.PosZ,
+		input.FormService.MapId, input.PosX, input.PosY, input.PosZ,
 		input.DirX, input.DirY, input.DirZ,
 	); err != nil {
 		serviceLog.Error(err.Error())
