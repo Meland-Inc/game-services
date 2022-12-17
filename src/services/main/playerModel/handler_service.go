@@ -263,11 +263,24 @@ func (p *PlayerDataModel) GRPCSavePlayerDataEvent(env *component.ModelEventReq, 
 		serviceLog.Error("SavePlayerEvent scene Data  not found")
 		return
 	}
-	if err = p.UpPlayerSceneData(
-		input.UserId, input.CurHP, sceneData.Level, sceneData.Exp,
-		input.FormService.MapId, input.PosX, input.PosY, input.PosZ,
-		input.DirX, input.DirY, input.DirZ,
-	); err != nil {
+
+	switch input.FormService.SceneSerSubType {
+	case proto.SceneServiceSubType_World, proto.SceneServiceSubType_Home:
+		err = p.UpPlayerSceneData(
+			input.UserId, input.CurHP, sceneData.Level, sceneData.Exp,
+			input.FormService.MapId, input.PosX, input.PosY, input.PosZ,
+			input.DirX, input.DirY, input.DirZ,
+		)
+	case proto.SceneServiceSubType_Dungeon:
+		err = p.UpPlayerSceneData(
+			input.UserId, input.CurHP, sceneData.Level, sceneData.Exp,
+			sceneData.MapId, sceneData.X, sceneData.Y, sceneData.Z,
+			sceneData.DirX, sceneData.DirY, sceneData.DirZ,
+		)
+	default:
+		err = fmt.Errorf("invalid service sub type %v", input.FormService.SceneSerSubType)
+	}
+	if err != nil {
 		serviceLog.Error(err.Error())
 	}
 }
