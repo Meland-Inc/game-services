@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"game-message-core/proto"
 
-	"github.com/Meland-Inc/game-services/src/common/serviceLog"
 	"github.com/Meland-Inc/game-services/src/common/time_helper"
 	"github.com/Meland-Inc/game-services/src/global/configData"
 	"github.com/Meland-Inc/game-services/src/global/gameDB"
@@ -17,7 +16,7 @@ func (p *PlayerDataModel) getBirthData() (mapId int32, pos proto.Vector3) {
 	return 10001, proto.Vector3{X: 271, Y: 6, Z: 45}
 }
 
-func (p *PlayerDataModel) initPlayerSceneData(userId int64) (*dbData.PlayerSceneData, error) {
+func (p *PlayerDataModel) initPlayerSceneData(tx *gorm.DB, userId int64) (*dbData.PlayerSceneData, error) {
 	defaultMap, defaultPos := p.getBirthData()
 	data := &dbData.PlayerSceneData{
 		UserId:      userId,
@@ -31,43 +30,29 @@ func (p *PlayerDataModel) initPlayerSceneData(userId int64) (*dbData.PlayerScene
 		DirX:        0,
 		DirY:        0,
 		DirZ:        1,
-		BirthMapId:  defaultMap,
-		BirthX:      defaultPos.X,
-		BirthY:      defaultPos.Y,
-		BirthZ:      defaultPos.Z,
 		LastLoginAt: time_helper.NowUTC(),
 	}
 	lvCnf := configData.ConfigMgr().RoleLevelCnf(data.Level)
 	if lvCnf != nil {
 		data.Hp = lvCnf.HpLimit
 	} else {
-		serviceLog.Error("role level[%v]config not found", data.Level)
+		return nil, fmt.Errorf("role level[%v]config not found", data.Level)
 	}
 
-	err := gameDB.GetGameDB().Create(data).Error
+	err := tx.Create(data).Error
 	return data, err
 }
 
-func (p *PlayerDataModel) GetPlayerSceneData(userId int64) (*dbData.PlayerSceneData, error) {
-	cacheKey := p.getPlayerSceneDataKey(userId)
-	iData, err := p.cache.GetOrStore(
-		cacheKey,
-		func() (interface{}, error) {
-			data := &dbData.PlayerSceneData{}
-			err := gameDB.GetGameDB().Where("user_id = ?", userId).First(data).Error
-			if err != nil && err == gorm.ErrRecordNotFound {
-				data, err = p.initPlayerSceneData(userId)
-			}
-			return data, err
-		},
-		p.cacheTTL,
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	p.cache.Touch(cacheKey, p.cacheTTL)
-	return iData.(*dbData.PlayerSceneData), nil
+func (p *PlayerDataModel) GetPlayerSceneData(userId int64) (row *dbData.PlayerSceneData, err error) {
+	row = &dbData.PlayerSceneData{}
+	gameDB.GetGameDB().Transaction(func(tx *gorm.DB) error {
+		err = tx.Where("user_id = ?", userId).First(row).Error
+		if err != nil && err == gorm.ErrRecordNotFound {
+			row, err = p.initPlayerSceneData(tx, userId)
+		}
+		return err
+	})
+	return row, err
 }
 
 func (p *PlayerDataModel) UpPlayerSceneData(
