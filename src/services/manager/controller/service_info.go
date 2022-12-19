@@ -28,6 +28,10 @@ type ServiceData struct {
 	UserLastOnlineAt int64                     `json:"userLastOnlineAt"`
 }
 
+func (s *ServiceData) UpdateUserLastOnlineAt() {
+	s.UserLastOnlineAt = time_helper.NowUTCMill()
+}
+
 func (s *ServiceData) ToGrpcService() base_data.ServiceData {
 	return base_data.ServiceData{
 		AppId:           s.AppId,
@@ -44,17 +48,19 @@ func (s *ServiceData) ToGrpcService() base_data.ServiceData {
 	}
 }
 
-type ServiceRecord struct {
-	ServiceType  proto.ServiceType      `json:"serviceType"`
-	Services     map[string]ServiceData `json:"services"`
-	statusRecord *ServiceStatusRecord   `json:"-"`
-}
-
-func NewServiceRecord(serviceType proto.ServiceType) *ServiceRecord {
-	return &ServiceRecord{
-		ServiceType:  serviceType,
-		Services:     make(map[string]ServiceData),
-		statusRecord: NewServiceStatusRecord(),
+func ToServiceData(grpcSerData base_data.ServiceData) ServiceData {
+	return ServiceData{
+		AppId:           grpcSerData.AppId,
+		ServiceType:     grpcSerData.ServiceType,
+		SceneSerSubType: grpcSerData.SceneSerSubType,
+		OwnerId:         grpcSerData.Owner,
+		Host:            grpcSerData.Host,
+		Port:            grpcSerData.Port,
+		MapId:           grpcSerData.MapId,
+		Online:          grpcSerData.Online,
+		MaxOnline:       grpcSerData.MaxOnline,
+		CreateAt:        grpcSerData.CreatedAt,
+		UpdateAt:        grpcSerData.UpdatedAt,
 	}
 }
 
@@ -80,6 +86,20 @@ func CheckAlive(ser ServiceData) bool {
 	}
 }
 
+type ServiceRecord struct {
+	ServiceType  proto.ServiceType      `json:"serviceType"`
+	Services     map[string]ServiceData `json:"services"`
+	statusRecord *ServiceStatusRecord   `json:"-"`
+}
+
+func NewServiceRecord(serviceType proto.ServiceType) *ServiceRecord {
+	return &ServiceRecord{
+		ServiceType:  serviceType,
+		Services:     make(map[string]ServiceData),
+		statusRecord: NewServiceStatusRecord(),
+	}
+}
+
 func (sr *ServiceRecord) RemoveServiceRecord(appId string) {
 	ser, exist := sr.Services[appId]
 	if !exist {
@@ -98,7 +118,7 @@ func (sr *ServiceRecord) AddServiceRecord(service ServiceData) {
 		service.CreateAt = service.UpdateAt
 	}
 	if service.Online > 0 {
-		service.UserLastOnlineAt = service.UpdateAt
+		service.UpdateUserLastOnlineAt()
 	}
 
 	sr.Services[service.AppId] = service
