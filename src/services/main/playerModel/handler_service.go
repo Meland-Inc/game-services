@@ -265,18 +265,19 @@ func (p *PlayerDataModel) GRPCSavePlayerDataEvent(env *component.ModelEventReq, 
 	}
 
 	switch input.FormService.SceneSerSubType {
-	case proto.SceneServiceSubType_World, proto.SceneServiceSubType_Home:
-		err = p.UpPlayerSceneData(
-			input.UserId, input.CurHP, sceneData.Level, sceneData.Exp,
-			input.FormService.MapId, input.PosX, input.PosY, input.PosZ,
-			input.DirX, input.DirY, input.DirZ,
-		)
-	case proto.SceneServiceSubType_Dungeon:
-		err = p.UpPlayerSceneData(
-			input.UserId, input.CurHP, sceneData.Level, sceneData.Exp,
-			sceneData.MapId, sceneData.X, sceneData.Y, sceneData.Z,
-			sceneData.DirX, sceneData.DirY, sceneData.DirZ,
-		)
+	case proto.SceneServiceSubType_World:
+		sceneData.Hp = input.CurHP
+		sceneData.MapId = input.FormService.MapId
+		sceneData.X = input.PosX
+		sceneData.Y = input.PosY
+		sceneData.Z = input.PosZ
+		sceneData.DirX = input.DirX
+		sceneData.DirY = input.DirY
+		sceneData.DirZ = input.DirZ
+		err = p.UpPlayerSceneData(sceneData)
+	case proto.SceneServiceSubType_Dungeon, proto.SceneServiceSubType_Home:
+		sceneData.Hp = input.CurHP
+		err = p.UpPlayerSceneData(sceneData)
 	default:
 		err = fmt.Errorf("invalid service sub type %v", input.FormService.SceneSerSubType)
 	}
