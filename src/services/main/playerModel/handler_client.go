@@ -1,7 +1,6 @@
 package playerModel
 
 import (
-	"fmt"
 	"game-message-core/grpc/methodData"
 	"game-message-core/proto"
 	"game-message-core/protoTool"
@@ -11,9 +10,7 @@ import (
 	"github.com/Meland-Inc/game-services/src/common/time_helper"
 	"github.com/Meland-Inc/game-services/src/global/auth"
 	"github.com/Meland-Inc/game-services/src/global/component"
-	"github.com/Meland-Inc/game-services/src/global/grpcAPI/grpcInvoke"
 	"github.com/Meland-Inc/game-services/src/global/grpcAPI/grpcNetTool"
-	"github.com/Meland-Inc/game-services/src/global/serviceCnf"
 	"github.com/Meland-Inc/game-services/src/global/userAgent"
 	login_model "github.com/Meland-Inc/game-services/src/services/main/loginModel"
 )
@@ -62,32 +59,6 @@ func (p *PlayerDataModel) clientMsgHandler(env *component.ModelEventReq, curMs i
 	}
 }
 
-func checkRepeatedSingIn(userId int64, agentAppId, socketId, sceneAppId string) error {
-	loginModel, err := login_model.GetLoginModel()
-	if err != nil {
-		return err
-	}
-	return loginModel.OnLogin(userId, agentAppId, socketId, sceneAppId)
-}
-func selectSceneAppId(clientPushSceneAppId string, mapId int32, userId int64) (string, error) {
-	if serviceCnf.GetInstance().IsDevelop && clientPushSceneAppId != "" {
-		return clientPushSceneAppId, nil
-	}
-	serviceOut, err := grpcInvoke.RPCSelectService(
-		proto.ServiceType_ServiceTypeScene,
-		proto.SceneServiceSubType_World,
-		0,
-		mapId,
-	)
-	serviceLog.Debug("getSceneAppId output = %+v", serviceOut)
-	if err != nil {
-		return "", err
-	}
-	if serviceOut.ErrorCode > 0 {
-		return "", fmt.Errorf(serviceOut.ErrorMessage)
-	}
-	return serviceOut.Service.AppId, nil
-}
 func (p *PlayerDataModel) SingInHandler(
 	agent *userAgent.UserAgentData, input *methodData.PullClientMessageInput, msg *proto.Envelope,
 ) {
@@ -114,17 +85,18 @@ func (p *PlayerDataModel) SingInHandler(
 		respMsg.ErrorMessage = err.Error()
 		return
 	}
+
+	loginModel, _ := login_model.GetLoginModel()
+	sceneAppId, err := loginModel.GetUserLoginData(userId, input.AgentAppId, input.SocketId)
+	if err != nil {
+		respMsg.ErrorMessage = err.Error()
+		return
+	}
+	if req.SceneServiceAppId != "" {
+		sceneAppId = req.SceneServiceAppId
+	}
+
 	playerData, err := p.PlayerProtoData(userId)
-	if err != nil {
-		respMsg.ErrorMessage = err.Error()
-		return
-	}
-	sceneAppId, err := selectSceneAppId(req.SceneServiceAppId, playerData.MapId, userId)
-	if err != nil {
-		respMsg.ErrorMessage = err.Error()
-		return
-	}
-	err = checkRepeatedSingIn(userId, input.AgentAppId, input.SocketId, sceneAppId)
 	if err != nil {
 		respMsg.ErrorMessage = err.Error()
 		return

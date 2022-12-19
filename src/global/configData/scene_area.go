@@ -36,6 +36,10 @@ func (mgr *ConfigDataManager) AllSceneArea() []xlsxTable.SceneAreaRow {
 	return rows
 }
 
+func GetHomeEntrance() (mapId int32, pos proto.Vector3) {
+	return 10001, proto.Vector3{X: 198, Y: 2, Z: 203}
+}
+
 func ToServiceSubType(subTypeStr string) proto.SceneServiceSubType {
 	t := proto.SceneServiceSubType_UnknownSubType
 	switch subTypeStr {
