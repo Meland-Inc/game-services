@@ -5,13 +5,11 @@ import (
 	"game-message-core/grpc"
 	"game-message-core/grpc/methodData"
 	"game-message-core/grpc/pubsubEventData"
-	"time"
 
 	"github.com/Meland-Inc/game-services/src/common/serviceLog"
 	"github.com/Meland-Inc/game-services/src/common/time_helper"
 	"github.com/Meland-Inc/game-services/src/global/component"
 	"github.com/Meland-Inc/game-services/src/global/grpcAPI/grpcNetTool"
-	"github.com/Meland-Inc/game-services/src/global/grpcAPI/grpcPubsubEvent"
 	"github.com/Meland-Inc/game-services/src/global/serviceCnf"
 	"github.com/dapr/go-sdk/service/common"
 )
@@ -59,21 +57,7 @@ func (p *ControllerModel) UnregisterServiceEvent(env *component.ModelEventReq, c
 	}
 
 	serviceLog.Info("service UnRegister: %v", input)
-
-	service := ServiceData{
-		AppId:           input.Service.AppId,
-		ServiceType:     input.Service.ServiceType,
-		SceneSerSubType: input.Service.SceneSerSubType,
-		OwnerId:         input.Service.Owner,
-		Host:            input.Service.Host,
-		Port:            input.Service.Port,
-		MapId:           input.Service.MapId,
-		Online:          input.Service.Online,
-		MaxOnline:       input.Service.MaxOnline,
-		CreateAt:        input.Service.CreatedAt,
-		UpdateAt:        input.Service.UpdatedAt,
-	}
-	p.DestroyService(service)
+	p.DestroyService(ToServiceData(input.Service))
 }
 
 func (p *ControllerModel) RegisterServiceHandler(env *component.ModelEventReq, curMs int64) {
@@ -99,34 +83,16 @@ func (p *ControllerModel) RegisterServiceHandler(env *component.ModelEventReq, c
 		return
 	}
 
-	service := ServiceData{
-		AppId:           input.Service.AppId,
-		ServiceType:     input.Service.ServiceType,
-		SceneSerSubType: input.Service.SceneSerSubType,
-		OwnerId:         input.Service.Owner,
-		Host:            input.Service.Host,
-		Port:            input.Service.Port,
-		MapId:           input.Service.MapId,
-		Online:          input.Service.Online,
-		MaxOnline:       input.Service.MaxOnline,
-		CreateAt:        input.Service.CreatedAt,
-		UpdateAt:        input.Service.UpdatedAt,
-	}
+	service := ToServiceData(input.Service)
 	_, exist := p.GetAliveServiceByType(service.ServiceType, service.SceneSerSubType, service.MapId, service.OwnerId)
+	if !exist {
+		// 玩家私有的服务 && 第一次注册时 发布启动完成事件
+		p.GrpcCallPrivateSerStarted(&service)
+	}
 	// serviceLog.Debug("register service success %+v", service)
 	p.RegisterService(service)
 	output.Success = true
 	output.RegisterAt = input.RegisterAt
-
-	// 玩家私有的服务 && 第一次注册时 发布启动完成事件
-	if !exist && IsUserPrivateSer(service) {
-		go func() {
-			// 延时50MS 通知服务启动完成 以保证 grpc output消息先到达
-			time.Sleep(time.Millisecond * 50)
-			grpcSerData := service.ToGrpcService()
-			grpcPubsubEvent.RPCPubsubEventServiceStarted(grpcSerData)
-		}()
-	}
 }
 
 func (p *ControllerModel) SelectServiceHandler(env *component.ModelEventReq, curMs int64) {
@@ -228,15 +194,10 @@ func (p *ControllerModel) StartServiceHandler(env *component.ModelEventReq, curM
 	ser, exist := p.GetAliveServiceByType(input.ServiceType, input.SceneSerSubType, input.MapId, input.OwnerId)
 	serviceLog.Debug("start service exist[%v] ser = %+v", exist, ser)
 	if exist { // 服务已启动
-		go func() {
-			// 延时200MS 通知服务启动完成 以保证 grpc output消息先到达
-			time.Sleep(time.Millisecond * 100)
-			grpcPubsubEvent.RPCPubsubEventServiceStarted(ser.ToGrpcService())
-		}()
+		p.GrpcCallPrivateSerStarted(ser)
 	} else {
 		if _, err = p.startUserPrivateService(
-			input.ServiceType, input.SceneSerSubType,
-			input.MapId, input.OwnerId,
+			input.ServiceType, input.SceneSerSubType, input.MapId, input.OwnerId,
 		); err != nil {
 			output.Success = false
 			output.ErrMsg = err.Error()

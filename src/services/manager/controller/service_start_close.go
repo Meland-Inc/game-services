@@ -3,10 +3,27 @@ package controller
 import (
 	"fmt"
 	"game-message-core/proto"
+	"time"
 
 	"github.com/Meland-Inc/game-services/src/common/serviceLog"
 	"github.com/Meland-Inc/game-services/src/common/time_helper"
+	"github.com/Meland-Inc/game-services/src/global/grpcAPI/grpcPubsubEvent"
 )
+
+func (this *ControllerModel) GrpcCallPrivateSerStarted(ser *ServiceData) {
+	if !IsUserPrivateSer(*ser) {
+		return
+	}
+
+	// 保证在此时间内服务不会因为过期而关闭
+	ser.UpdateUserLastOnlineAt()
+
+	go func() {
+		// 延时100MS 通知服务启动完成 以保证 grpc output消息先到达
+		time.Sleep(time.Millisecond * 100)
+		grpcPubsubEvent.RPCPubsubEventServiceStarted(ser.ToGrpcService())
+	}()
+}
 
 func (this *ControllerModel) AddStartingService(ser *ServiceData) {
 	this.startingPrivateSer.Store(ser.OwnerId, ser)
