@@ -9,16 +9,6 @@ import (
 	"github.com/Meland-Inc/game-services/src/global/userAgent"
 )
 
-func (p *PlayerDataModel) SendToPlayer(userId int64, msg *proto.Envelope) {
-	agentModel := userAgent.GetUserAgentModel()
-	agent, exist := agentModel.GetUserAgent(userId)
-	if !exist {
-		serviceLog.Warning("user [%d] agent data not found", userId)
-		return
-	}
-	agent.SendToPlayer(serviceCnf.GetInstance().AppId, msg)
-}
-
 func (p *PlayerDataModel) noticePlayerProfileUpdate(userId int64, profiles []*proto.EntityProfileUpdate) {
 	msg := &proto.Envelope{
 		Type: proto.EnvelopeType_BroadCastEntityProfileUpdate,
@@ -30,7 +20,10 @@ func (p *PlayerDataModel) noticePlayerProfileUpdate(userId int64, profiles []*pr
 		},
 	}
 
-	p.SendToPlayer(userId, msg)
+	err := userAgent.SendToPlayer(serviceCnf.GetInstance().AppId, userId, msg)
+	if err != nil {
+		serviceLog.Error(err.Error())
+	}
 }
 
 func (p *PlayerDataModel) noticePlayerItemMsg(userId int64, nType proto.EnvelopeType, items []*Item) {
@@ -61,7 +54,10 @@ func (p *PlayerDataModel) noticePlayerItemMsg(userId int64, nType proto.Envelope
 		return
 	}
 
-	p.SendToPlayer(userId, msg)
+	err := userAgent.SendToPlayer(serviceCnf.GetInstance().AppId, userId, msg)
+	if err != nil {
+		serviceLog.Error(err.Error())
+	}
 }
 
 func (p *PlayerDataModel) noticeUpdatePlayerItemSlot(slot *dbData.ItemSlot) {
@@ -83,5 +79,9 @@ func (p *PlayerDataModel) noticeUpdatePlayerItemSlot(slot *dbData.ItemSlot) {
 			},
 		},
 	}
-	p.SendToPlayer(slot.UserId, msg)
+
+	err := userAgent.SendToPlayer(serviceCnf.GetInstance().AppId, slot.UserId, msg)
+	if err != nil {
+		serviceLog.Error(err.Error())
+	}
 }
