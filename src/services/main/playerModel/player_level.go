@@ -105,21 +105,15 @@ func (p *PlayerDataModel) setLevelAndExp(userId int64, lv, exp int32) error {
 		})
 	}
 	if player.Exp != exp {
-		player.Exp = exp
+		player.Exp = matrix.LimitInt32(exp, 0, configData.RoleCurrentExpLimit())
 		upProfiles = append(upProfiles, &proto.EntityProfileUpdate{
 			Field:    proto.EntityProfileField_EntityProfileFieldExp,
 			CurValue: exp,
 		})
 	}
-
-	exp = matrix.LimitInt32(exp, 0, configData.RoleCurrentExpLimit())
-	if err = p.UpPlayerSceneData(
-		userId, player.Hp, lv, exp, player.MapId, player.X,
-		player.Y, player.Z, player.DirX, player.DirY, player.DirZ,
-	); err != nil {
+	if err = p.UpPlayerSceneData(player); err != nil {
 		return err
 	}
-
 	if len(upProfiles) > 0 {
 		p.noticePlayerProfileUpdate(userId, upProfiles)
 	}

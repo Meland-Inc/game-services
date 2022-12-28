@@ -55,32 +55,12 @@ func (p *PlayerDataModel) GetPlayerSceneData(userId int64) (row *dbData.PlayerSc
 	return row, err
 }
 
-func (p *PlayerDataModel) UpPlayerSceneData(
-	userId int64,
-	hp, level, exp, mapId int32,
-	x, y, z, dirX, dirY, dirZ float32,
-) error {
-	if userId == 0 {
-		return fmt.Errorf("invalid player scene data")
+func (p *PlayerDataModel) UpPlayerSceneData(data *dbData.PlayerSceneData) error {
+	if data == nil {
+		return fmt.Errorf("data is nil")
 	}
 
-	data, err := p.GetPlayerSceneData(userId)
-	if err != nil {
-		return err
-	}
-
-	err = gameDB.GetGameDB().Transaction(func(tx *gorm.DB) error {
-		data.Hp = hp
-		data.Level = level
-		data.Exp = exp
-		data.MapId = mapId
-		data.X = x
-		data.Y = y
-		data.Z = z
-		data.DirX = dirX
-		data.DirY = dirY
-		data.DirZ = dirZ
+	return gameDB.GetGameDB().Transaction(func(tx *gorm.DB) error {
 		return tx.Save(data).Error
 	})
-	return err
 }
