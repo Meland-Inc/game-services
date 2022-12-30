@@ -7,6 +7,7 @@ import (
 
 	"github.com/Meland-Inc/game-services/src/common/serviceLog"
 	"github.com/Meland-Inc/game-services/src/common/time_helper"
+	"github.com/Meland-Inc/game-services/src/global/grpcAPI/grpcInvoke"
 	"github.com/Meland-Inc/game-services/src/global/grpcAPI/grpcPubsubEvent"
 )
 
@@ -35,30 +36,20 @@ func (this *ControllerModel) RemoveStartingService(serOwner int64) {
 
 // 因为启动需要等待消息回复，外部调用时最好使用 异步调用
 func (this *ControllerModel) startUserPrivateService(
-	serType proto.ServiceType, subType proto.SceneServiceSubType,
-	mapId int32, ownerId int64,
+	serType proto.ServiceType, subType proto.SceneServiceSubType, mapId int32, ownerId int64,
 ) (*ServiceData, error) {
 	if mapId < 1 || ownerId < 1 {
 		return nil, fmt.Errorf("invalid service mapId[%d] ownerId[%d]", mapId, ownerId)
 	}
-
-	/*
-		   	SERVICE_SUB_TYPE=world   #(world | home | dungeon)
-		   	HOME_OWNER=0             #( 0 |  home owner id)
-		   	GAME_MAP_ID=10001
-		   	APP_ID=game-service-world-${GAME_MAP_ID}-1
-			APP_ID=game-service-dungeon-${GAME_MAP_ID}-N
-			APP_ID=game-service-home-HomeOwnerId
-	*/
 
 	iSer, exist := this.startingPrivateSer.Load(ownerId)
 	if exist {
 		return iSer.(*ServiceData), nil
 	}
 
-	appId := fmt.Sprintf("game-service-home-%d", ownerId)
-	if subType == proto.SceneServiceSubType_Dungeon {
-		appId = fmt.Sprintf("game-service-dungeon-%d-%d", mapId, ownerId)
+	appId, err := grpcInvoke.GRPCDynamicStartSceneService(subType, ownerId, mapId, 3000)
+	if err != nil {
+		return nil, err
 	}
 
 	startSer := &ServiceData{
@@ -69,33 +60,20 @@ func (this *ControllerModel) startUserPrivateService(
 		CreateAt:        time_helper.NowUTCMill(),
 	}
 	this.AddStartingService(startSer)
-
-	//// TODO ... CALL start service and wait start res
-	// output, err := rpcCallStartSceneService(subType, ownerId, mapId, appId)
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// if !output.Success {
-	// 	return nil, fmt.Errorf(output.FailedReason)
-	// }
-
 	return startSer, nil
-
-	// TODO ... 监听目标服务启动完成事件
-	// 调用 this.RemoveStartingService(ownerId)
+	// 监听目标服务启动完成事件 调用 this.RemoveStartingService(ownerId)
 }
 
 // 关闭私有(家园|副本)
 func closeUserPrivateService(ser ServiceData) error {
-	serviceLog.Info("close user private ser %+v", ser.AppId, ser.SceneSerSubType)
-	//// TODO ... CALL close service and wait start res
-	// output, err := rpcCallCloseSceneService(ser.AppId)
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// if !output.Success {
-	// 	return nil, fmt.Errorf(output.FailedReason)
-	// }
+	if IsUserPrivateSer(ser) {
+		return fmt.Errorf("not user private service, can not close")
+	}
 
-	return nil
+	serviceLog.Info("close user private ser %+v", ser.AppId, ser.SceneSerSubType)
+	err := grpcPubsubEvent.Web3RPCEventCloseDynamicSceneService(ser.AppId)
+	if err != nil {
+		serviceLog.Error(err.Error())
+	}
+	return err
 }
