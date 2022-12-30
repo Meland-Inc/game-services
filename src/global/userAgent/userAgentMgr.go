@@ -2,6 +2,7 @@ package userAgent
 
 import (
 	"fmt"
+	"game-message-core/proto"
 	"sync"
 	"time"
 
@@ -108,4 +109,12 @@ func (p *UserAgentModel) CheckAndAddUserAgentRecord(
 
 func (p *UserAgentModel) RemoveUserAgentRecord(userId int64) {
 	p.record.Delete(userId)
+}
+
+func SendToPlayer(serviceAppId string, userId int64, msg *proto.Envelope) error {
+	agent, exist := GetUserAgentModel().GetUserAgent(userId)
+	if !exist {
+		return fmt.Errorf("user [%d] agent data not found", userId)
+	}
+	return agent.SendToPlayer(serviceAppId, msg)
 }

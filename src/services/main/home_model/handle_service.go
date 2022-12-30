@@ -3,6 +3,7 @@ package home_model
 import (
 	"game-message-core/grpc/methodData"
 	"game-message-core/grpc/pubsubEventData"
+	"time"
 
 	"github.com/Meland-Inc/game-services/src/common/serviceLog"
 	"github.com/Meland-Inc/game-services/src/global/component"
@@ -70,5 +71,30 @@ func (p *HomeModel) GRPCSaveHomeDataEvent(env *component.ModelEventReq, curMs in
 	serviceLog.Info("Receive SaveHomeDataEvent: %+v", input)
 	if err = p.UpdateUserHomeData(input.UserId, input.Data); err != nil {
 		serviceLog.Error("SaveHomeDataEvent up user home data failed err: %v ", err)
+	}
+}
+
+func (p *HomeModel) GRPCGranaryStockpileEvent(env *component.ModelEventReq, curMs int64) {
+	msg, ok := env.Msg.(*common.TopicEvent)
+	serviceLog.Info("GranaryStockpile Event : %s, [%v]", msg, ok)
+	if !ok {
+		serviceLog.Error("GranaryStockpile Event to TopicEvent failed: %v", msg)
+		return
+	}
+
+	input := &pubsubEventData.GranaryStockpileEvent{}
+	err := grpcNetTool.UnmarshalGrpcTopicEvent(msg, input)
+	if err != nil {
+		serviceLog.Error("GranaryStockpileEvent UnmarshalEvent fail err: %v ", err)
+		return
+	}
+
+	serviceLog.Info("Receive GranaryStockpileEvent: %+v", input)
+	upTm := time.UnixMilli(input.MsgVersion).UTC()
+	for _, it := range input.Items {
+		err := p.TryAddGranaryRecord(input.HomeOwner, it.Cid, it.Num, it.Quality, upTm, input.OccupantId, input.OccupantName)
+		if err != nil {
+			serviceLog.Error(err.Error())
+		}
 	}
 }

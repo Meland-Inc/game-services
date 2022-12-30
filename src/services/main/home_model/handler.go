@@ -16,9 +16,15 @@ func (p *HomeModel) OnEvent(env *component.ModelEventReq, curMs int64) {
 	}()
 
 	switch env.EventType {
+	case string(grpc.ProtoMessageActionPullClientMessage):
+		p.clientMsgHandler(env, curMs)
+
 	case string(grpc.MainServiceActionGetHomeData):
 		p.GRPCGetHomeDataHandler(env, curMs)
 	case string(grpc.SubscriptionEventSaveHomeData):
 		p.GRPCSaveHomeDataEvent(env, curMs)
+	case string(grpc.SubscriptionEventGranaryStockpile):
+		p.GRPCGranaryStockpileEvent(env, curMs)
+
 	}
 }

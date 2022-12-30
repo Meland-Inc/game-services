@@ -68,6 +68,11 @@ func onReceiveClientMessage(name string, msgType proto.EnvelopeType, in *common.
 		proto.EnvelopeType_UpgradeItemSlot,
 		proto.EnvelopeType_UpgradePlayerLevel:
 		return clientMsgCall(component.MODEL_NAME_PLAYER_DATA, name, in)
+
+	case proto.EnvelopeType_QueryGranary,
+		proto.EnvelopeType_GranaryCollect:
+		return clientMsgCall(component.MODEL_NAME_HOME, name, in)
+
 	}
 	return nil
 }

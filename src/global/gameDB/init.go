@@ -25,6 +25,7 @@ func getDbTableModels() []interface{} {
 		dbData.NftBuild{},
 		dbData.LoginData{},
 		dbData.HomeData{},
+		dbData.HomeGranary{},
 	}
 }
 
