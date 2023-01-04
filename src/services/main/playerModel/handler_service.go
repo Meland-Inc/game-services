@@ -72,6 +72,41 @@ func (p *PlayerDataModel) GRPCGetUserDataHandler(env *component.ModelEventReq, c
 	}
 }
 
+func (p *PlayerDataModel) GRPCMintUserNftHandler(env *component.ModelEventReq, curMs int64) {
+	inputBs, ok := env.Msg.([]byte)
+	serviceLog.Debug("received service MintUserNft : %s, [%v]", inputBs, ok)
+	if !ok {
+		serviceLog.Error("service MintUserNft to string failed: %s", inputBs)
+		return
+	}
+
+	output := &methodData.MainServiceActionMintNftOutput{Success: true}
+	result := &component.ModelEventResult{}
+	defer func() {
+		if output.FailedMsg != "" {
+			output.Success = false
+		}
+		result.SetResult(output)
+		env.WriteResult(result)
+	}()
+
+	input := &methodData.MainServiceActionMintNftInput{}
+	err := grpcNetTool.UnmarshalGrpcData(inputBs, input)
+	if err != nil {
+		output.FailedMsg = err.Error()
+		return
+	}
+	if input.UserId < 1 {
+		output.FailedMsg = fmt.Sprintf("invalid user id: %d", input.UserId)
+		return
+	}
+
+	err = grpcInvoke.Web3MintNFT(input.UserId, input.Item.Cid, input.Item.Num, input.Item.Quality, 0, 0)
+	if err != nil {
+		output.FailedMsg = err.Error()
+	}
+}
+
 func (p *PlayerDataModel) GRPCTakeUserNftHandler(env *component.ModelEventReq, curMs int64) {
 	inputBs, ok := env.Msg.([]byte)
 	serviceLog.Debug("received service TakeUserNft : %s, [%v]", inputBs, ok)
@@ -312,7 +347,7 @@ func (p *PlayerDataModel) GRPCKillMonsterEvent(env *component.ModelEventReq, cur
 		serviceLog.Error("KillMonsterEvent add exp failed: %v", err)
 	}
 	for _, drop := range input.DropList {
-		if err := grpcInvoke.MintNFT(
+		if err := grpcInvoke.Web3MintNFT(
 			input.UserId, drop.Cid, drop.Num, drop.Quality, int32(input.PosX), int32(input.PosZ),
 		); err != nil {
 			serviceLog.Error("mint nft[%d] failed: %v", drop.Cid, err)

@@ -297,7 +297,7 @@ func (p *TaskModel) givePlayerReward(
 		go func() {
 			for _, item := range rewardItems {
 				if item.Cid > 0 && item.Num > 0 {
-					err := grpcInvoke.MintNFT(userId, item.Cid, item.Num, item.Quality, 0, 0)
+					err := grpcInvoke.Web3MintNFT(userId, item.Cid, item.Num, item.Quality, 0, 0)
 					if err != nil {
 						serviceLog.Error("WEB3 mint NFT failed err: %v", err)
 					}

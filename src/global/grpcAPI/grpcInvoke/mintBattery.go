@@ -10,7 +10,7 @@ import (
 	message "github.com/Meland-Inc/game-services/src/global/web3Message"
 )
 
-// web3 mint player NFT interface
+// web3 mint player Battery interface
 func MintBattery(userId int64, mintNum, giftNum int32) error {
 	beginMs := time_helper.NowMill()
 	defer func() {

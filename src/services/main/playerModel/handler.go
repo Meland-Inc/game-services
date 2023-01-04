@@ -32,6 +32,8 @@ func (p *PlayerDataModel) OnEvent(env *component.ModelEventReq, curMs int64) {
 
 	case string(grpc.UserActionGetUserData):
 		p.GRPCGetUserDataHandler(env, curMs)
+	case string(grpc.MainServiceActionMintNFT):
+		p.GRPCMintUserNftHandler(env, curMs)
 	case string(grpc.MainServiceActionTakeNFT):
 		p.GRPCTakeUserNftHandler(env, curMs)
 

@@ -49,6 +49,11 @@ func initServiceGrpcCallHandle() error {
 	}
 
 	if err := daprInvoke.AddServiceInvocationHandler(makeServiceCallHandler(
+		string(grpc.MainServiceActionMintNFT), component.MODEL_NAME_PLAYER_DATA,
+	)); err != nil {
+		return err
+	}
+	if err := daprInvoke.AddServiceInvocationHandler(makeServiceCallHandler(
 		string(grpc.MainServiceActionTakeNFT), component.MODEL_NAME_PLAYER_DATA,
 	)); err != nil {
 		return err

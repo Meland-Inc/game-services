@@ -11,7 +11,7 @@ import (
 )
 
 // web3 mint player NFT interface
-func MintNFT(userId int64, itemCid, num, quality, x, y int32) error {
+func Web3MintNFT(userId int64, itemCid, num, quality, x, y int32) error {
 	beginMs := time_helper.NowMill()
 	defer func() {
 		serviceLog.Info("MintNFT used time [%04d]Ms", time_helper.NowMill()-beginMs)
