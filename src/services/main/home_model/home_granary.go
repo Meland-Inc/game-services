@@ -40,6 +40,10 @@ func (p *HomeModel) AddGranaryRecord(
 func (p *HomeModel) TryAddGranaryRecord(
 	userId int64, itemCid int32, num, quality int32, upTm time.Time, lastPushUser int64, lastPushUserName string,
 ) error {
+	if userId < 1 || itemCid < 1 || num < 1 || quality < 1 {
+		return fmt.Errorf("invalid userId[%d], itemCid[%d], num[%d], quality[%d]", userId, itemCid, num, quality)
+	}
+
 	row := p.GetGranaryRow(userId, itemCid)
 	if row == nil {
 		return p.AddGranaryRecord(userId, itemCid, num, quality, upTm, lastPushUser, lastPushUserName)
