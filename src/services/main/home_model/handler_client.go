@@ -102,6 +102,8 @@ func (p *HomeModel) GranaryCollectHandler(
 		err := grpcInvoke.MintNFT(input.UserId, row.ItemCid, row.Num, row.Quality, 0, 0)
 		if err != nil {
 			serviceLog.Error("Collect Item mint nft[%d] err: %v", row.ItemCid, err)
+		} else {
+			res.Items = append(res.Items, row.ToProtoData())
 		}
 	}
 	p.ClearGranaryRecord(input.UserId)

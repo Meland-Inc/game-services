@@ -65,7 +65,7 @@ func (p *HomeModel) RemoveGranaryRecord(userId int64, itemCid int32) error {
 	row.Quality = 0
 	row.LastPushUserId = 0
 	row.LastPushUserName = ""
-	return gameDB.GetGameDB().Delete(row).Error
+	return gameDB.GetGameDB().Save(row).Error
 }
 
 func (p *HomeModel) ClearGranaryRecord(userId int64) error {
