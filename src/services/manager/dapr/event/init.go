@@ -6,7 +6,7 @@ import (
 
 	"github.com/Meland-Inc/game-services/src/common/daprInvoke"
 	"github.com/Meland-Inc/game-services/src/common/serviceLog"
-	"github.com/Meland-Inc/game-services/src/global/component"
+	"github.com/Meland-Inc/game-services/src/global/module"
 	"github.com/Meland-Inc/game-services/src/services/manager/controller"
 	"github.com/dapr/go-sdk/service/common"
 )
@@ -29,10 +29,7 @@ func makePubsubEventHandler(name string) (
 	return name, func(ctx context.Context, e *common.TopicEvent) (retry bool, err error) {
 		serviceLog.Info("receive Event [%s] env:%v", name, e.Data)
 		ctrlModel, _ := controller.GetControllerModel()
-		ctrlModel.EventCallNoReturn(&component.ModelEventReq{
-			EventType: name,
-			Msg:       e,
-		})
+		ctrlModel.EventCallNoReturn(module.NewModuleEventReq(name, e, false, nil))
 		return false, nil
 	}
 }

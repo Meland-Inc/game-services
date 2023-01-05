@@ -6,14 +6,16 @@ import (
 	"time"
 
 	"github.com/Meland-Inc/game-services/src/common/serviceLog"
-	"github.com/Meland-Inc/game-services/src/global/component"
-	"github.com/Meland-Inc/game-services/src/global/grpcAPI/grpcNetTool"
-	"github.com/Meland-Inc/game-services/src/global/serviceCnf"
 	"github.com/dapr/go-sdk/service/common"
+
+	"github.com/Meland-Inc/game-services/src/global/contract"
+	"github.com/Meland-Inc/game-services/src/global/grpcAPI/grpcNetTool"
+	"github.com/Meland-Inc/game-services/src/global/module"
+	"github.com/Meland-Inc/game-services/src/global/serviceCnf"
 )
 
-func (p *HomeModel) GRPCGetHomeDataHandler(env *component.ModelEventReq, curMs int64) {
-	inputBs, ok := env.Msg.([]byte)
+func (p *HomeModel) GRPCGetHomeDataHandler(env contract.IModuleEventReq, curMs int64) {
+	inputBs, ok := env.GetMsg().([]byte)
 	serviceLog.Debug("received GetHomeData : %s, [%v]", inputBs, ok)
 	if !ok {
 		serviceLog.Error("GetHomeData to string failed: %s", inputBs)
@@ -21,7 +23,7 @@ func (p *HomeModel) GRPCGetHomeDataHandler(env *component.ModelEventReq, curMs i
 	}
 
 	output := &methodData.MainServiceActionGetHomeDataOutput{Success: true}
-	result := &component.ModelEventResult{}
+	result := &module.ModuleEventResult{}
 	defer func() {
 		if output.ErrMsg != "" {
 			output.Success = false
@@ -49,8 +51,8 @@ func (p *HomeModel) GRPCGetHomeDataHandler(env *component.ModelEventReq, curMs i
 
 // ------------- pubsub event -------------
 
-func (p *HomeModel) GRPCSaveHomeDataEvent(env *component.ModelEventReq, curMs int64) {
-	msg, ok := env.Msg.(*common.TopicEvent)
+func (p *HomeModel) GRPCSaveHomeDataEvent(env contract.IModuleEventReq, curMs int64) {
+	msg, ok := env.GetMsg().(*common.TopicEvent)
 	serviceLog.Info("SaveHomeDataEvent : %s, [%v]", msg, ok)
 	if !ok {
 		serviceLog.Error("SaveHomeDataEvent to TopicEvent failed: %v", msg)
@@ -74,8 +76,8 @@ func (p *HomeModel) GRPCSaveHomeDataEvent(env *component.ModelEventReq, curMs in
 	}
 }
 
-func (p *HomeModel) GRPCGranaryStockpileEvent(env *component.ModelEventReq, curMs int64) {
-	msg, ok := env.Msg.(*common.TopicEvent)
+func (p *HomeModel) GRPCGranaryStockpileEvent(env contract.IModuleEventReq, curMs int64) {
+	msg, ok := env.GetMsg().(*common.TopicEvent)
 	serviceLog.Info("GranaryStockpile Event : %s, [%v]", msg, ok)
 	if !ok {
 		serviceLog.Error("GranaryStockpile Event to TopicEvent failed: %v", msg)

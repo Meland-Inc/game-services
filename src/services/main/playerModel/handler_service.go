@@ -9,17 +9,18 @@ import (
 	base_data "game-message-core/grpc/baseData"
 
 	"github.com/Meland-Inc/game-services/src/common/serviceLog"
-	"github.com/Meland-Inc/game-services/src/global/component"
+	"github.com/Meland-Inc/game-services/src/global/contract"
 	"github.com/Meland-Inc/game-services/src/global/grpcAPI/grpcInvoke"
 	"github.com/Meland-Inc/game-services/src/global/grpcAPI/grpcNetTool"
+	"github.com/Meland-Inc/game-services/src/global/module"
 	"github.com/Meland-Inc/game-services/src/global/serviceCnf"
 	"github.com/Meland-Inc/game-services/src/global/userAgent"
 	login_model "github.com/Meland-Inc/game-services/src/services/main/loginModel"
 	"github.com/dapr/go-sdk/service/common"
 )
 
-func (p *PlayerDataModel) GRPCGetUserDataHandler(env *component.ModelEventReq, curMs int64) {
-	inputBs, ok := env.Msg.([]byte)
+func (p *PlayerDataModel) GRPCGetUserDataHandler(env contract.IModuleEventReq, curMs int64) {
+	inputBs, ok := env.GetMsg().([]byte)
 	serviceLog.Debug("received service getUserData : %s, [%v]", inputBs, ok)
 	if !ok {
 		serviceLog.Error("service getUserData to string failed: %s", inputBs)
@@ -27,7 +28,7 @@ func (p *PlayerDataModel) GRPCGetUserDataHandler(env *component.ModelEventReq, c
 	}
 
 	output := &methodData.GetUserDataOutput{Success: true}
-	result := &component.ModelEventResult{}
+	result := &module.ModuleEventResult{}
 	defer func() {
 		if output.ErrMsg != "" {
 			output.Success = false
@@ -72,8 +73,8 @@ func (p *PlayerDataModel) GRPCGetUserDataHandler(env *component.ModelEventReq, c
 	}
 }
 
-func (p *PlayerDataModel) GRPCMintUserNftHandler(env *component.ModelEventReq, curMs int64) {
-	inputBs, ok := env.Msg.([]byte)
+func (p *PlayerDataModel) GRPCMintUserNftHandler(env contract.IModuleEventReq, curMs int64) {
+	inputBs, ok := env.GetMsg().([]byte)
 	serviceLog.Debug("received service MintUserNft : %s, [%v]", inputBs, ok)
 	if !ok {
 		serviceLog.Error("service MintUserNft to string failed: %s", inputBs)
@@ -81,7 +82,7 @@ func (p *PlayerDataModel) GRPCMintUserNftHandler(env *component.ModelEventReq, c
 	}
 
 	output := &methodData.MainServiceActionMintNftOutput{Success: true}
-	result := &component.ModelEventResult{}
+	result := &module.ModuleEventResult{}
 	defer func() {
 		if output.FailedMsg != "" {
 			output.Success = false
@@ -107,8 +108,8 @@ func (p *PlayerDataModel) GRPCMintUserNftHandler(env *component.ModelEventReq, c
 	}
 }
 
-func (p *PlayerDataModel) GRPCTakeUserNftHandler(env *component.ModelEventReq, curMs int64) {
-	inputBs, ok := env.Msg.([]byte)
+func (p *PlayerDataModel) GRPCTakeUserNftHandler(env contract.IModuleEventReq, curMs int64) {
+	inputBs, ok := env.GetMsg().([]byte)
 	serviceLog.Debug("received service TakeUserNft : %s, [%v]", inputBs, ok)
 	if !ok {
 		serviceLog.Error("service TakeUserNft to string failed: %s", inputBs)
@@ -116,7 +117,7 @@ func (p *PlayerDataModel) GRPCTakeUserNftHandler(env *component.ModelEventReq, c
 	}
 
 	output := &methodData.MainServiceActionTakeNftOutput{Success: true}
-	result := &component.ModelEventResult{}
+	result := &module.ModuleEventResult{}
 	defer func() {
 		if output.FailedMsg != "" {
 			output.Success = false
@@ -176,8 +177,8 @@ func (p *PlayerDataModel) GRPCTakeUserNftHandler(env *component.ModelEventReq, c
 
 // -------------------- pubsub event -----------------------
 
-func (p *PlayerDataModel) GRPCUserChangeServiceEvent(env *component.ModelEventReq, curMs int64) {
-	msg, ok := env.Msg.(*common.TopicEvent)
+func (p *PlayerDataModel) GRPCUserChangeServiceEvent(env contract.IModuleEventReq, curMs int64) {
+	msg, ok := env.GetMsg().(*common.TopicEvent)
 	serviceLog.Info("UserChangeServiceEvent : %s, [%v]", msg, ok)
 	if !ok {
 		serviceLog.Error("UserChangeServiceEvent to TopicEvent failed: %v", msg)
@@ -211,8 +212,8 @@ func (p *PlayerDataModel) GRPCUserChangeServiceEvent(env *component.ModelEventRe
 	}
 }
 
-func (p *PlayerDataModel) GRPCUserEnterGameEvent(env *component.ModelEventReq, curMs int64) {
-	msg, ok := env.Msg.(*common.TopicEvent)
+func (p *PlayerDataModel) GRPCUserEnterGameEvent(env contract.IModuleEventReq, curMs int64) {
+	msg, ok := env.GetMsg().(*common.TopicEvent)
 	serviceLog.Info("UserEnterGameEvent : %s, [%v]", msg, ok)
 	if !ok {
 		serviceLog.Error("UserEnterGameEvent to TopicEvent failed: %v", msg)
@@ -248,8 +249,8 @@ func (p *PlayerDataModel) GRPCUserEnterGameEvent(env *component.ModelEventReq, c
 	}
 }
 
-func (p *PlayerDataModel) GRPCUserLeaveGameEvent(env *component.ModelEventReq, curMs int64) {
-	msg, ok := env.Msg.(*common.TopicEvent)
+func (p *PlayerDataModel) GRPCUserLeaveGameEvent(env contract.IModuleEventReq, curMs int64) {
+	msg, ok := env.GetMsg().(*common.TopicEvent)
 	serviceLog.Info("UserLeaveGameEvent : %s, [%v]", msg, ok)
 	if !ok {
 		serviceLog.Error("UserLeaveGameEvent to TopicEvent failed: %v", msg)
@@ -276,8 +277,8 @@ func (p *PlayerDataModel) GRPCUserLeaveGameEvent(env *component.ModelEventReq, c
 	loginModel.OnLogOut(input.UserId)
 }
 
-func (p *PlayerDataModel) GRPCSavePlayerDataEvent(env *component.ModelEventReq, curMs int64) {
-	msg, ok := env.Msg.(*common.TopicEvent)
+func (p *PlayerDataModel) GRPCSavePlayerDataEvent(env contract.IModuleEventReq, curMs int64) {
+	msg, ok := env.GetMsg().(*common.TopicEvent)
 	serviceLog.Info("SavePlayerDataEvent : %s, [%v]", msg, ok)
 	if !ok {
 		serviceLog.Error("SavePlayerDataEvent to TopicEvent failed: %v", msg)
@@ -321,8 +322,8 @@ func (p *PlayerDataModel) GRPCSavePlayerDataEvent(env *component.ModelEventReq, 
 	}
 }
 
-func (p *PlayerDataModel) GRPCKillMonsterEvent(env *component.ModelEventReq, curMs int64) {
-	msg, ok := env.Msg.(*common.TopicEvent)
+func (p *PlayerDataModel) GRPCKillMonsterEvent(env contract.IModuleEventReq, curMs int64) {
+	msg, ok := env.GetMsg().(*common.TopicEvent)
 	serviceLog.Info("KillMonsterEvent : %s, [%v]", msg, ok)
 	if !ok {
 		serviceLog.Error("KillMonsterEvent to TopicEvent failed: %v", msg)
@@ -355,8 +356,8 @@ func (p *PlayerDataModel) GRPCKillMonsterEvent(env *component.ModelEventReq, cur
 	}
 }
 
-func (p *PlayerDataModel) GRPCPlayerDeathEvent(env *component.ModelEventReq, curMs int64) {
-	msg, ok := env.Msg.(*common.TopicEvent)
+func (p *PlayerDataModel) GRPCPlayerDeathEvent(env contract.IModuleEventReq, curMs int64) {
+	msg, ok := env.GetMsg().(*common.TopicEvent)
 	serviceLog.Info("PlayerDeathEvent : %s, [%v]", msg, ok)
 	if !ok {
 		serviceLog.Error("PlayerDeathEvent to TopicEvent failed: %v", msg)
@@ -386,8 +387,8 @@ func (p *PlayerDataModel) GRPCPlayerDeathEvent(env *component.ModelEventReq, cur
 	}
 }
 
-func (p *PlayerDataModel) GRPCUserTaskRewardEvent(env *component.ModelEventReq, curMs int64) {
-	msg, ok := env.Msg.(*common.TopicEvent)
+func (p *PlayerDataModel) GRPCUserTaskRewardEvent(env contract.IModuleEventReq, curMs int64) {
+	msg, ok := env.GetMsg().(*common.TopicEvent)
 	serviceLog.Info("UserTaskRewardEvent : %s, [%v]", msg, ok)
 	if !ok {
 		serviceLog.Error("UserTaskRewardEvent to TopicEvent failed: %v", msg)

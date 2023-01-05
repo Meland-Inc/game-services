@@ -4,12 +4,13 @@ import (
 	"game-message-core/grpc/methodData"
 
 	"github.com/Meland-Inc/game-services/src/common/serviceLog"
-	"github.com/Meland-Inc/game-services/src/global/component"
+	"github.com/Meland-Inc/game-services/src/global/contract"
 	"github.com/Meland-Inc/game-services/src/global/grpcAPI/grpcNetTool"
+	"github.com/Meland-Inc/game-services/src/global/module"
 )
 
-func (p *LandModel) GRPCGetAllBuildHandler(env *component.ModelEventReq, curMs int64) {
-	inputBs, ok := env.Msg.([]byte)
+func (p *LandModel) GRPCGetAllBuildHandler(env contract.IModuleEventReq, curMs int64) {
+	inputBs, ok := env.GetMsg().([]byte)
 	serviceLog.Debug("received GetAllBuild : %s, [%v]", inputBs, ok)
 	if !ok {
 		serviceLog.Error("service GetAllBuild to string failed: %s", inputBs)
@@ -17,7 +18,7 @@ func (p *LandModel) GRPCGetAllBuildHandler(env *component.ModelEventReq, curMs i
 	}
 
 	output := &methodData.MainServiceActionGetAllBuildOutput{Success: true}
-	result := &component.ModelEventResult{}
+	result := &module.ModuleEventResult{}
 	defer func() {
 		if output.ErrMsg != "" {
 			output.Success = false

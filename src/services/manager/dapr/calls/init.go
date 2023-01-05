@@ -6,7 +6,7 @@ import (
 
 	"github.com/Meland-Inc/game-services/src/common/daprInvoke"
 	"github.com/Meland-Inc/game-services/src/common/serviceLog"
-	"github.com/Meland-Inc/game-services/src/global/component"
+	"github.com/Meland-Inc/game-services/src/global/module"
 	"github.com/Meland-Inc/game-services/src/services/manager/controller"
 	"github.com/dapr/go-sdk/service/common"
 )
@@ -41,16 +41,16 @@ func InitDaprCallHandle() (err error) {
 func makeCallHandler(name string) (string, func(ctx context.Context, in *common.InvocationEvent) (*common.Content, error)) {
 	return name, func(ctx context.Context, in *common.InvocationEvent) (*common.Content, error) {
 		ctrlModel, _ := controller.GetControllerModel()
-		env := &component.ModelEventReq{
-			EventType: name,
-			Msg:       in.Data,
-		}
+		env := &module.ModuleEventReq{}
+		env.SetEventType(name)
+		env.SetMsg(in.Data)
 		// serviceLog.Info("receive [%s] env:%v", name, string(in.Data))
+
 		resCh := ctrlModel.EventCall(env)
 
-		if resCh.Err != nil {
-			return nil, resCh.Err
+		if resCh.GetError() != nil {
+			return nil, resCh.GetError()
 		}
-		return daprInvoke.MakeOutputContent(in, resCh.Result)
+		return daprInvoke.MakeOutputContent(in, resCh.GetResult())
 	}
 }

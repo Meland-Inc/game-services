@@ -6,14 +6,14 @@ import (
 	"game-message-core/protoTool"
 
 	"github.com/Meland-Inc/game-services/src/common/serviceLog"
-	"github.com/Meland-Inc/game-services/src/global/component"
+	"github.com/Meland-Inc/game-services/src/global/contract"
 	"github.com/Meland-Inc/game-services/src/global/grpcAPI/grpcInvoke"
 	"github.com/Meland-Inc/game-services/src/global/grpcAPI/grpcNetTool"
 	"github.com/Meland-Inc/game-services/src/global/userAgent"
 )
 
-func (p *LandModel) clientMsgHandler(env *component.ModelEventReq, curMs int64) {
-	bs, ok := env.Msg.([]byte)
+func (p *LandModel) clientMsgHandler(env contract.IModuleEventReq, curMs int64) {
+	bs, ok := env.GetMsg().([]byte)
 	serviceLog.Info("client msg: %s, [%v]", bs, ok)
 	if !ok {
 		serviceLog.Error("client msg to string failed: %v", bs)

@@ -4,8 +4,9 @@ import (
 	"fmt"
 
 	"github.com/Meland-Inc/game-services/src/common/serviceLog"
-	"github.com/Meland-Inc/game-services/src/global/component"
+	"github.com/Meland-Inc/game-services/src/global/contract"
 	"github.com/Meland-Inc/game-services/src/global/grpcAPI/grpcNetTool"
+	"github.com/Meland-Inc/game-services/src/global/module"
 	"github.com/Meland-Inc/game-services/src/global/serviceCnf"
 	message "github.com/Meland-Inc/game-services/src/global/web3Message"
 	"github.com/dapr/go-sdk/service/common"
@@ -13,8 +14,8 @@ import (
 )
 
 // ---------------------- calls ----------------------------------
-func (p *PlayerDataModel) Web3DeductUserExpHandler(env *component.ModelEventReq, curMs int64) {
-	inputBs, ok := env.Msg.([]byte)
+func (p *PlayerDataModel) Web3DeductUserExpHandler(env contract.IModuleEventReq, curMs int64) {
+	inputBs, ok := env.GetMsg().([]byte)
 	serviceLog.Info("service received web3 DeductUserExp : %s, [%v]", inputBs, ok)
 	if !ok {
 		serviceLog.Error("web3 data to string failed: %s", inputBs)
@@ -22,7 +23,7 @@ func (p *PlayerDataModel) Web3DeductUserExpHandler(env *component.ModelEventReq,
 	}
 
 	output := &message.DeductUserExpOutput{DeductSuccess: true}
-	result := &component.ModelEventResult{}
+	result := &module.ModuleEventResult{}
 	defer func() {
 		result.SetResult(output)
 		env.WriteResult(result)
@@ -32,7 +33,7 @@ func (p *PlayerDataModel) Web3DeductUserExpHandler(env *component.ModelEventReq,
 	err := grpcNetTool.UnmarshalGrpcData(inputBs, input)
 	if err != nil {
 		output.DeductSuccess = false
-		result.Err = err
+		result.SetError(err)
 		return
 	}
 
@@ -40,20 +41,20 @@ func (p *PlayerDataModel) Web3DeductUserExpHandler(env *component.ModelEventReq,
 	userId, err := cast.ToInt64E(input.UserId)
 	if err != nil || userId < 1 || deductExp < 1 {
 		output.DeductSuccess = false
-		result.Err = fmt.Errorf(
+		result.SetError(fmt.Errorf(
 			"web3 deduct user exp invalid userId [%s] or expr[%d]", input.UserId, input.DeductExp,
-		)
+		))
 		return
 	}
 
 	if err = p.DeductExp(userId, int32(deductExp)); err != nil {
 		output.DeductSuccess = false
-		result.Err = err
+		result.SetError(err)
 	}
 }
 
-func (p *PlayerDataModel) Web3GetPlayerDataHandler(env *component.ModelEventReq, curMs int64) {
-	inputBs, ok := env.Msg.([]byte)
+func (p *PlayerDataModel) Web3GetPlayerDataHandler(env contract.IModuleEventReq, curMs int64) {
+	inputBs, ok := env.GetMsg().([]byte)
 	serviceLog.Info("service received web3 GetPlayerData : %s, [%v]", inputBs, ok)
 	if !ok {
 		serviceLog.Error("web3 data to string failed: %s", inputBs)
@@ -61,7 +62,7 @@ func (p *PlayerDataModel) Web3GetPlayerDataHandler(env *component.ModelEventReq,
 	}
 
 	output := &message.GetPlayerInfoByUserIdOutput{}
-	result := &component.ModelEventResult{}
+	result := &module.ModuleEventResult{}
 	defer func() {
 		result.SetResult(output)
 		env.WriteResult(result)
@@ -70,22 +71,22 @@ func (p *PlayerDataModel) Web3GetPlayerDataHandler(env *component.ModelEventReq,
 	input := &message.GetPlayerInfoByUserIdInput{}
 	err := grpcNetTool.UnmarshalGrpcData(inputBs, input)
 	if err != nil {
-		result.Err = err
+		result.SetError(err)
 		return
 	}
 	userId, err := cast.ToInt64E(input.UserId)
 	if err != nil || userId < 1 {
-		result.Err = fmt.Errorf("web3 getPlayerData invalid userId [%s] or expr[%d]", input.UserId)
+		result.SetError(fmt.Errorf("web3 getPlayerData invalid userId [%s] or expr[%d]", input.UserId))
 		return
 	}
 	sceneData, err := p.GetPlayerSceneData(userId)
 	if err != nil {
-		result.Err = err
+		result.SetError(err)
 		return
 	}
 	baseData, err := p.GetPlayerBaseData(userId)
 	if err != nil {
-		result.Err = err
+		result.SetError(err)
 		return
 	}
 
@@ -103,8 +104,8 @@ func (p *PlayerDataModel) Web3GetPlayerDataHandler(env *component.ModelEventReq,
 
 // -------------------- pubsub event -----------------------
 
-func (p *PlayerDataModel) Web3UpdateUserNftEvent(env *component.ModelEventReq, curMs int64) {
-	msg, ok := env.Msg.(*common.TopicEvent)
+func (p *PlayerDataModel) Web3UpdateUserNftEvent(env contract.IModuleEventReq, curMs int64) {
+	msg, ok := env.GetMsg().(*common.TopicEvent)
 	serviceLog.Info("Web3UpdateUserNft : %s, [%v]", msg, ok)
 	if !ok {
 		serviceLog.Error("Web3UpdateUserNft to TopicEvent failed: %v", msg)
@@ -133,8 +134,8 @@ func (p *PlayerDataModel) Web3UpdateUserNftEvent(env *component.ModelEventReq, c
 	p.UpdatePlayerNFTs(userId, []message.NFT{input.Nft})
 }
 
-func (p *PlayerDataModel) Web3MultiUpdateUserNftEvent(env *component.ModelEventReq, curMs int64) {
-	msg, ok := env.Msg.(*common.TopicEvent)
+func (p *PlayerDataModel) Web3MultiUpdateUserNftEvent(env contract.IModuleEventReq, curMs int64) {
+	msg, ok := env.GetMsg().(*common.TopicEvent)
 	serviceLog.Info("Web3MultiUpdateUserNft : %s, [%v]", msg, ok)
 	if !ok {
 		serviceLog.Error("Web3MultiUpdateUserNft to TopicEvent failed: %v", msg)

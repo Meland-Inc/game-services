@@ -9,8 +9,9 @@ import (
 
 	"github.com/Meland-Inc/game-services/src/common/daprInvoke"
 	"github.com/Meland-Inc/game-services/src/common/serviceLog"
-	"github.com/Meland-Inc/game-services/src/global/component"
+
 	"github.com/Meland-Inc/game-services/src/global/grpcAPI/grpcNetTool"
+	"github.com/Meland-Inc/game-services/src/global/module"
 	"github.com/dapr/go-sdk/service/common"
 )
 
@@ -35,15 +36,12 @@ func makeClientMsgHandler(name string) (string, func(ctx context.Context, in *co
 }
 
 func clientMsgCall(modelName string, name string, in *common.InvocationEvent) error {
-	model, exist := component.GetInstance().GetModel(modelName)
+	model, exist := module.GetModel(modelName)
 	if !exist {
 		return fmt.Errorf("%s  model not found", modelName)
 	}
 
-	model.EventCallNoReturn(&component.ModelEventReq{
-		EventType: name,
-		Msg:       in.Data,
-	})
+	model.EventCallNoReturn(module.NewModuleEventReq(name, in.Data, false, nil))
 	return nil
 }
 
@@ -57,7 +55,7 @@ func onReceiveClientMessage(name string, msgType proto.EnvelopeType, in *common.
 		proto.EnvelopeType_Harvest,
 		proto.EnvelopeType_Collection,
 		proto.EnvelopeType_SelfNftBuilds:
-		return clientMsgCall(component.MODEL_NAME_LAND, name, in)
+		return clientMsgCall(module.MODULE_NAME_LAND, name, in)
 
 	case proto.EnvelopeType_SigninPlayer,
 		proto.EnvelopeType_ItemGet,
@@ -67,11 +65,11 @@ func onReceiveClientMessage(name string, msgType proto.EnvelopeType, in *common.
 		proto.EnvelopeType_GetItemSlot,
 		proto.EnvelopeType_UpgradeItemSlot,
 		proto.EnvelopeType_UpgradePlayerLevel:
-		return clientMsgCall(component.MODEL_NAME_PLAYER_DATA, name, in)
+		return clientMsgCall(module.MODULE_NAME_PLAYER_DATA, name, in)
 
 	case proto.EnvelopeType_QueryGranary,
 		proto.EnvelopeType_GranaryCollect:
-		return clientMsgCall(component.MODEL_NAME_HOME, name, in)
+		return clientMsgCall(module.MODULE_NAME_HOME, name, in)
 
 	}
 	return nil

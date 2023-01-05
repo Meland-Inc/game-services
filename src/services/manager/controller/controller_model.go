@@ -5,19 +5,20 @@ import (
 	"sync"
 	"time"
 
-	"github.com/Meland-Inc/game-services/src/global/component"
+	"github.com/Meland-Inc/game-services/src/global/contract"
+	"github.com/Meland-Inc/game-services/src/global/module"
 )
 
 type ControllerModel struct {
-	component.ModelBase
-	modelEvent *component.ModelEvent
+	module.ModuleBase
+	modelEvent *module.ModuleEvent
 
 	controller         sync.Map
 	startingPrivateSer sync.Map // { ownerId = *ServiceData} home service and Dungeon service
 }
 
 func GetControllerModel() (*ControllerModel, error) {
-	iCtrlModel, exist := component.GetInstance().GetModel(component.MODEL_NAME_SERVICE_CONTROLLER)
+	iCtrlModel, exist := module.GetModel(module.MODULE_NAME_SERVICE_CONTROLLER)
 	if !exist {
 		return nil, fmt.Errorf("login model not found")
 	}
@@ -27,35 +28,26 @@ func GetControllerModel() (*ControllerModel, error) {
 
 func NewControllerModel() *ControllerModel {
 	p := &ControllerModel{}
-	p.modelEvent = component.NewModelEvent(p)
-	p.InitBaseModel(p, component.MODEL_NAME_SERVICE_CONTROLLER)
+	p.modelEvent = module.NewModelEvent()
+	p.InitBaseModel(p, module.MODULE_NAME_SERVICE_CONTROLLER)
 	return p
 }
 
-func (p *ControllerModel) OnInit(modelMgr *component.ModelManager) error {
-	if modelMgr == nil {
-		return fmt.Errorf("Controller model init service model manager is nil")
-	}
-	p.ModelBase.OnInit(modelMgr)
+func (p *ControllerModel) OnInit() error {
+	p.ModuleBase.OnInit()
 	return nil
 }
 
 func (p *ControllerModel) OnTick(utc time.Time) {
-	p.ModelBase.OnTick(utc)
-	p.modelEvent.ReadEvent(utc.UnixMilli())
+	p.ModuleBase.OnTick(utc)
+	if env := p.ReadEvent(); env != nil {
+		p.OnEvent(env, utc.UnixMilli())
+	}
 }
 
 func (p *ControllerModel) OnStop() error {
-	p.ModelBase.OnStop()
+	p.ModuleBase.OnStop()
 	return nil
-}
-
-func (p *ControllerModel) EventCall(env *component.ModelEventReq) *component.ModelEventResult {
-	return p.modelEvent.EventCall(env)
-}
-
-func (p *ControllerModel) EventCallNoReturn(env *component.ModelEventReq) {
-	p.modelEvent.EventCallNoReturn(env)
 }
 
 func (p *ControllerModel) Secondly(utc time.Time) {
@@ -64,3 +56,15 @@ func (p *ControllerModel) Secondly(utc time.Time) {
 func (p *ControllerModel) Minutely(utc time.Time) {}
 func (p *ControllerModel) Hourly(utc time.Time)   {}
 func (p *ControllerModel) Daily(utc time.Time)    {}
+
+func (p *ControllerModel) EventCall(env contract.IModuleEventReq) contract.IModuleEventResult {
+	return p.modelEvent.EventCall(env)
+}
+
+func (p *ControllerModel) EventCallNoReturn(env contract.IModuleEventReq) {
+	p.modelEvent.EventCallNoReturn(env)
+}
+
+func (p *ControllerModel) ReadEvent() contract.IModuleEventReq {
+	return p.modelEvent.ReadEvent()
+}

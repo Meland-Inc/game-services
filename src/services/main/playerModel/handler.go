@@ -4,11 +4,11 @@ import (
 	"game-message-core/grpc"
 
 	"github.com/Meland-Inc/game-services/src/common/serviceLog"
-	"github.com/Meland-Inc/game-services/src/global/component"
+	"github.com/Meland-Inc/game-services/src/global/contract"
 	message "github.com/Meland-Inc/game-services/src/global/web3Message"
 )
 
-func (p *PlayerDataModel) OnEvent(env *component.ModelEventReq, curMs int64) {
+func (p *PlayerDataModel) OnEvent(env contract.IModuleEventReq, curMs int64) {
 	defer func() {
 		err := recover()
 		if err != nil {
@@ -16,7 +16,7 @@ func (p *PlayerDataModel) OnEvent(env *component.ModelEventReq, curMs int64) {
 		}
 	}()
 
-	switch env.EventType {
+	switch env.GetEventType() {
 	case string(grpc.ProtoMessageActionPullClientMessage):
 		p.clientMsgHandler(env, curMs)
 

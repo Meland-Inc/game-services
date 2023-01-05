@@ -4,15 +4,15 @@ import (
 	"game-message-core/proto"
 
 	"github.com/Meland-Inc/game-services/src/common/serviceLog"
-	"github.com/Meland-Inc/game-services/src/global/component"
+	"github.com/Meland-Inc/game-services/src/global/contract"
 	"github.com/Meland-Inc/game-services/src/global/grpcAPI/grpcNetTool"
 	"github.com/Meland-Inc/game-services/src/global/serviceCnf"
 	message "github.com/Meland-Inc/game-services/src/global/web3Message"
 	"github.com/dapr/go-sdk/service/common"
 )
 
-func (p *LandModel) Web3MultiLandDataUpdateEvent(env *component.ModelEventReq, curMs int64) {
-	msg, ok := env.Msg.(*common.TopicEvent)
+func (p *LandModel) Web3MultiLandDataUpdateEvent(env contract.IModuleEventReq, curMs int64) {
+	msg, ok := env.GetMsg().(*common.TopicEvent)
 	serviceLog.Info("Web3MultiLandDataUpdateEvent : %s, [%v]", msg, ok)
 	if !ok {
 		serviceLog.Error("Web3MultiLandDataUpdateEvent to TopicEvent failed: %v", msg)
@@ -56,8 +56,8 @@ func (p *LandModel) Web3MultiLandDataUpdateEvent(env *component.ModelEventReq, c
 	}
 }
 
-func (p *LandModel) Web3MultiRecyclingEvent(env *component.ModelEventReq, curMs int64) {
-	msg, ok := env.Msg.(*common.TopicEvent)
+func (p *LandModel) Web3MultiRecyclingEvent(env contract.IModuleEventReq, curMs int64) {
+	msg, ok := env.GetMsg().(*common.TopicEvent)
 	serviceLog.Info("Web3MultiRecyclingEvent : %s, [%v]", msg, ok)
 	if !ok {
 		serviceLog.Error("Web3MultiRecyclingEvent to TopicEvent failed: %v", msg)
@@ -91,8 +91,8 @@ func (p *LandModel) Web3MultiRecyclingEvent(env *component.ModelEventReq, curMs 
 	}
 }
 
-func (p *LandModel) Web3MultiBuildUpdateEvent(env *component.ModelEventReq, curMs int64) {
-	msg, ok := env.Msg.(*common.TopicEvent)
+func (p *LandModel) Web3MultiBuildUpdateEvent(env contract.IModuleEventReq, curMs int64) {
+	msg, ok := env.GetMsg().(*common.TopicEvent)
 	serviceLog.Info("Web3MultiBuildUpdateEvent : %s, [%v]", msg, ok)
 	if !ok {
 		serviceLog.Error("Web3MultiBuildUpdateEvent to TopicEvent failed: %v", msg)

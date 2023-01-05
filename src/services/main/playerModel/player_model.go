@@ -5,19 +5,20 @@ import (
 	"time"
 
 	"github.com/Meland-Inc/game-services/src/common/shardCache"
-	"github.com/Meland-Inc/game-services/src/global/component"
+	"github.com/Meland-Inc/game-services/src/global/contract"
+	"github.com/Meland-Inc/game-services/src/global/module"
 )
 
 type PlayerDataModel struct {
-	component.ModelBase
-	modelEvent *component.ModelEvent
+	module.ModuleBase
+	modelEvent *module.ModuleEvent
 
 	cache    *shardCache.ShardedCache
 	cacheTTL time.Duration
 }
 
 func GetPlayerDataModel() (*PlayerDataModel, error) {
-	iPlayerModel, exist := component.GetInstance().GetModel(component.MODEL_NAME_PLAYER_DATA)
+	iPlayerModel, exist := module.GetModel(module.MODULE_NAME_PLAYER_DATA)
 	if !exist {
 		return nil, fmt.Errorf("player data model not found")
 	}
@@ -30,16 +31,13 @@ func NewPlayerModel() *PlayerDataModel {
 		cacheTTL: time.Duration(10) * time.Minute,
 		cache:    shardCache.NewSharded(shardCache.NoExpiration, time.Duration(60)*time.Second, 2^4),
 	}
-	p.InitBaseModel(p, component.MODEL_NAME_PLAYER_DATA)
-	p.modelEvent = component.NewModelEvent(p)
+	p.InitBaseModel(p, module.MODULE_NAME_PLAYER_DATA)
+	p.modelEvent = module.NewModelEvent()
 	return p
 }
 
-func (p *PlayerDataModel) OnInit(modelMgr *component.ModelManager) error {
-	if modelMgr == nil {
-		return fmt.Errorf("player model init service model manager is nil")
-	}
-	p.ModelBase.OnInit(modelMgr)
+func (p *PlayerDataModel) OnInit() error {
+	p.ModuleBase.OnInit()
 	return nil
 }
 
@@ -48,15 +46,10 @@ func (p *PlayerDataModel) OnStart() error {
 }
 
 func (p *PlayerDataModel) OnTick(utc time.Time) {
-	p.ModelBase.OnTick(utc)
-	p.modelEvent.ReadEvent(utc.UnixMilli())
-}
-
-func (p *PlayerDataModel) EventCall(env *component.ModelEventReq) *component.ModelEventResult {
-	return p.modelEvent.EventCall(env)
-}
-func (p *PlayerDataModel) EventCallNoReturn(env *component.ModelEventReq) {
-	p.modelEvent.EventCallNoReturn(env)
+	p.ModuleBase.OnTick(utc)
+	if env := p.ReadEvent(); env != nil {
+		p.OnEvent(env, utc.UnixMilli())
+	}
 }
 
 func (p *PlayerDataModel) Secondly(utc time.Time) {}
@@ -66,3 +59,14 @@ func (p *PlayerDataModel) Minutely(utc time.Time) {}
 func (p *PlayerDataModel) Hourly(utc time.Time) {}
 
 func (p *PlayerDataModel) Daily(utc time.Time) {}
+
+func (p *PlayerDataModel) EventCall(env contract.IModuleEventReq) contract.IModuleEventResult {
+	return p.modelEvent.EventCall(env)
+}
+
+func (p *PlayerDataModel) EventCallNoReturn(env contract.IModuleEventReq) {
+	p.modelEvent.EventCallNoReturn(env)
+}
+func (p *PlayerDataModel) ReadEvent() contract.IModuleEventReq {
+	return p.modelEvent.ReadEvent()
+}

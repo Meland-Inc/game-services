@@ -8,13 +8,14 @@ import (
 
 	"github.com/Meland-Inc/game-services/src/common/serviceLog"
 	"github.com/Meland-Inc/game-services/src/common/time_helper"
-	"github.com/Meland-Inc/game-services/src/global/component"
+	"github.com/Meland-Inc/game-services/src/global/contract"
 	"github.com/Meland-Inc/game-services/src/global/grpcAPI/grpcNetTool"
+	"github.com/Meland-Inc/game-services/src/global/module"
 	"github.com/Meland-Inc/game-services/src/global/serviceCnf"
 	"github.com/dapr/go-sdk/service/common"
 )
 
-func (p *ControllerModel) OnEvent(env *component.ModelEventReq, curMs int64) {
+func (p *ControllerModel) OnEvent(env contract.IModuleEventReq, curMs int64) {
 	defer func() {
 		err := recover()
 		if err != nil {
@@ -22,7 +23,7 @@ func (p *ControllerModel) OnEvent(env *component.ModelEventReq, curMs int64) {
 		}
 	}()
 
-	switch env.EventType {
+	switch env.GetEventType() {
 	case string(grpc.ManagerServiceActionRegister):
 		p.RegisterServiceHandler(env, curMs)
 	case string(grpc.ManagerServiceActionSelectService):
@@ -38,8 +39,8 @@ func (p *ControllerModel) OnEvent(env *component.ModelEventReq, curMs int64) {
 
 }
 
-func (p *ControllerModel) UnregisterServiceEvent(env *component.ModelEventReq, curMs int64) {
-	msg, ok := env.Msg.(*common.TopicEvent)
+func (p *ControllerModel) UnregisterServiceEvent(env contract.IModuleEventReq, curMs int64) {
+	msg, ok := env.GetMsg().(*common.TopicEvent)
 	if !ok {
 		serviceLog.Error("service Unregister to string failed: %v", msg)
 		return
@@ -60,8 +61,8 @@ func (p *ControllerModel) UnregisterServiceEvent(env *component.ModelEventReq, c
 	p.DestroyService(ToServiceData(input.Service))
 }
 
-func (p *ControllerModel) RegisterServiceHandler(env *component.ModelEventReq, curMs int64) {
-	msg, ok := env.Msg.([]byte)
+func (p *ControllerModel) RegisterServiceHandler(env contract.IModuleEventReq, curMs int64) {
+	msg, ok := env.GetMsg().([]byte)
 	// serviceLog.Info("service register : %s, [%v]", msg, ok)
 	if !ok {
 		serviceLog.Error("service register to string failed: %v", msg)
@@ -69,7 +70,7 @@ func (p *ControllerModel) RegisterServiceHandler(env *component.ModelEventReq, c
 	}
 
 	output := &methodData.ServiceRegisterOutput{ManagerAt: time_helper.NowUTCMill()}
-	result := &component.ModelEventResult{}
+	result := &module.ModuleEventResult{}
 	defer func() {
 		result.SetResult(output)
 		env.WriteResult(result)
@@ -79,7 +80,7 @@ func (p *ControllerModel) RegisterServiceHandler(env *component.ModelEventReq, c
 	err := grpcNetTool.UnmarshalGrpcData(msg, input)
 	if err != nil {
 		output.Success = false
-		result.Err = err
+		result.SetError(err)
 		return
 	}
 
@@ -95,8 +96,8 @@ func (p *ControllerModel) RegisterServiceHandler(env *component.ModelEventReq, c
 	output.RegisterAt = input.RegisterAt
 }
 
-func (p *ControllerModel) SelectServiceHandler(env *component.ModelEventReq, curMs int64) {
-	msg, ok := env.Msg.([]byte)
+func (p *ControllerModel) SelectServiceHandler(env contract.IModuleEventReq, curMs int64) {
+	msg, ok := env.GetMsg().([]byte)
 	serviceLog.Info("select service: %s, [%v]", msg, ok)
 	if !ok {
 		serviceLog.Error("select ser msg to string failed: %v", msg)
@@ -104,7 +105,7 @@ func (p *ControllerModel) SelectServiceHandler(env *component.ModelEventReq, cur
 	}
 
 	output := &methodData.ManagerActionSelectServiceOutput{}
-	result := &component.ModelEventResult{}
+	result := &module.ModuleEventResult{}
 	defer func() {
 		result.SetResult(output)
 		env.WriteResult(result)
@@ -115,7 +116,7 @@ func (p *ControllerModel) SelectServiceHandler(env *component.ModelEventReq, cur
 	if err != nil {
 		output.ErrorMessage = err.Error()
 		output.ErrorCode = 30001
-		result.Err = err
+		result.SetError(err)
 		return
 	}
 
@@ -129,8 +130,8 @@ func (p *ControllerModel) SelectServiceHandler(env *component.ModelEventReq, cur
 	}
 }
 
-func (p *ControllerModel) MultiSelectServiceHandler(env *component.ModelEventReq, curMs int64) {
-	msg, ok := env.Msg.([]byte)
+func (p *ControllerModel) MultiSelectServiceHandler(env contract.IModuleEventReq, curMs int64) {
+	msg, ok := env.GetMsg().([]byte)
 	serviceLog.Info("multi service register: %s, [%v]", msg, ok)
 	if !ok {
 		serviceLog.Error("multi select ser msg to string failed: %v", msg)
@@ -138,7 +139,7 @@ func (p *ControllerModel) MultiSelectServiceHandler(env *component.ModelEventReq
 	}
 
 	output := &methodData.MultiSelectServiceOutput{}
-	result := &component.ModelEventResult{}
+	result := &module.ModuleEventResult{}
 	defer func() {
 		result.SetResult(output)
 		env.WriteResult(result)
@@ -149,7 +150,7 @@ func (p *ControllerModel) MultiSelectServiceHandler(env *component.ModelEventReq
 	if err != nil {
 		output.ErrorMessage = err.Error()
 		output.ErrorCode = 30003
-		result.Err = err
+		result.SetError(err)
 		return
 	}
 
@@ -168,8 +169,8 @@ func (p *ControllerModel) MultiSelectServiceHandler(env *component.ModelEventReq
 	}
 }
 
-func (p *ControllerModel) StartServiceHandler(env *component.ModelEventReq, curMs int64) {
-	msg, ok := env.Msg.([]byte)
+func (p *ControllerModel) StartServiceHandler(env contract.IModuleEventReq, curMs int64) {
+	msg, ok := env.GetMsg().([]byte)
 	serviceLog.Info("received --start service : %s, [%v]", msg, ok)
 	if !ok {
 		serviceLog.Error("start service msg to string failed: %v", msg)
@@ -177,7 +178,7 @@ func (p *ControllerModel) StartServiceHandler(env *component.ModelEventReq, curM
 	}
 
 	output := &methodData.StartServiceOutput{Success: true}
-	result := &component.ModelEventResult{}
+	result := &module.ModuleEventResult{}
 	defer func() {
 		result.SetResult(output)
 		env.WriteResult(result)

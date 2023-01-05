@@ -3,13 +3,13 @@ package service
 import (
 	"os"
 
-	"github.com/Meland-Inc/game-services/src/global/component"
+	"github.com/Meland-Inc/game-services/src/global/module"
 	"github.com/Meland-Inc/game-services/src/global/serviceCnf"
 )
 
 type Service struct {
 	serviceCnf *serviceCnf.ServiceConfig
-	modelMgr   *component.ModelManager
+	modelMgr   *module.ModuleManager
 	osSignal   chan os.Signal
 	stopChan   chan chan struct{}
 }
@@ -19,7 +19,7 @@ func NewAccountService() *Service {
 		osSignal: make(chan os.Signal, 1),
 		stopChan: make(chan chan struct{}, 1),
 	}
-	s.modelMgr = component.InitModelManager(s)
+	s.modelMgr = module.InitModelManager()
 	return s
 }
 

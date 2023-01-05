@@ -4,10 +4,10 @@ import (
 	"game-message-core/grpc"
 
 	"github.com/Meland-Inc/game-services/src/common/serviceLog"
-	"github.com/Meland-Inc/game-services/src/global/component"
+	"github.com/Meland-Inc/game-services/src/global/contract"
 )
 
-func (p *HomeModel) OnEvent(env *component.ModelEventReq, curMs int64) {
+func (p *HomeModel) OnEvent(env contract.IModuleEventReq, curMs int64) {
 	defer func() {
 		err := recover()
 		if err != nil {
@@ -15,7 +15,7 @@ func (p *HomeModel) OnEvent(env *component.ModelEventReq, curMs int64) {
 		}
 	}()
 
-	switch env.EventType {
+	switch env.GetEventType() {
 	case string(grpc.ProtoMessageActionPullClientMessage):
 		p.clientMsgHandler(env, curMs)
 

@@ -7,22 +7,24 @@ import (
 	"time"
 
 	"github.com/Meland-Inc/game-services/src/common/time_helper"
-	"github.com/Meland-Inc/game-services/src/global/component"
+
+	"github.com/Meland-Inc/game-services/src/global/contract"
+	"github.com/Meland-Inc/game-services/src/global/module"
 )
 
 type UserAgentModel struct {
-	component.ModelBase
+	module.ModuleBase
 	record sync.Map
 }
 
 func NewUserAgentModel() *UserAgentModel {
 	p := &UserAgentModel{}
-	p.InitBaseModel(p, component.MODEL_NAME_USER_AGENT)
+	p.InitBaseModel(p, module.MODULE_NAME_USER_AGENT)
 	return p
 }
 
 func GetUserAgentModel() *UserAgentModel {
-	iUserAgentModel, exist := component.GetInstance().GetModel(component.MODEL_NAME_USER_AGENT)
+	iUserAgentModel, exist := module.GetModel(module.MODULE_NAME_USER_AGENT)
 	if !exist {
 		return nil
 	}
@@ -30,25 +32,16 @@ func GetUserAgentModel() *UserAgentModel {
 	return agentModel
 }
 
-func (p *UserAgentModel) OnInit(modelMgr *component.ModelManager) error {
-	if modelMgr == nil {
-		return fmt.Errorf("service model manager is nil")
-	}
-	p.ModelBase.OnInit(modelMgr)
+func (p *UserAgentModel) OnInit() error {
+	p.ModuleBase.OnInit()
 	return nil
 }
 
 func (p *UserAgentModel) OnStop() error {
-	p.ModelBase.OnStop()
+	p.ModuleBase.OnStop()
 	p.record = sync.Map{}
 	return nil
 }
-
-func (p *UserAgentModel) EventCall(env *component.ModelEventReq) *component.ModelEventResult {
-	return nil
-}
-func (p *UserAgentModel) EventCallNoReturn(env *component.ModelEventReq)    {}
-func (p *UserAgentModel) OnEvent(env *component.ModelEventReq, curMs int64) {}
 
 func (p *UserAgentModel) Secondly(utc time.Time) {}
 func (p *UserAgentModel) Minutely(utc time.Time) {}
@@ -117,4 +110,12 @@ func SendToPlayer(serviceAppId string, userId int64, msg *proto.Envelope) error 
 		return fmt.Errorf("user [%d] agent data not found", userId)
 	}
 	return agent.SendToPlayer(serviceAppId, msg)
+}
+
+func (p *UserAgentModel) EventCall(env contract.IModuleEventReq) contract.IModuleEventResult {
+	return nil
+}
+func (p *UserAgentModel) EventCallNoReturn(env contract.IModuleEventReq) {}
+func (p *UserAgentModel) ReadEvent() contract.IModuleEventReq {
+	return nil
 }
