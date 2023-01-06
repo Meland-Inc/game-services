@@ -74,11 +74,3 @@ func (sh *ServiceHeartModel) SendHeart(curMs int64) error {
 func (sh *ServiceHeartModel) updateHeartCD(curMs int64) {
 	sh.nextHeartMs = curMs + SERVICE_HEART_CD_MS
 }
-
-func (sh *ServiceHeartModel) EventCall(env contract.IModuleEventReq) contract.IModuleEventResult {
-	return nil
-}
-func (sh *ServiceHeartModel) EventCallNoReturn(env contract.IModuleEventReq) {}
-func (sh *ServiceHeartModel) ReadEvent() contract.IModuleEventReq {
-	return nil
-}

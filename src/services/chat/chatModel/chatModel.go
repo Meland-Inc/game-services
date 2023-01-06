@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Meland-Inc/game-services/src/global/contract"
 	"github.com/Meland-Inc/game-services/src/global/module"
 )
 
@@ -49,11 +48,3 @@ func (p *ChatModel) Secondly(utc time.Time) {}
 func (p *ChatModel) Minutely(utc time.Time) {}
 func (p *ChatModel) Hourly(utc time.Time)   {}
 func (p *ChatModel) Daily(utc time.Time)    {}
-
-func (p *ChatModel) EventCall(env contract.IModuleEventReq) contract.IModuleEventResult {
-	return nil
-}
-func (p *ChatModel) EventCallNoReturn(env contract.IModuleEventReq) {}
-func (p *ChatModel) ReadEvent() contract.IModuleEventReq {
-	return nil
-}

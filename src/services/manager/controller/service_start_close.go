@@ -35,7 +35,7 @@ func (this *ControllerModel) RemoveStartingService(serOwner int64) {
 }
 
 // 因为启动需要等待消息回复，外部调用时最好使用 异步调用
-func (this *ControllerModel) startUserPrivateService(
+func (this *ControllerModel) StartUserPrivateService(
 	serType proto.ServiceType, subType proto.SceneServiceSubType, mapId int32, ownerId int64,
 ) (*ServiceData, error) {
 	if mapId < 1 || ownerId < 1 {

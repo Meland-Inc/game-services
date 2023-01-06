@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Meland-Inc/game-services/src/global/contract"
 	"github.com/Meland-Inc/game-services/src/global/module"
 )
 
@@ -34,12 +33,4 @@ func (p *LoginModel) OnInit() error {
 
 func (p *LoginModel) OnTick(utc time.Time) {
 	p.ModuleBase.OnTick(utc)
-}
-
-func (p *LoginModel) EventCall(env contract.IModuleEventReq) contract.IModuleEventResult {
-	return nil
-}
-func (p *LoginModel) EventCallNoReturn(env contract.IModuleEventReq) {}
-func (p *LoginModel) ReadEvent() contract.IModuleEventReq {
-	return nil
 }

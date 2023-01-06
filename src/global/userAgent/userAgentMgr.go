@@ -6,8 +6,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/Meland-Inc/game-services/src/common/time_helper"
-
 	"github.com/Meland-Inc/game-services/src/global/contract"
 	"github.com/Meland-Inc/game-services/src/global/module"
 )
@@ -82,13 +80,7 @@ func (p *UserAgentModel) AddUserAgentRecord(
 		return nil, fmt.Errorf("user agent data is invalid")
 	}
 
-	agentData := &UserAgentData{
-		AgentAppId:          agentAppId,
-		SocketId:            socketId,
-		InSceneServiceAppId: sceneAppId,
-		UserId:              userId,
-		LoginAt:             time_helper.NowUTCMill(),
-	}
+	agentData := NewUserAgentData(userId, agentAppId, socketId, sceneAppId)
 	p.record.Store(userId, agentData)
 	return agentData, nil
 }

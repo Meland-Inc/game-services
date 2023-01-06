@@ -80,7 +80,6 @@ func (p *LoginModel) GetUserLoginData(userId int64, agentAppId, socketId string)
 		0,
 		row.MapId,
 	)
-	serviceLog.Debug("select world output = %+v, err:%+v", serviceOut, err)
 	if err != nil {
 		return "", err
 	}

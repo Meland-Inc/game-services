@@ -43,14 +43,6 @@ func (p *ModuleBase) OnExit() error {
 	return nil
 }
 
-func (p *ModuleBase) EventCall(env *ModuleEventReq) *ModuleEventResult {
-	return nil
-}
-
-func (p *ModuleBase) EventCallNoReturn(env *ModuleEventReq) {}
-
-func (p *ModuleBase) OnEvent(env *ModuleEventReq, curMs int64) {}
-
 func (p *ModuleBase) timeTick(utc time.Time) {
 	curSecond := utc.Second()
 	if curSecond == p.preTickSecond {

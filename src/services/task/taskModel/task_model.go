@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/Meland-Inc/game-services/src/common/shardCache"
-	"github.com/Meland-Inc/game-services/src/global/contract"
 	"github.com/Meland-Inc/game-services/src/global/module"
 )
 
@@ -47,12 +46,4 @@ func (p *TaskModel) Minutely(utc time.Time) {}
 func (p *TaskModel) Hourly(utc time.Time)   {}
 func (p *TaskModel) Daily(utc time.Time) {
 	p.checkAndResetPlayerTask(utc)
-}
-
-func (p *TaskModel) EventCall(env contract.IModuleEventReq) contract.IModuleEventResult {
-	return nil
-}
-func (p *TaskModel) EventCallNoReturn(env contract.IModuleEventReq) {}
-func (p *TaskModel) ReadEvent() contract.IModuleEventReq {
-	return nil
 }

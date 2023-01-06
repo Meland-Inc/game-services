@@ -8,7 +8,7 @@ import (
 
 	"github.com/Meland-Inc/game-services/src/common/serviceLog"
 	"github.com/Meland-Inc/game-services/src/common/time_helper"
-	managerDapr "github.com/Meland-Inc/game-services/src/services/manager/dapr"
+	"github.com/Meland-Inc/game-services/src/global/daprService"
 	"github.com/Meland-Inc/game-services/src/services/manager/httpSer"
 )
 
@@ -26,14 +26,19 @@ func (s *Service) onReceivedOsSignal(si os.Signal) {
 
 func (s *Service) run() {
 	errChan := make(chan error)
-	managerDapr.Run(errChan)
+	daprService.Run(errChan)
 
 	go func() {
+		defer func() {
+			if err := recover(); err != nil {
+				serviceLog.Error("manager http service panic: %+v", err)
+			}
+		}()
 		errChan <- httpSer.Run()
 	}()
 
 	go func() {
-		t := time.NewTicker(5 * time.Millisecond)
+		t := time.NewTicker(2 * time.Millisecond)
 
 		for {
 			select {

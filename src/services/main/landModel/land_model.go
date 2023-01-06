@@ -5,18 +5,15 @@ import (
 	"sync"
 	"time"
 
-	"github.com/Meland-Inc/game-services/src/global/contract"
 	"github.com/Meland-Inc/game-services/src/global/module"
 	"github.com/Meland-Inc/game-services/src/services/main/playerModel"
 )
 
 type LandModel struct {
 	module.ModuleBase
-	modelEvent *module.ModuleEvent
 
 	mapList          []int32
 	mapLandRecordMgr sync.Map
-	playerDataModel  *playerModel.PlayerDataModel
 }
 
 func GetLandModel() (*LandModel, error) {
@@ -31,7 +28,6 @@ func GetLandModel() (*LandModel, error) {
 func NewLandModel() *LandModel {
 	p := &LandModel{mapList: []int32{10001}}
 	p.InitBaseModel(p, module.MODULE_NAME_LAND)
-	p.modelEvent = module.NewModelEvent()
 	return p
 }
 
@@ -45,12 +41,6 @@ func (p *LandModel) OnInit() error {
 }
 
 func (p *LandModel) OnStart() (err error) {
-	p.ModuleBase.OnStart()
-	p.playerDataModel, err = playerModel.GetPlayerDataModel()
-	if err != nil {
-		return err
-	}
-
 	p.mapLandRecordMgr.Range(func(key, value interface{}) bool {
 		mapRecord := value.(*MapLandDataRecord)
 		err = mapRecord.OnStart()
@@ -61,9 +51,6 @@ func (p *LandModel) OnStart() (err error) {
 
 func (p *LandModel) OnTick(utc time.Time) {
 	p.ModuleBase.OnTick(utc)
-	if env := p.ReadEvent(); env != nil {
-		p.OnEvent(env, utc.UnixMilli())
-	}
 }
 
 func (p *LandModel) Secondly(utc time.Time) {}
@@ -80,21 +67,10 @@ func (p *LandModel) GetMapLandRecord(mapId int32) (*MapLandDataRecord, error) {
 }
 
 func (p *LandModel) GetMapLandRecordByUser(userId int64) (*MapLandDataRecord, error) {
-	playerData, err := p.playerDataModel.GetPlayerSceneData(userId)
+	playerDataModel, _ := playerModel.GetPlayerDataModel()
+	playerData, err := playerDataModel.GetPlayerSceneData(userId)
 	if err != nil {
 		return nil, err
 	}
 	return p.GetMapLandRecord(playerData.MapId)
-}
-
-func (p *LandModel) EventCall(env contract.IModuleEventReq) contract.IModuleEventResult {
-	return p.modelEvent.EventCall(env)
-}
-
-func (p *LandModel) EventCallNoReturn(env contract.IModuleEventReq) {
-	p.modelEvent.EventCallNoReturn(env)
-}
-
-func (p *LandModel) ReadEvent() contract.IModuleEventReq {
-	return p.modelEvent.ReadEvent()
 }

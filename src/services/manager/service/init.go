@@ -9,9 +9,10 @@ import (
 
 	"github.com/Meland-Inc/game-services/src/common/serviceLog"
 	"github.com/Meland-Inc/game-services/src/common/time_helper"
+	"github.com/Meland-Inc/game-services/src/global/daprService"
 	"github.com/Meland-Inc/game-services/src/global/serviceCnf"
 	"github.com/Meland-Inc/game-services/src/services/manager/controller"
-	mgrDaprService "github.com/Meland-Inc/game-services/src/services/manager/dapr"
+	managerHandleModule "github.com/Meland-Inc/game-services/src/services/manager/handlerModule"
 	"github.com/Meland-Inc/game-services/src/services/manager/httpSer"
 )
 
@@ -21,6 +22,10 @@ func (s *Service) init() error {
 	}
 	serviceLog.Init(s.serviceCnf.AppId, true)
 	s.initOsSignal()
+
+	if err := s.initHandlerModel(); err != nil {
+		return err
+	}
 
 	if err := s.initDapr(); err != nil {
 		return err
@@ -59,8 +64,17 @@ func (s *Service) initOsSignal() {
 	)
 }
 
+func (s *Service) initHandlerModel() error {
+	model := managerHandleModule.NewHandlerModule()
+	err := s.modelMgr.AddModel(model)
+	if err != nil {
+		serviceLog.Error("init service handler model fail, err: %v", err)
+	}
+	return err
+}
+
 func (s *Service) initDapr() error {
-	if err := mgrDaprService.Init(); err != nil {
+	if err := daprService.Init(); err != nil {
 		serviceLog.Error("dapr init fail err:%v", err)
 		return err
 	}

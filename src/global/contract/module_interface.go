@@ -13,10 +13,6 @@ type IModuleInterface interface {
 	Minutely(utc time.Time)
 	Hourly(utc time.Time)
 	Daily(utc time.Time)
-
-	EventCall(env IModuleEventReq) IModuleEventResult 
-	EventCallNoReturn(env IModuleEventReq)
-	ReadEvent() IModuleEventReq
 }
 
 type IModuleEventReq interface {
@@ -29,6 +25,8 @@ type IModuleEventReq interface {
 	SetMustReturn(bSet bool)
 	GetMustReturn() bool
 	WriteResult(ret IModuleEventResult)
+	UnmarshalToDaprEventData(v interface{}) error
+	UnmarshalToDaprCallData(v interface{}) error
 }
 
 type IModuleEventResult interface {

@@ -5,7 +5,6 @@ import (
 	"game-message-core/proto"
 
 	"github.com/Meland-Inc/game-services/src/common/serviceLog"
-	"github.com/Meland-Inc/game-services/src/common/time_helper"
 	"github.com/Meland-Inc/game-services/src/global/serviceCnf"
 )
 
@@ -34,26 +33,16 @@ func MakeResponseMsg(msg *proto.Envelope) *proto.Envelope {
 	}
 }
 
-func getPlayerAgent(input *methodData.PullClientMessageInput) *UserAgentData {
-	agentModel := GetUserAgentModel()
-	agent, exist := agentModel.GetUserAgent(input.UserId)
-	if !exist {
-		agent = &UserAgentData{
-			AgentAppId:          input.AgentAppId,
-			SocketId:            input.SocketId,
-			InSceneServiceAppId: input.SceneServiceId,
-			UserId:              input.UserId,
-			LoginAt:             time_helper.NowUTCMill(),
-		}
-		agentModel.AddUserAgentRecord(input.UserId, input.AgentAppId, input.SocketId, input.SceneServiceId)
-	} else {
-		agent.TryUpdate(input.UserId, input.AgentAppId, input.SocketId, input.SceneServiceId)
-	}
-
-	return agent
+func makeTemplateAgent(input *methodData.PullClientMessageInput) *UserAgentData {
+	return NewUserAgentData(input.UserId, input.AgentAppId, input.SocketId, input.SceneServiceId)
 }
 
 func GetOrStoreUserAgent(input *methodData.PullClientMessageInput) *UserAgentData {
+	if input.UserId <= 0 {
+		// userId ==0 此时玩家还没完成登录 使用零时agent
+		return makeTemplateAgent(input)
+	}
+
 	agentModel := GetUserAgentModel()
 	agent, exist := agentModel.GetUserAgent(input.UserId)
 	if !exist {

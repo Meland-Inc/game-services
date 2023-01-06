@@ -35,7 +35,7 @@ func RPCSelectService(
 		string(grpc.ManagerServiceActionSelectService),
 		inputBytes,
 	)
-	serviceLog.Info("ManagerActionSelectServiceInput @@@ outBytes = %+v, err:%+v", string(outBytes), err)
+	serviceLog.Info("Select Service output = %+v, err:%+v", string(outBytes), err)
 	if err != nil {
 		serviceLog.Error("select service[%v][%v][%v][%v] failed err:%+v", serviceType, sceneSubType, mapId, ownerId, err)
 		return nil, err

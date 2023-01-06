@@ -1,6 +1,9 @@
 package module
 
 const (
+	// logic demo model
+	MODULE_NAME_LOGIC_DEMO = "ServiceLogicDemoModule"
+
 	// service event model
 	MODULE_NAME_SERVICE_EVENT = "ServiceEventModule"
 

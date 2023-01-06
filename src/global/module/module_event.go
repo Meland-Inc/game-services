@@ -6,6 +6,8 @@ import (
 
 	"github.com/Meland-Inc/game-services/src/common/serviceLog"
 	"github.com/Meland-Inc/game-services/src/global/contract"
+	"github.com/Meland-Inc/game-services/src/global/grpcAPI/grpcNetTool"
+	"github.com/dapr/go-sdk/service/common"
 )
 
 type ModuleEventResult struct {
@@ -96,6 +98,23 @@ func (e *ModuleEventReq) WriteResult(res contract.IModuleEventResult) {
 	}
 }
 
+func (e *ModuleEventReq) UnmarshalToDaprEventData(v interface{}) error {
+	msg, ok := e.GetMsg().(*common.TopicEvent)
+	if !ok {
+		return fmt.Errorf("Unmarshal dapr Event failed: %v", msg)
+	}
+	return grpcNetTool.UnmarshalGrpcTopicEvent(msg, v)
+}
+
+func (e *ModuleEventReq) UnmarshalToDaprCallData(v interface{}) error {
+	inputBs, ok := e.GetMsg().([]byte)
+	if !ok {
+		return fmt.Errorf("Unmarshal dapr call failed: %s", inputBs)
+
+	}
+	return grpcNetTool.UnmarshalGrpcData(inputBs, v)
+}
+
 type ModuleEvent struct {
 	eventChan chan contract.IModuleEventReq
 }
@@ -124,7 +143,7 @@ func (p *ModuleEvent) eventCallImpl(env contract.IModuleEventReq, mustReturn boo
 		select {
 		case <-time.After(time.Second * 5):
 			result := &ModuleEventResult{
-				err: fmt.Errorf("ModuleEvent timeout. msgType(%v),  msg: %+v", env, env.GetMsg()),
+				err: fmt.Errorf("ModuleEvent timeout. msgType(%v),  msg: %+v", env.GetEventType(), env.GetMsg()),
 			}
 			serviceLog.Error(result.err.Error())
 			return result

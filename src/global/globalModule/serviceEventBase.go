@@ -66,7 +66,7 @@ func (p *ServiceEventBase) OnTick(utc time.Time) {
 }
 
 func (p *ServiceEventBase) GetGameServiceDaprCallTypes() []string {
-	keys := []string{string(grpc.ProtoMessageActionPullClientMessage)}
+	keys := []string{}
 	for key, _ := range p.gameSerDaprCalls {
 		keys = append(keys, key)
 	}
@@ -178,13 +178,13 @@ func (p *ServiceEventBase) OnEvent(env contract.IModuleEventReq, curMs int64) {
 
 func (p *ServiceEventBase) callClientMsg(env contract.IModuleEventReq, curMs int64) {
 	bs, ok := env.GetMsg().([]byte)
-	serviceLog.Info("client msg: %s, [%v]", bs, ok)
+	// serviceLog.Info("client msg: %s, [%v]", bs, ok)
 	if !ok {
 		serviceLog.Error("client msg to string failed: %v", bs)
 		return
 	}
 
-	serviceLog.Info("service event received clientPbMsg data: %v", string(bs))
+	// serviceLog.Info("service event received clientPbMsg data: %v", string(bs))
 
 	input := &methodData.PullClientMessageInput{}
 	err := grpcNetTool.UnmarshalGrpcData(bs, input)
