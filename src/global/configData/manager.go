@@ -25,16 +25,17 @@ type ConfigDataManager struct {
 	configDb  *gorm.DB
 	loadFuncs []LoadFunc
 
-	taskCnf      map[int32]xlsxTable.TaskTableRow
-	taskListCnf  map[int32]xlsxTable.TaskListTableRow
-	roleLvCnf    map[int32]xlsxTable.RoleLvTableRow
-	slotLvCnf    map[int32][]xlsxTable.SlotLvTableRow
-	rewardCnf    map[int32]xlsxTable.RewardTableRow
-	itemCnf      map[int32]xlsxTable.ItemTable
-	dropCnf      map[int32]xlsxTable.DropTableRow
-	chatCnf      map[proto.ChatChannelType]xlsxTable.ChatTableRow
-	gameValueCnf map[int32]xlsxTable.GameValueTable
-	sceneAreaCnf map[int32]xlsxTable.SceneAreaRow
+	taskCnf       map[int32]xlsxTable.TaskTableRow
+	taskListCnf   map[int32]xlsxTable.TaskListTableRow
+	roleLvCnf     map[int32]xlsxTable.RoleLvTableRow
+	slotLvCnf     map[int32][]xlsxTable.SlotLvTableRow
+	rewardCnf     map[int32]xlsxTable.RewardTableRow
+	itemCnf       map[int32]xlsxTable.ItemTable
+	dropCnf       map[int32]xlsxTable.DropTableRow
+	chatCnf       map[proto.ChatChannelType]xlsxTable.ChatTableRow
+	gameValueCnf  map[int32]xlsxTable.GameValueTable
+	sceneAreaCnf  map[int32]xlsxTable.SceneAreaRow
+	talentTreeCnf map[int32]xlsxTable.TalentTreeRow
 }
 
 func Init() error {
@@ -67,6 +68,7 @@ func (mgr *ConfigDataManager) registerLoadFunctions() {
 		LoadFunc{"chat", mgr.initChatCnf},
 		LoadFunc{"gameValue", mgr.initGameValue},
 		LoadFunc{"SceneArea", mgr.initSceneArea},
+		LoadFunc{"TalentTree", mgr.initTalentTree},
 	}
 }
 
