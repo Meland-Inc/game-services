@@ -9,12 +9,13 @@ import (
 
 	"github.com/Meland-Inc/game-services/src/common/serviceLog"
 	"github.com/Meland-Inc/game-services/src/common/time_helper"
-	configData "github.com/Meland-Inc/game-services/src/global/configData"
-	gameDb "github.com/Meland-Inc/game-services/src/global/gameDB"
+	"github.com/Meland-Inc/game-services/src/global/configData"
+	"github.com/Meland-Inc/game-services/src/global/daprService"
+	"github.com/Meland-Inc/game-services/src/global/gameDB"
 	"github.com/Meland-Inc/game-services/src/global/serviceCnf"
 	"github.com/Meland-Inc/game-services/src/global/serviceHeart"
 	"github.com/Meland-Inc/game-services/src/global/userAgent"
-	mainDaprService "github.com/Meland-Inc/game-services/src/services/main/dapr"
+	mainHandleModule "github.com/Meland-Inc/game-services/src/services/main/handlerModule"
 	"github.com/Meland-Inc/game-services/src/services/main/home_model"
 	land_model "github.com/Meland-Inc/game-services/src/services/main/landModel"
 	login_model "github.com/Meland-Inc/game-services/src/services/main/loginModel"
@@ -28,11 +29,15 @@ func (s *Service) init() error {
 	serviceLog.Init(s.serviceCnf.AppId, true)
 	s.initOsSignal()
 
-	if err := gameDb.Init(); err != nil {
+	if err := gameDB.Init(); err != nil {
 		return err
 	}
 
 	if err := configData.Init(); err != nil {
+		return err
+	}
+
+	if err := s.initHandlerModel(); err != nil {
 		return err
 	}
 
@@ -70,8 +75,17 @@ func (s *Service) initOsSignal() {
 	)
 }
 
+func (s *Service) initHandlerModel() error {
+	model := mainHandleModule.NewHandlerModule()
+	err := s.modelMgr.AddModel(model)
+	if err != nil {
+		serviceLog.Error("init service handler model fail, err: %v", err)
+	}
+	return err
+}
+
 func (s *Service) initDapr() error {
-	if err := mainDaprService.Init(); err != nil {
+	if err := daprService.Init(); err != nil {
 		serviceLog.Error("dapr init fail err:%v", err)
 		return err
 	}
@@ -144,6 +158,7 @@ func (s *Service) initLandModel() error {
 }
 
 func (s *Service) initLoginModel() error {
+
 	m := login_model.NewLoginModel()
 	err := s.modelMgr.AddModel(m)
 	if err != nil {

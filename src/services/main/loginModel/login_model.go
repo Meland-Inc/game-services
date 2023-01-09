@@ -4,15 +4,15 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Meland-Inc/game-services/src/global/component"
+	"github.com/Meland-Inc/game-services/src/global/module"
 )
 
 type LoginModel struct {
-	component.ModelBase
+	module.ModuleBase
 }
 
 func GetLoginModel() (*LoginModel, error) {
-	iLoginModel, exist := component.GetInstance().GetModel(component.MODEL_NAME_LOGIN)
+	iLoginModel, exist := module.GetModel(module.MODULE_NAME_LOGIN)
 	if !exist {
 		return nil, fmt.Errorf("login model not found")
 	}
@@ -22,19 +22,15 @@ func GetLoginModel() (*LoginModel, error) {
 
 func NewLoginModel() *LoginModel {
 	p := &LoginModel{}
-	p.InitBaseModel(p, component.MODEL_NAME_LOGIN)
+	p.InitBaseModel(p, module.MODULE_NAME_LOGIN)
 	return p
 }
 
-func (p *LoginModel) OnInit(modelMgr *component.ModelManager) error {
-	if modelMgr == nil {
-		return fmt.Errorf("login model init service model manager is nil")
-	}
-	p.ModelBase.OnInit(modelMgr)
-
+func (p *LoginModel) OnInit() error {
+	p.ModuleBase.OnInit()
 	return nil
 }
 
 func (p *LoginModel) OnTick(utc time.Time) {
-	p.ModelBase.OnTick(utc)
+	p.ModuleBase.OnTick(utc)
 }

@@ -8,8 +8,8 @@ import (
 
 	"github.com/Meland-Inc/game-services/src/common/serviceLog"
 	"github.com/Meland-Inc/game-services/src/common/time_helper"
+	"github.com/Meland-Inc/game-services/src/global/daprService"
 	"github.com/Meland-Inc/game-services/src/global/serviceRegister"
-	agentDapr "github.com/Meland-Inc/game-services/src/services/agent/dapr"
 )
 
 func (s *Service) onReceivedOsSignal(si os.Signal) {
@@ -26,10 +26,10 @@ func (s *Service) onReceivedOsSignal(si os.Signal) {
 
 func (s *Service) run() {
 	errChan := make(chan error)
-	agentDapr.Run(errChan)
+	daprService.Run(errChan)
 	s.registerService()
 	go func() {
-		t := time.NewTicker(5 * time.Millisecond)
+		t := time.NewTicker(1 * time.Millisecond)
 
 		for {
 			select {
@@ -55,7 +55,7 @@ func (s *Service) run() {
 
 func (s *Service) registerService() {
 	offsetMs, err := serviceRegister.RegisterService(*s.serviceCnf, 0)
-	serviceLog.Info("registerService ------ end ----------data: %+v, err: %v", *s.serviceCnf, err)
+serviceLog.Info("REGISTER Service  cnf: %+v, err: %v", *s.serviceCnf, err)
 	if err != nil {
 		panic(err)
 	}

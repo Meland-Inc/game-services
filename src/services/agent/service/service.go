@@ -4,13 +4,13 @@ import (
 	"os"
 
 	"github.com/Meland-Inc/game-services/src/common/net/tcp"
-	"github.com/Meland-Inc/game-services/src/global/component"
+	"github.com/Meland-Inc/game-services/src/global/module"
 	"github.com/Meland-Inc/game-services/src/global/serviceCnf"
 )
 
 type Service struct {
 	serviceCnf *serviceCnf.ServiceConfig
-	modelMgr   *component.ModelManager
+	modelMgr   *module.ModuleManager
 	tcpServer  *tcp.Server
 	osSignal   chan os.Signal
 	stopChan   chan chan struct{}
@@ -23,7 +23,7 @@ func NewAgentService() *Service {
 		stopChan: make(chan chan struct{}, 1),
 		closed:   false,
 	}
-	s.modelMgr = component.InitModelManager(s)
+	s.modelMgr = module.InitModelManager()
 	return s
 }
 

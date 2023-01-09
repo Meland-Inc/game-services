@@ -7,13 +7,14 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/spf13/cast"
-
 	"github.com/Meland-Inc/game-services/src/common/serviceLog"
 	"github.com/Meland-Inc/game-services/src/common/time_helper"
+	"github.com/Meland-Inc/game-services/src/global/daprService"
 	"github.com/Meland-Inc/game-services/src/global/serviceCnf"
-	agentDaprService "github.com/Meland-Inc/game-services/src/services/agent/dapr"
+	"github.com/Meland-Inc/game-services/src/global/userAgent"
+	agentHandleModule "github.com/Meland-Inc/game-services/src/services/agent/handlerModule"
 	agentHeart "github.com/Meland-Inc/game-services/src/services/agent/heart"
+	"github.com/spf13/cast"
 )
 
 func (s *Service) init() error {
@@ -22,6 +23,14 @@ func (s *Service) init() error {
 	}
 	serviceLog.Init(s.serviceCnf.AppId, true)
 	s.initOsSignal()
+
+	if err := s.initHandlerModel(); err != nil {
+		return err
+	}
+
+	if err := s.initDapr(); err != nil {
+		return err
+	}
 
 	if err := s.initServiceModels(); err != nil {
 		return err
@@ -55,14 +64,38 @@ func (s *Service) initServiceCnf() error {
 	return nil
 }
 
+func (s *Service) initOsSignal() {
+	signal.Notify(s.osSignal,
+		syscall.SIGHUP, syscall.SIGQUIT, syscall.SIGTERM, syscall.SIGINT,
+		syscall.SIGABRT,
+	)
+}
+
+func (s *Service) initHandlerModel() error {
+	model := agentHandleModule.NewHandlerModule()
+	err := s.modelMgr.AddModel(model)
+	if err != nil {
+		serviceLog.Error("init service handler model fail, err: %v", err)
+	}
+	return err
+}
+
+func (s *Service) initDapr() error {
+	if err := daprService.Init(); err != nil {
+		serviceLog.Error("dapr init fail err:%v", err)
+		return err
+	}
+	return nil
+}
+
 func (s *Service) initServiceModels() error {
 	if err := s.initHeartModel(); err != nil {
 		return err
 	}
-
-	if err := s.initDapr(); err != nil {
+	if err := s.initUserAgentModel(); err != nil {
 		return err
 	}
+
 	return nil
 }
 
@@ -75,17 +108,11 @@ func (s *Service) initHeartModel() error {
 	return err
 }
 
-func (s *Service) initOsSignal() {
-	signal.Notify(s.osSignal,
-		syscall.SIGHUP, syscall.SIGQUIT, syscall.SIGTERM, syscall.SIGINT,
-		syscall.SIGABRT,
-	)
-}
-
-func (s *Service) initDapr() error {
-	if err := agentDaprService.Init(); err != nil {
-		serviceLog.Error("dapr init fail err:%v", err)
-		return err
+func (s *Service) initUserAgentModel() error {
+	m := userAgent.NewUserAgentModel()
+	err := s.modelMgr.AddModel(m)
+	if err != nil {
+		serviceLog.Error("init user agent model fail, err: %v", err)
 	}
-	return nil
+	return err
 }

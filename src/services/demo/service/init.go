@@ -7,16 +7,17 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/spf13/cast"
-
 	"github.com/Meland-Inc/game-services/src/common/serviceLog"
 	"github.com/Meland-Inc/game-services/src/common/time_helper"
-	configData "github.com/Meland-Inc/game-services/src/global/configData"
-	gameDb "github.com/Meland-Inc/game-services/src/global/gameDB"
+	"github.com/Meland-Inc/game-services/src/global/configData"
+	"github.com/Meland-Inc/game-services/src/global/daprService"
+	"github.com/Meland-Inc/game-services/src/global/gameDB"
 	"github.com/Meland-Inc/game-services/src/global/serviceCnf"
 	"github.com/Meland-Inc/game-services/src/global/serviceHeart"
 	"github.com/Meland-Inc/game-services/src/global/userAgent"
-	demoDaprService "github.com/Meland-Inc/game-services/src/services/demo/dapr"
+	demoHandleModule "github.com/Meland-Inc/game-services/src/services/demo/handlerModule"
+	"github.com/Meland-Inc/game-services/src/services/demo/logicDemoModel"
+	"github.com/spf13/cast"
 )
 
 func (s *Service) init() error {
@@ -26,7 +27,7 @@ func (s *Service) init() error {
 	serviceLog.Init(s.serviceCnf.AppId, true)
 	s.initOsSignal()
 
-	if err := gameDb.Init(); err != nil {
+	if err := gameDB.Init(); err != nil {
 		return err
 	}
 
@@ -34,7 +35,7 @@ func (s *Service) init() error {
 		return err
 	}
 
-	if err := s.initServiceModels(); err != nil {
+	if err := s.initHandlerModel(); err != nil {
 		return err
 	}
 
@@ -42,6 +43,9 @@ func (s *Service) init() error {
 		return err
 	}
 
+	if err := s.initServiceModels(); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -76,8 +80,17 @@ func (s *Service) initOsSignal() {
 	)
 }
 
+func (s *Service) initHandlerModel() error {
+	model := demoHandleModule.NewHandlerModule()
+	err := s.modelMgr.AddModel(model)
+	if err != nil {
+		serviceLog.Error("init service handler model fail, err: %v", err)
+	}
+	return err
+}
+
 func (s *Service) initDapr() error {
-	if err := demoDaprService.Init(); err != nil {
+	if err := daprService.Init(); err != nil {
 		serviceLog.Error("dapr init fail err:%v", err)
 		return err
 	}
@@ -90,6 +103,10 @@ func (s *Service) initServiceModels() error {
 	}
 
 	if err := s.initUserAgentModel(); err != nil {
+		return err
+	}
+
+	if err := s.initLogicDemoModel(); err != nil {
 		return err
 	}
 
@@ -110,6 +127,15 @@ func (s *Service) initUserAgentModel() error {
 	err := s.modelMgr.AddModel(m)
 	if err != nil {
 		serviceLog.Error("init user agent model fail, err: %v", err)
+	}
+	return err
+}
+
+func (s *Service) initLogicDemoModel() error {
+	m := logicDemoModel.NewLogicDemoModel()
+	err := s.modelMgr.AddModel(m)
+	if err != nil {
+		serviceLog.Error("init logic demo model fail, err: %v", err)
 	}
 	return err
 }

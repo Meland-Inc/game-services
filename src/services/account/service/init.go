@@ -10,10 +10,12 @@ import (
 	"github.com/Meland-Inc/game-services/src/common/serviceLog"
 	"github.com/Meland-Inc/game-services/src/common/time_helper"
 	"github.com/Meland-Inc/game-services/src/global/configData"
-	gameDb "github.com/Meland-Inc/game-services/src/global/gameDB"
+	"github.com/Meland-Inc/game-services/src/global/daprService"
+	"github.com/Meland-Inc/game-services/src/global/gameDB"
 	"github.com/Meland-Inc/game-services/src/global/serviceCnf"
 	"github.com/Meland-Inc/game-services/src/global/serviceHeart"
-	accountDaprService "github.com/Meland-Inc/game-services/src/services/account/dapr"
+	"github.com/Meland-Inc/game-services/src/global/userAgent"
+	accountHandleModule "github.com/Meland-Inc/game-services/src/services/account/handlerModule"
 )
 
 func (s *Service) init() error {
@@ -23,7 +25,7 @@ func (s *Service) init() error {
 	serviceLog.Init(s.serviceCnf.AppId, true)
 	s.initOsSignal()
 
-	if err := gameDb.Init(); err != nil {
+	if err := gameDB.Init(); err != nil {
 		return err
 	}
 
@@ -31,7 +33,18 @@ func (s *Service) init() error {
 		return err
 	}
 
-	return s.initServiceModels()
+	if err := s.initHandlerModel(); err != nil {
+		return err
+	}
+
+	if err := s.initDapr(); err != nil {
+		return err
+	}
+
+	if err := s.initServiceModels(); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (s *Service) initServiceCnf() error {
@@ -50,14 +63,38 @@ func (s *Service) initServiceCnf() error {
 	return nil
 }
 
+func (s *Service) initOsSignal() {
+	signal.Notify(s.osSignal,
+		syscall.SIGHUP, syscall.SIGQUIT, syscall.SIGTERM, syscall.SIGINT, syscall.SIGABRT,
+	)
+}
+
+func (s *Service) initHandlerModel() error {
+	model := accountHandleModule.NewHandlerModule()
+	err := s.modelMgr.AddModel(model)
+	if err != nil {
+		serviceLog.Error("init service handler model fail, err: %v", err)
+	}
+	return err
+}
+
+func (s *Service) initDapr() error {
+	if err := daprService.Init(); err != nil {
+		serviceLog.Error("dapr init fail err:%v", err)
+		return err
+	}
+	return nil
+}
+
 func (s *Service) initServiceModels() error {
 	if err := s.initHeartModel(); err != nil {
 		return err
 	}
 
-	if err := s.initDapr(); err != nil {
+	if err := s.initUserAgentModel(); err != nil {
 		return err
 	}
+
 	return nil
 }
 
@@ -70,16 +107,11 @@ func (s *Service) initHeartModel() error {
 	return err
 }
 
-func (s *Service) initOsSignal() {
-	signal.Notify(s.osSignal,
-		syscall.SIGHUP, syscall.SIGQUIT, syscall.SIGTERM, syscall.SIGINT, syscall.SIGABRT,
-	)
-}
-
-func (s *Service) initDapr() error {
-	if err := accountDaprService.Init(); err != nil {
-		serviceLog.Error("dapr init fail err:%v", err)
-		return err
+func (s *Service) initUserAgentModel() error {
+	m := userAgent.NewUserAgentModel()
+	err := s.modelMgr.AddModel(m)
+	if err != nil {
+		serviceLog.Error("init user agent model fail, err: %v", err)
 	}
-	return nil
+	return err
 }

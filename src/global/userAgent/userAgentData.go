@@ -4,6 +4,7 @@ import (
 	"game-message-core/proto"
 
 	"github.com/Meland-Inc/game-services/src/common/serviceLog"
+	"github.com/Meland-Inc/game-services/src/common/time_helper"
 )
 
 type UserAgentData struct {
@@ -13,6 +14,18 @@ type UserAgentData struct {
 	SocketId            string `json:"socketId"`
 	UserId              int64  `json:"userId"`
 	LoginAt             int64  `json:"loginAt"`
+}
+
+func NewUserAgentData(
+	userId int64, agentAppId, socketId, sceneAppId string,
+) *UserAgentData {
+	return &UserAgentData{
+		AgentAppId:          agentAppId,
+		SocketId:            socketId,
+		InSceneServiceAppId: sceneAppId,
+		UserId:              userId,
+		LoginAt:             time_helper.NowUTCMill(),
+	}
 }
 
 func (p *UserAgentData) TryUpdate(userId int64, agentAppId, socketId, sceneAppId string) {

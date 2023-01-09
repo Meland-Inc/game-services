@@ -5,21 +5,19 @@ import (
 	"sync"
 	"time"
 
-	"github.com/Meland-Inc/game-services/src/global/component"
+	"github.com/Meland-Inc/game-services/src/global/module"
 	"github.com/Meland-Inc/game-services/src/services/main/playerModel"
 )
 
 type LandModel struct {
-	component.ModelBase
-	modelEvent *component.ModelEvent
+	module.ModuleBase
 
 	mapList          []int32
 	mapLandRecordMgr sync.Map
-	playerDataModel  *playerModel.PlayerDataModel
 }
 
 func GetLandModel() (*LandModel, error) {
-	iLandModel, exist := component.GetInstance().GetModel(component.MODEL_NAME_LAND)
+	iLandModel, exist := module.GetModel(module.MODULE_NAME_LAND)
 	if !exist {
 		return nil, fmt.Errorf("land  model not found")
 	}
@@ -29,17 +27,12 @@ func GetLandModel() (*LandModel, error) {
 
 func NewLandModel() *LandModel {
 	p := &LandModel{mapList: []int32{10001}}
-	p.InitBaseModel(p, component.MODEL_NAME_LAND)
-	p.modelEvent = component.NewModelEvent(p)
+	p.InitBaseModel(p, module.MODULE_NAME_LAND)
 	return p
 }
 
-func (p *LandModel) OnInit(modelMgr *component.ModelManager) error {
-	if modelMgr == nil {
-		return fmt.Errorf("land model init service model manager is nil")
-	}
-	p.ModelBase.OnInit(modelMgr)
-
+func (p *LandModel) OnInit() error {
+	p.ModuleBase.OnInit()
 	for _, mapId := range p.mapList {
 		mapRecord := NewMapLandDataRecord(mapId)
 		p.mapLandRecordMgr.Store(mapId, mapRecord)
@@ -48,12 +41,6 @@ func (p *LandModel) OnInit(modelMgr *component.ModelManager) error {
 }
 
 func (p *LandModel) OnStart() (err error) {
-	p.ModelBase.OnStart()
-	p.playerDataModel, err = playerModel.GetPlayerDataModel()
-	if err != nil {
-		return err
-	}
-
 	p.mapLandRecordMgr.Range(func(key, value interface{}) bool {
 		mapRecord := value.(*MapLandDataRecord)
 		err = mapRecord.OnStart()
@@ -63,15 +50,7 @@ func (p *LandModel) OnStart() (err error) {
 }
 
 func (p *LandModel) OnTick(utc time.Time) {
-	p.ModelBase.OnTick(utc)
-	p.modelEvent.ReadEvent(utc.UnixMilli())
-}
-
-func (p *LandModel) EventCall(env *component.ModelEventReq) *component.ModelEventResult {
-	return p.modelEvent.EventCall(env)
-}
-func (p *LandModel) EventCallNoReturn(env *component.ModelEventReq) {
-	p.modelEvent.EventCallNoReturn(env)
+	p.ModuleBase.OnTick(utc)
 }
 
 func (p *LandModel) Secondly(utc time.Time) {}
@@ -88,7 +67,8 @@ func (p *LandModel) GetMapLandRecord(mapId int32) (*MapLandDataRecord, error) {
 }
 
 func (p *LandModel) GetMapLandRecordByUser(userId int64) (*MapLandDataRecord, error) {
-	playerData, err := p.playerDataModel.GetPlayerSceneData(userId)
+	playerDataModel, _ := playerModel.GetPlayerDataModel()
+	playerData, err := playerDataModel.GetPlayerSceneData(userId)
 	if err != nil {
 		return nil, err
 	}
