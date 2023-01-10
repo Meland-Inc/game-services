@@ -26,6 +26,7 @@ func getDbTableModels() []interface{} {
 		dbData.LoginData{},
 		dbData.HomeData{},
 		dbData.HomeGranary{},
+		dbData.TalentData{},
 	}
 }
 
