@@ -46,7 +46,7 @@ type TalentExpList struct {
 func NewTalentExpList() *TalentExpList {
 	list := &TalentExpList{}
 	list.List = append(list.List, NewTalentExp(proto.TalentType_Farming))
-	list.List = append(list.List, NewTalentExp(proto.TalentType_Fighting))
+	list.List = append(list.List, NewTalentExp(proto.TalentType_Battle))
 	return list
 }
 func (p *TalentExpList) GetExpList() []*TalentExp { return p.List }
@@ -90,7 +90,7 @@ type TalentLevelList struct {
 func NewTalentLevelList() *TalentLevelList {
 	list := &TalentLevelList{}
 	list.List = append(list.List, NewTalentLevel(proto.TalentType_Farming))
-	list.List = append(list.List, NewTalentLevel(proto.TalentType_Fighting))
+	list.List = append(list.List, NewTalentLevel(proto.TalentType_Battle))
 	return list
 }
 func (p *TalentLevelList) GetExpList() []*TalentLevel { return p.List }
@@ -111,52 +111,78 @@ func (p *TalentLevelList) ResetAll() {
 	}
 }
 
-// --------------- talent node   ---------------
+// --------------- talent node data ---------------
 type TalentNodeData struct {
-	TalentType proto.TalentType `json:"talentType"`
-	NodeIds    []uint32         `json:"nodeIds"`
+	NodeId uint32 `json:"nodeId"`
+	Level  uint32 `json:"level"`
 }
 
-func NewTalentNodeData(talentType proto.TalentType) *TalentNodeData {
-	return &TalentNodeData{TalentType: talentType}
+func NewTalentNodeData(nodeId, lv uint32) *TalentNodeData {
+	return &TalentNodeData{
+		NodeId: nodeId,
+		Level:  lv,
+	}
 }
 
-func (p *TalentNodeData) GetTalentType() proto.TalentType { return p.TalentType }
-func (p *TalentNodeData) GetNodeIds() []uint32            { return p.NodeIds }
-func (p *TalentNodeData) AddNode(nodeId uint32) {
-	if nodeId <= 0 {
+// --------------- talent node   ---------------
+type TalentTree struct {
+	TalentType proto.TalentType  `json:"talentType"`
+	Nodes      []*TalentNodeData `json:"nodes"`
+}
+
+func NewTalentTree(talentType proto.TalentType) *TalentTree {
+	return &TalentTree{TalentType: talentType}
+}
+
+func (p *TalentTree) GetTalentType() proto.TalentType { return p.TalentType }
+func (p *TalentTree) GetNodes() []*TalentNodeData     { return p.Nodes }
+func (p *TalentTree) NodeById(nodeId uint32) *TalentNodeData {
+	for _, node := range p.Nodes {
+		if node.NodeId == nodeId {
+			return node
+		}
+	}
+	return nil
+}
+func (p *TalentTree) AddNode(node *TalentNodeData) {
+	if node == nil || node.NodeId <= 0 || node.Level < 1 {
 		return
 	}
-	p.NodeIds = append(p.NodeIds, nodeId)
+	for _, n := range p.Nodes {
+		if n.NodeId == node.NodeId {
+			return
+		}
+	}
+	p.Nodes = append(p.Nodes, node)
 }
-func (p *TalentNodeData) Reset() {
-	p.NodeIds = []uint32{}
+func (p *TalentTree) Reset() {
+	p.Nodes = []*TalentNodeData{}
 }
 
 // --------------- talent node list ---------------
-type TalentNodeList struct {
-	List []*TalentNodeData `json:"list"`
+type TalentTreeList struct {
+	List []*TalentTree `json:"list"`
 }
 
-func NewTalentNodeList() *TalentNodeList {
-	list := &TalentNodeList{}
-	list.List = append(list.List, NewTalentNodeData(proto.TalentType_Farming))
-	list.List = append(list.List, NewTalentNodeData(proto.TalentType_Fighting))
+func NewTalentNodeList() *TalentTreeList {
+	list := &TalentTreeList{}
+	list.List = append(list.List, NewTalentTree(proto.TalentType_Farming))
+	list.List = append(list.List, NewTalentTree(proto.TalentType_Battle))
 	return list
 }
-func (p *TalentNodeList) GetNodeList() []*TalentNodeData { return p.List }
-func (p *TalentNodeList) TalentNodesByType(talentType proto.TalentType) *TalentNodeData {
+func (p *TalentTreeList) GetTalentTreeList() []*TalentTree { return p.List }
+func (p *TalentTreeList) TalentTreeByType(talentType proto.TalentType) *TalentTree {
 	for _, node := range p.List {
 		if node.GetTalentType() == talentType {
 			return node
 		}
 	}
 
-	node := NewTalentNodeData(talentType)
-	p.List = append(p.List, node)
-	return node
+	tree := NewTalentTree(talentType)
+	p.List = append(p.List, tree)
+	return tree
 }
-func (p *TalentNodeList) ResetAll() {
+func (p *TalentTreeList) ResetAll() {
 	for _, node := range p.List {
 		node.Reset()
 	}
@@ -164,16 +190,16 @@ func (p *TalentNodeList) ResetAll() {
 
 // --------------- talent DB data ---------------
 type TalentData struct {
-	UserId    int64     `gorm:"primaryKey" json:"userId"`
-	ExpJson   string    `json:"expJson"`
-	LevelJson string    `json:"levelJson"`
-	NodeJson  string    `json:"nodeJson"`
-	CreatedAt time.Time `json:"createdAt"`
-	UpdateAt  time.Time `json:"updateAt"`
+	UserId         int64     `gorm:"primaryKey" json:"userId"`
+	ExpJson        string    `json:"expJson"`
+	LevelJson      string    `json:"levelJson"`
+	TalentTreeJson string    `json:"talentTreeJson"`
+	CreatedAt      time.Time `json:"createdAt"`
+	UpdateAt       time.Time `json:"updateAt"`
 
-	expData   *TalentExpList   `gorm:"-" json:"-"`
-	levelData *TalentLevelList `gorm:"-" json:"-"`
-	nodeData  *TalentNodeList  `gorm:"-" json:"-"`
+	expData        *TalentExpList   `gorm:"-" json:"-"`
+	levelData      *TalentLevelList `gorm:"-" json:"-"`
+	talentTreeData *TalentTreeList  `gorm:"-" json:"-"`
 }
 
 func NewTalentData(userId int64) *TalentData {
@@ -228,24 +254,24 @@ func (p *TalentData) SetLevelData(data *TalentLevelList) {
 	}
 }
 
-func (p *TalentData) GetNodeData() *TalentNodeList {
-	if p.nodeData == nil && len(p.NodeJson) > 2 {
-		l := &TalentNodeList{}
-		err := json.Unmarshal([]byte(p.NodeJson), l)
+func (p *TalentData) GetTalentTreeList() *TalentTreeList {
+	if p.talentTreeData == nil && len(p.TalentTreeJson) > 2 {
+		l := &TalentTreeList{}
+		err := json.Unmarshal([]byte(p.TalentTreeJson), l)
 		if err == nil {
-			p.nodeData = l
+			p.talentTreeData = l
 		}
 	}
-	return p.nodeData
+	return p.talentTreeData
 }
 
-func (p *TalentData) SetNodeData(data *TalentNodeList) {
-	p.nodeData = data
-	p.NodeJson = ""
-	if p.nodeData != nil {
-		bs, err := json.Marshal(p.nodeData)
+func (p *TalentData) SetTalentTreeList(data *TalentTreeList) {
+	p.talentTreeData = data
+	p.TalentTreeJson = ""
+	if p.talentTreeData != nil {
+		bs, err := json.Marshal(p.talentTreeData)
 		if err == nil {
-			p.NodeJson = string(bs)
+			p.TalentTreeJson = string(bs)
 		}
 	}
 }
