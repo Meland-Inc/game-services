@@ -152,7 +152,7 @@ func UnloadAvatarHandler(
 	}()
 
 	if input.UserId < 1 {
-		respMsg.ErrorMessage = "load avatar Invalid User ID"
+		respMsg.ErrorMessage = "Unload avatar Invalid User ID"
 		return
 	}
 
@@ -162,9 +162,9 @@ func UnloadAvatarHandler(
 		return
 	}
 
-	req := msg.GetUpdateAvatarRequest()
+	req := msg.GetUnloadAvatarRequest()
 	if req == nil {
-		serviceLog.Error("main service load avatar request is nil")
+		serviceLog.Error("main service Unload avatar request is nil")
 		return
 	}
 	err = playerDataModel.UnloadAvatar(input.UserId, req.ItemId, true, false)

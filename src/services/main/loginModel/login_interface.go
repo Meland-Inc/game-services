@@ -10,6 +10,7 @@ import (
 	dbData "github.com/Meland-Inc/game-services/src/global/gameDB/data"
 	"github.com/Meland-Inc/game-services/src/global/grpcAPI/grpcInvoke"
 	"github.com/Meland-Inc/game-services/src/global/grpcAPI/grpcPubsubEvent"
+	"github.com/Meland-Inc/game-services/src/services/main/playerModel"
 	"gorm.io/gorm"
 )
 
@@ -54,8 +55,8 @@ func (p *LoginModel) OnLogOut(userId int64) {
 }
 
 func (p *LoginModel) GetUserLoginData(userId int64, agentAppId, socketId string) (sceneAppId string, err error) {
-	row := &dbData.PlayerSceneData{}
-	err = gameDB.GetGameDB().Where("user_id = ?", userId).First(row).Error
+	playerDataModel, _ := playerModel.GetPlayerDataModel()
+	row, err := playerDataModel.GetPlayerSceneData(userId)
 	if err != nil {
 		return sceneAppId, err
 	}

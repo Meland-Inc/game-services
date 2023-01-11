@@ -146,16 +146,18 @@ func GRPCServiceStartHandler(env contract.IModuleEventReq, curMs int64) {
 	}
 
 	ctlModel, _ := controller.GetControllerModel()
-
 	ser, exist := ctlModel.GetAliveServiceByType(
 		input.ServiceType, input.SceneSerSubType, input.MapId, input.OwnerId,
 	)
-	if exist { // 服务已启动
+
+	if exist {
+		// 服务已启动
 		ctlModel.GrpcCallServiceStarted(ser)
 	} else {
-		if _, err = ctlModel.StartUserPrivateService(
+		_, err = ctlModel.StartUserPrivateService(
 			input.ServiceType, input.SceneSerSubType, input.MapId, input.OwnerId,
-		); err != nil {
+		)
+		if err != nil {
 			output.Success = false
 			output.ErrMsg = err.Error()
 		}

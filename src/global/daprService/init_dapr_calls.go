@@ -52,7 +52,9 @@ func makeServiceCallHandle(serEventModel contract.IServiceEvent, name string) (
 
 	handler := func(ctx context.Context, in *common.InvocationEvent) (*common.Content, error) {
 		env := module.NewModuleEventReq(name, in.Data, false, nil)
-		serviceLog.Debug("receive dapr call [%s] env:%v", name, string(in.Data))
+
+		// serviceLog.Debug("receive dapr call [%s] env:%v", name, string(in.Data))
+
 		resCh := serEventModel.EventCall(env)
 		if resCh.GetError() != nil {
 			return nil, resCh.GetError()
