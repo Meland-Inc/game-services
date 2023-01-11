@@ -54,7 +54,7 @@ func BroadCastToClientHandler(env contract.IModuleEventReq, curMs int64) {
 
 	resMsg, err := protoTool.UnMarshalToEnvelope(input.MsgBody)
 	if !ignoreMsgLog(resMsg.Type) {
-		serviceLog.Info("BroadCastToClient user[%d] msg[%+v], err:%+v", input.UserId, resMsg.Type, err)
+		serviceLog.Info("BroadCastToClient user[%d] msg[%v], err:%+v", input.UserId, resMsg.Type, err)
 	}
 
 	userCh := getUserChannel(input.UserId, input.SocketId)

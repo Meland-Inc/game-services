@@ -11,11 +11,7 @@ import (
 	"github.com/Meland-Inc/game-services/src/global/grpcAPI/grpcPubsubEvent"
 )
 
-func (this *ControllerModel) GrpcCallPrivateSerStarted(ser *ServiceData) {
-	if !IsUserPrivateSer(*ser) {
-		return
-	}
-
+func (this *ControllerModel) GrpcCallServiceStarted(ser *ServiceData) {
 	// 保证在此时间内服务不会因为过期而关闭
 	ser.UpdateUserLastOnlineAt()
 

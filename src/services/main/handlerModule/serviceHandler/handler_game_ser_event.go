@@ -28,7 +28,7 @@ func GRPCSaveHomeDataEvent(env contract.IModuleEventReq, curMs int64) {
 		return
 	}
 
-	serviceLog.Info("Receive SaveHomeDataEvent: %+v", input)
+	serviceLog.Info("Receive SaveHomeDataEvent: userId [%d]", input.UserId)
 	homeModel, _ := home_model.GetHomeModel()
 	err = homeModel.UpdateUserHomeData(input.UserId, input.Data)
 	if err != nil {

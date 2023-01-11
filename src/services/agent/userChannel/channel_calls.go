@@ -41,7 +41,6 @@ func (uc *UserChannel) makePullClientMessageInputBytes(data []byte) ([]byte, err
 		MsgId:          int32(msg.Type),
 		MsgBody:        data,
 	}
-	serviceLog.Info("pull client msg[%+v] to other service", msg.Type)
 
 	inputBytes, err := json.Marshal(input)
 	if err != nil {
@@ -109,7 +108,7 @@ func (uc *UserChannel) callOtherServiceClientMsg(data []byte, msg *proto.Envelop
 		return
 	}
 
-	serviceLog.Info("UserChannel call [%v]", serviceType)
+	serviceLog.Info("UserChannel call clientMsg[%v] to [%v],[%v]", msg.Type, serviceType, appId)
 
 	resp, err := daprInvoke.InvokeMethod(
 		appId,
@@ -123,7 +122,7 @@ func (uc *UserChannel) callOtherServiceClientMsg(data []byte, msg *proto.Envelop
 	}
 
 	output, err := uc.parsePullClientMessageOutput(resp)
-	serviceLog.Info("UserChannel call [%v] resp msg: %+v", serviceType, output)
+	serviceLog.Debug("UserChannel call [%v],[%v] resp msg: %+v", msg.Type, appId, output)
 	if err != nil {
 		errResponseF(70001, err.Error())
 		return

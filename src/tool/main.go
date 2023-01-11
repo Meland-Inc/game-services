@@ -11,13 +11,48 @@ import (
 func main() {
 	daprInvoke.InitClient("5550") //
 
-	var userId int64 = 691
+	var userId int64 = 678
 	fmt.Println(" mint user ", userId, " nfts begin --- ")
 
-	makeTaskTestItem(userId, 1, 1)
-	makeTestCraftItems(userId, 1, 1)
+	// makeTaskTestItem(userId, 1, 1)
+	// makeTestCraftItems(userId, 1, 1)
+
+	makeHomeTestItem(userId, 1, 1)
 
 	fmt.Println(" mint user ", userId, " nfts end --- ")
+}
+
+func makeHomeTestItem(userId int64, posX, posY int32) {
+	itemId := 7020001
+	err := grpcInvoke.Web3MintNFT(userId, int32(itemId), 99, 1, posX, posY)
+	if err != nil {
+		serviceLog.Error("mint nft[%d] failed: %v", itemId, err)
+	}
+
+	itemId = 7030001
+	err = grpcInvoke.Web3MintNFT(userId, int32(itemId), 99, 1, posX, posY)
+	if err != nil {
+		serviceLog.Error("mint nft[%d] failed: %v", itemId, err)
+	}
+
+	itemId = 7010001
+	err = grpcInvoke.Web3MintNFT(userId, int32(itemId), 1, 1, posX, posY)
+	if err != nil {
+		serviceLog.Error("mint nft[%d] failed: %v", itemId, err)
+	}
+
+	itemId = 7010002
+	err = grpcInvoke.Web3MintNFT(userId, int32(itemId), 1, 1, posX, posY)
+	if err != nil {
+		serviceLog.Error("mint nft[%d] failed: %v", itemId, err)
+	}
+
+	itemId = 1010006
+	err = grpcInvoke.Web3MintNFT(userId, int32(itemId), 1, 1, posX, posY)
+	if err != nil {
+		serviceLog.Error("mint nft[%d] failed: %v", itemId, err)
+	}
+
 }
 
 func makeTaskTestItem(userId int64, posX, posY int32) {

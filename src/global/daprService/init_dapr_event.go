@@ -2,6 +2,7 @@ package daprService
 
 import (
 	"context"
+	"game-message-core/grpc"
 
 	"github.com/Meland-Inc/game-services/src/common/serviceLog"
 	"github.com/Meland-Inc/game-services/src/global/contract"
@@ -41,7 +42,12 @@ func makePubsubEventHandle(name string, serEventModel contract.IServiceEvent) (
 	serviceLog.Info("listen dapr pubsubEvent [ %s ]", name)
 
 	handler := func(ctx context.Context, e *common.TopicEvent) (retry bool, err error) {
-		serviceLog.Debug("pubsub event[%s]  data:%v", name, e.Data)
+		if name == string(grpc.SubscriptionEventSaveHomeData) {
+			serviceLog.Debug("pubsub event  [%s]  ", name)
+		} else {
+			serviceLog.Debug("pubsub event[%s]  data:%v", name, e.Data)
+		}
+
 		serEventModel.EventCallNoReturn(module.NewModuleEventReq(name, e, false, nil))
 		return false, nil
 	}

@@ -22,7 +22,7 @@ func GRPCGetHomeDataHandler(env contract.IModuleEventReq, curMs int64) {
 		if output.ErrMsg != "" {
 			output.Success = false
 		}
-		serviceLog.Debug("getHomeData output = %+v", output)
+		serviceLog.Debug("getHomeData output succ = %+v", output.Success)
 		result.SetResult(output)
 		env.WriteResult(result)
 	}()

@@ -14,11 +14,26 @@ func (p *HandlerModule) RegisterGameServiceDaprCall() {
 		string(grpc.ProtoMessageActionBroadCastToClient),
 		serviceHandler.BroadCastToClientHandler,
 	)
+	p.AddGameServiceDaprCall(
+		string(grpc.ProtoMessageActionMultipleBroadCastToClient),
+		serviceHandler.MultipleBroadCastToClientHandler,
+	)
 
 }
 
 func (p *HandlerModule) RegisterGameServiceDaprEvent() {
-
+	p.AddGameServiceDaprEvent(
+		string(grpc.SubscriptionEventServiceUnregister),
+		serviceHandler.GRPCServiceUnRegisterEvent,
+	)
+	p.AddGameServiceDaprEvent(
+		string(grpc.SubscriptionEventTickOutPlayer),
+		serviceHandler.GRPCTickOutUserEvent,
+	)
+	p.AddGameServiceDaprEvent(
+		string(grpc.SubscriptionEventUserChangeService),
+		serviceHandler.GRPCChangeServiceEvent,
+	)
 }
 
 func (p *HandlerModule) RegisterWeb3DaprCall() {
