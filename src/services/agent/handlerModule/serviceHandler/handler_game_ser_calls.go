@@ -10,18 +10,9 @@ import (
 	"github.com/Meland-Inc/game-services/src/global/contract"
 	"github.com/Meland-Inc/game-services/src/global/grpcAPI/grpcPubsubEvent"
 	"github.com/Meland-Inc/game-services/src/global/module"
+	"github.com/Meland-Inc/game-services/src/services/agent/clientMsgLogCtrl"
 	"github.com/Meland-Inc/game-services/src/services/agent/userChannel"
 )
-
-func ignoreMsgLog(msgType proto.EnvelopeType) bool {
-	switch msgType {
-	case proto.EnvelopeType_BroadCastItemAdd,
-		proto.EnvelopeType_BroadCastEntityMove,
-		proto.EnvelopeType_BroadCastMapEntityUpdate:
-		return true
-	}
-	return false
-}
 
 func getUserChannel(userId int64, socketId string) *userChannel.UserChannel {
 	var userCh *userChannel.UserChannel
@@ -39,8 +30,8 @@ func BroadCastToClientHandler(env contract.IModuleEventReq, curMs int64) {
 	defer func() {
 		if output.ErrMsg != "" {
 			output.Success = false
+			serviceLog.Warning("BroadCastToClient fail err: %v", output.ErrMsg)
 		}
-		serviceLog.Debug("BroadCastToClient output = %+v", output)
 		result.SetResult(output)
 		env.WriteResult(result)
 	}()
@@ -53,7 +44,7 @@ func BroadCastToClientHandler(env contract.IModuleEventReq, curMs int64) {
 	}
 
 	resMsg, err := protoTool.UnMarshalToEnvelope(input.MsgBody)
-	if !ignoreMsgLog(resMsg.Type) {
+	if clientMsgLogCtrl.PrintCliMsgLog(resMsg.Type) {
 		serviceLog.Info("BroadCastToClient user[%d] msg[%v], err:%+v", input.UserId, resMsg.Type, err)
 	}
 
@@ -76,8 +67,8 @@ func MultipleBroadCastToClientHandler(env contract.IModuleEventReq, curMs int64)
 	defer func() {
 		if output.ErrMsg != "" {
 			output.Success = false
+			serviceLog.Warning("MultipleBroadCastToClient fail err: %v", output.ErrMsg)
 		}
-		serviceLog.Debug("MultipleBroadCastToClient output = %+v", output)
 		result.SetResult(output)
 		env.WriteResult(result)
 	}()
@@ -90,7 +81,7 @@ func MultipleBroadCastToClientHandler(env contract.IModuleEventReq, curMs int64)
 	}
 
 	resMsg, err := protoTool.UnMarshalToEnvelope(input.MsgBody)
-	if !ignoreMsgLog(resMsg.Type) {
+	if clientMsgLogCtrl.PrintCliMsgLog(resMsg.Type) {
 		serviceLog.Info("MultipleBroadCastToClient Users:%v, msg[%+v], err:%+v", input.UserList, resMsg.Type, err)
 	}
 

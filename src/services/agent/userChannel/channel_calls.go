@@ -13,6 +13,7 @@ import (
 	"github.com/Meland-Inc/game-services/src/common/time_helper"
 	"github.com/Meland-Inc/game-services/src/global/grpcAPI/grpcPubsubEvent"
 	"github.com/Meland-Inc/game-services/src/global/serviceCnf"
+	"github.com/Meland-Inc/game-services/src/services/agent/clientMsgLogCtrl"
 )
 
 func (uc *UserChannel) clientMsgIsLegal(msgType proto.EnvelopeType) (bool, error) {
@@ -77,6 +78,13 @@ func (uc *UserChannel) getServiceAppId(serviceType proto.ServiceType) (appId str
 
 func (uc *UserChannel) callOtherServiceClientMsg(data []byte, msg *proto.Envelope) {
 	errResponseF := func(errorCode int32, errMsg string) {
+		if errMsg != "" {
+			serviceLog.Error(
+				"callOtherServiceClientMsg userId[%d],[%v] resp errCode[%d], err: %+v",
+				uc.owner, msg.Type, errorCode, errMsg,
+			)
+		}
+
 		resMsg := &proto.Envelope{
 			Type:         msg.Type,
 			SeqId:        msg.SeqId,
@@ -108,21 +116,21 @@ func (uc *UserChannel) callOtherServiceClientMsg(data []byte, msg *proto.Envelop
 		return
 	}
 
-	serviceLog.Info("UserChannel call clientMsg[%v] to [%v],[%v]", msg.Type, serviceType, appId)
-
+	if clientMsgLogCtrl.PrintCliMsgLog(msg.Type) {
+		serviceLog.Info("UserChannel call [%d] clientMsg[%v] to [%v],[%v]", uc.owner, msg.Type, serviceType, appId)
+	}
 	resp, err := daprInvoke.InvokeMethod(
 		appId,
 		string(grpc.ProtoMessageActionPullClientMessage),
 		inputBytes,
 	)
 	if err != nil {
-		serviceLog.Error("send client msg to [%s] failed err: %+v", appId, err)
+		serviceLog.Error("UserChannel call [%v],[%v] failed err: %+v", msg.Type, appId, err)
 		errResponseF(70001, err.Error())
 		return
 	}
 
 	output, err := uc.parsePullClientMessageOutput(resp)
-	serviceLog.Debug("UserChannel call [%v],[%v] resp msg: %+v", msg.Type, appId, output)
 	if err != nil {
 		errResponseF(70001, err.Error())
 		return
