@@ -12,10 +12,14 @@ import (
 )
 
 func GRPCServiceRegisterHandler(env contract.IModuleEventReq, curMs int64) {
-	output := &methodData.ServiceRegisterOutput{ManagerAt: time_helper.NowUTCMill()}
+	output := &methodData.ServiceRegisterOutput{
+		Success:   true,
+		ManagerAt: time_helper.NowUTCMill(),
+	}
 	result := &module.ModuleEventResult{}
 	defer func() {
 		if result.GetError() != nil {
+			output.Success = false
 			serviceLog.Error(result.GetError().Error())
 		}
 		result.SetResult(output)
@@ -29,23 +33,25 @@ func GRPCServiceRegisterHandler(env contract.IModuleEventReq, curMs int64) {
 		return
 	}
 
-	service := controller.ToServiceData(input.Service)
-	ctlModel, _ := controller.GetControllerModel()
-	if _, exist := ctlModel.GetAliveServiceByType(
-		service.ServiceType, service.SceneSerSubType, service.MapId, service.OwnerId,
-	); !exist {
-		// 玩家私有的服务 && 第一次注册时 发布启动完成事件
-		ctlModel.GrpcCallPrivateSerStarted(&service)
-	}
-
 	serviceLog.Debug(
 		"register service [%s],[%v],[%v],[%d] success",
-		service.AppId, service.ServiceType, service.SceneSerSubType, service.OwnerId,
+		input.Service.AppId, input.Service.ServiceType,
+		input.Service.SceneSerSubType, input.Service.Owner,
+	)
+
+	service := controller.ToServiceData(input.Service)
+	ctlModel, _ := controller.GetControllerModel()
+	_, exist := ctlModel.GetAliveServiceByType(
+		service.ServiceType, service.SceneSerSubType, service.MapId, service.OwnerId,
 	)
 
 	ctlModel.RegisterService(service)
-	output.Success = true
 	output.RegisterAt = input.RegisterAt
+
+	// 玩家私有的服务 && 第一次注册时 发布启动完成事件
+	if !exist && controller.IsUserPrivateSer(service) {
+		ctlModel.GrpcCallServiceStarted(&service)
+	}
 }
 
 func GRPCServiceSelectHandler(env contract.IModuleEventReq, curMs int64) {
@@ -140,16 +146,18 @@ func GRPCServiceStartHandler(env contract.IModuleEventReq, curMs int64) {
 	}
 
 	ctlModel, _ := controller.GetControllerModel()
-
 	ser, exist := ctlModel.GetAliveServiceByType(
 		input.ServiceType, input.SceneSerSubType, input.MapId, input.OwnerId,
 	)
-	if exist { // 服务已启动
-		ctlModel.GrpcCallPrivateSerStarted(ser)
+
+	if exist {
+		// 服务已启动
+		ctlModel.GrpcCallServiceStarted(ser)
 	} else {
-		if _, err = ctlModel.StartUserPrivateService(
+		_, err = ctlModel.StartUserPrivateService(
 			input.ServiceType, input.SceneSerSubType, input.MapId, input.OwnerId,
-		); err != nil {
+		)
+		if err != nil {
 			output.Success = false
 			output.ErrMsg = err.Error()
 		}

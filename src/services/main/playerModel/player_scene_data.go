@@ -13,7 +13,7 @@ import (
 
 func (p *PlayerDataModel) getBirthData() (mapId int32, pos proto.Vector3) {
 	// TODO: 此处数据需要 从配置中获取， 目前缺失
-	return 10001, proto.Vector3{X: 271, Y: 6, Z: 45}
+	return 10001, proto.Vector3{X: 270, Y: 15, Z: 136}
 }
 
 func (p *PlayerDataModel) initPlayerSceneData(tx *gorm.DB, userId int64) (*dbData.PlayerSceneData, error) {

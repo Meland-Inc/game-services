@@ -5,6 +5,7 @@ import (
 
 	"github.com/Meland-Inc/game-services/src/common/net/session"
 	"github.com/Meland-Inc/game-services/src/common/net/tcp"
+	"github.com/Meland-Inc/game-services/src/common/serviceLog"
 
 	"github.com/Meland-Inc/game-services/src/services/agent/userChannel"
 )
@@ -32,7 +33,7 @@ func (s *Service) initTcpServer() (err error) {
 }
 
 func (s *Service) OnSessionConnect(se *session.Session) {
-	fmt.Printf("session [%s][%s] ---- Connect to agent service ", se.SessionId(), se.RemoteAddr())
+	serviceLog.Info("session [%s][%s] ---- Connect to agent service ", se.SessionId(), se.RemoteAddr())
 	if s.closed {
 		return
 	}

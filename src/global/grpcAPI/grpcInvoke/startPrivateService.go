@@ -61,7 +61,7 @@ func GRPCDynamicStartSceneService(
 ) (serAppId string, err error) {
 	beginMs := time_helper.NowMill()
 	defer func() {
-		serviceLog.Info("start private scene Ser  time [%04d]Ms", time_helper.NowMill()-beginMs)
+		serviceLog.Info("start private scene Ser used time [%04d]Ms", time_helper.NowMill()-beginMs)
 	}()
 
 	envs, err := makeDynamicServiceEnvs(subType, serviceOwner, mapId, maxOnline)

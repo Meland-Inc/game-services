@@ -10,6 +10,7 @@ import (
 	"github.com/Meland-Inc/game-services/src/common/time_helper"
 	"github.com/Meland-Inc/game-services/src/global/grpcAPI/grpcPubsubEvent"
 	"github.com/Meland-Inc/game-services/src/global/serviceCnf"
+	"github.com/Meland-Inc/game-services/src/services/agent/clientMsgLogCtrl"
 )
 
 // type HandleFunc func(proto.EnvelopeType, msgBody []byte)
@@ -71,8 +72,8 @@ func (uc *UserChannel) OnSessionReceivedData(s *session.Session, data []byte) {
 		}
 	}()
 
-	if msg.Type != proto.EnvelopeType_Ping {
-		serviceLog.Debug("user[%d] channel收到客户端消息 [%v]", uc.owner, msg.Type)
+	if clientMsgLogCtrl.PrintCliMsgLog(msg.Type) {
+		serviceLog.Debug("user channel收到客户端 [%d] 消息 [%v]", uc.owner, msg.Type)
 	}
 
 	serviceId := protoTool.EnvelopeTypeToServiceType(msg.Type)

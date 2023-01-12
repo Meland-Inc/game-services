@@ -39,12 +39,6 @@ func SingInHandler(
 		return
 	}
 
-	playerDataModel, err := playerModel.GetPlayerDataModel()
-	if err != nil {
-		respMsg.ErrorMessage = err.Error()
-		return
-	}
-
 	loginModel, _ := login_model.GetLoginModel()
 	sceneAppId, err := loginModel.GetUserLoginData(userId, input.AgentAppId, input.SocketId)
 	if err != nil {
@@ -55,6 +49,7 @@ func SingInHandler(
 		sceneAppId = req.SceneServiceAppId
 	}
 
+	playerDataModel, _ := playerModel.GetPlayerDataModel()
 	playerData, err := playerDataModel.PlayerProtoData(userId)
 	if err != nil {
 		respMsg.ErrorMessage = err.Error()
